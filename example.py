@@ -1,20 +1,40 @@
 #from platypus.algorithms import NSGAII
 #from platypus.problems import DTLZ2
-from platypus.core import Problem
+from platypus.core import Problem, Solution
 from platypus.types import Real
 from platypus.algorithms import NSGAII
+from platypus.operators import TournamentSelector, RandomGenerator, PM
+#from platypus.algorithms import NSGAII
 
-problem = Problem(11, 2, 1)
-problem.variables[:] = Real(0, 1)
-problem.objectives[:] = Problem.MINIMIZE
-problem.constraints[:] = ">=0"
-problem.function = #...
+def createSolution(problem, x):
+    solution = Solution(problem)
+    solution.variables = x
+    solution.evaluate()
+    return solution
 
-algorithm = NSGAII(problem)
+problem = Problem(1, 2, 0)
+problem.types[:] = Real(0, 1)
+problem.directions[:] = Problem.MINIMIZE
+problem.function = lambda x : [x[0]**2, (x[0]-2)**2]
+
+algorithm = NSGAII(problem,
+                   population_size = 100,
+                   generator = RandomGenerator(),
+                   selector = TournamentSelector(2),
+                   variator = PM(1.0))
+
 algorithm.run(10000)
 
 for solution in algorithm.result:
     print solution
+
+#problem.function = #...
+
+#algorithm = NSGAII(problem)
+#algorithm.run(10000)
+
+#for solution in algorithm.result:
+#    print solution
 
 
 #algorithm = NSGAII(problem)
