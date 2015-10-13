@@ -4,17 +4,13 @@ from platypus.core import Problem
 from platypus.types import Real
 from platypus.algorithms import NSGAII
 
-def myfunction(variables):
-    # ...
-    return (objs, constrs)
-
-problem = Problem(2)
-problem.variables = [Real(0, 1)]*11
-problem.function = myfunction
+problem = Problem(11, 2, 1)
+problem.variables[:] = Real(0, 1)
+problem.objectives[:] = Problem.MINIMIZE
+problem.constraints[:] = ">=0"
+problem.function = #...
 
 algorithm = NSGAII(problem)
-algorithm.operator = GAOperator(SBX(1.0, 15.0),
-                                PM(1.0 / 11.0, 20.0))
 algorithm.run(10000)
 
 for solution in algorithm.result:

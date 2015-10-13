@@ -1,14 +1,42 @@
 class PlatypusError(Exception):
-   pass
+    pass
+
+class FixedLengthArray(object):
+
+    def __init__(self, size, default_value = None):
+        super(FixedLengthArray, self).__init__()
+        self._size = size
+        self._data = [default_value]*size
+        
+    def __setitem__(self, index, value):
+        if type(index) == slice:
+            for entry in range(*index.indices(self._size)):
+                self._data[entry] = value    
+        else:
+            if index < 0 or index >= self._size:
+                raise ValueError("index is out of bounds")
+            
+            self._data[index] = value
+            
+    def __getitem__(self, index):
+        return self._data[index]
+    
+    def __str__(self):
+        return "[" + ", ".join(map(str, self._data)) + "]"
 
 class Problem(object):
     
-    def __init__(self, nobjs, nconstrs = 0):
+    MINIMIZE = -1
+    MAXIMIZE = 1
+    
+    def __init__(self, nvars, nobjs, nconstrs = 0, function=None):
         super(Problem, self).__init__()
         self.nobjs = nobjs
         self.nconstrs = nconstrs
-        self.variables = None
-        self.function = None
+        self.function = function
+        self.types = FixedLengthArray(nvars)
+        self.directions = FixedLengthArray(nobjs, self.MINIMIZE)
+        self.constraints = FixedLengthArray(nconstrs, "==0")
         
     def evaluate(self, solution):
         if self.nconstrs > 0:
@@ -25,10 +53,11 @@ class Problem(object):
         
 class Solution(object):
     
-    def __init__(self):
+    def __init__(self, problem):
         super(Solution, self).__init__()
-        self.variables = None
-        self.objectives = None
-        self.constraints = None
-        
-    
+        self.problem = problem
+        self.variables = FixedLengthArray(problem.nvars)
+        self.objectives = FixedLengthArray(problem.nobjs)
+        self.constraints = FixedLengthArray(problem.nconstrs)
+
+class Archive():
