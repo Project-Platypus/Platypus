@@ -3,7 +3,7 @@
 from platypus.core import Problem, Solution, nondominated_sort
 from platypus.types import Real
 from platypus.algorithms import NSGAII, GDE3
-from platypus.operators import TournamentSelector, RandomGenerator, PM, SBX, GAOperator
+from platypus.operators import TournamentSelector, RandomGenerator, PM, SBX, GAOperator, DifferentialEvolution
 from platypus.problems import DTLZ2
 import operator
 #from platypus.algorithms import NSGAII
@@ -19,7 +19,7 @@ problem = DTLZ2()
 algorithm = GDE3(problem,
                  population_size = 100,
                  generator = RandomGenerator(),
-                 variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
+                 variator = DifferentialEvolution())
 
 algorithm.run(10000)
 

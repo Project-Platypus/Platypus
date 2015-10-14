@@ -222,13 +222,15 @@ class Solution(object):
         
 class Dominance(object):
     
+    __metaclass__ = ABCMeta
+    
     def __init__(self):
         super(Dominance, self).__init__()
     
     def compare(self, solution1, solution2):
         raise NotImplementedError("method not implemented")
     
-class ParetoDominance(object):
+class ParetoDominance(Dominance):
     
     def __init__(self):
         super(ParetoDominance, self).__init__()
@@ -253,6 +255,19 @@ class ParetoDominance(object):
             return -1
         else:
             return 1
+        
+class AttributeDominance(Dominance):
+    
+    def __init__(self, getter):
+        super(AttributeDominance, self).__init__()
+        
+        if hasattr(getter, "__call__"):
+            self.getter = getter
+        else:
+            self.getter = operator.attrgetter(getter)
+        
+    def compare(self, solution1, solution2):
+        return cmp(self.getter(solution1), self.getter(solution2))
 
 class Archive(object):
     
@@ -290,6 +305,22 @@ class Archive(object):
         return iter(self._contents)
         
 def nondominated_sort(solutions):
+    """Fast non-dominated sorting.
+    
+    Performs fast non-dominated sorting on a collection of solutions.  The
+    solutions will be assigned the following attributes:
+    
+    1. :code:`rank` - The index of the non-dominated front containing the
+       solution.  Rank 0 stores all non-dominated solutions.
+       
+    2. :code:`crowding_distance` - The crowding distance of the given solution.
+       Larger values indicate less crowding near the solution.
+       
+    Parameters
+    ----------
+    solutions : iterable
+        The collection of solutions
+    """
     rank = 0
     
     while len(solutions) > 0:
@@ -305,6 +336,17 @@ def nondominated_sort(solutions):
         rank += 1
         
 def crowding_distance(solutions):
+    """Calculates crowding distance for a non-dominated front.
+    
+    Computes the crowding distance for a single non-dominated front.  It is
+    assumed all solutions are non-dominated.  This method assigns the attribute
+    :code:`crowding_distance` to all solutions.
+    
+    Parameters
+    ----------
+    solutions : iterable
+        The collection of solutions
+    """
     if len(solutions) < 3:
         for solution in solutions:
             solution.crowding_distance = POSITIVE_INFINITY
@@ -323,11 +365,29 @@ def crowding_distance(solutions):
             sorted_solutions[-1].crowding_distance += POSITIVE_INFINITY
             
             for j in range(1, len(sorted_solutions)-1):
-                diff = sorted_solutions[j+1].objectives[i] - sorted_solutions[j-1].objectives[i]
-                sorted_solutions[j].crowding_distance += diff / (max_value - min_value)
+                if max_value - min_value < EPSILON:
+                    sorted_solutions[j].crowding_distance = POSITIVE_INFINITY
+                else:
+                    diff = sorted_solutions[j+1].objectives[i] - sorted_solutions[j-1].objectives[i]
+                    sorted_solutions[j].crowding_distance += diff / (max_value - min_value)
 
-def nondominated_split(solutions,
-          size):
+def nondominated_split(solutions, size):
+    """Identify the front that must be truncated.
+    
+    When truncating a population to a fixed size using non-dominated sorting,
+    identify the front N that can not completely fit within the truncated
+    result.  Returns a tuple :code:`(first, last)`, where :code:`first`
+    contains all solutions in the first N fronts (those solutions that will
+    definitely remain after truncation), and the :code:`last` is the front
+    that must be truncated.  :code:`last` can be empty.
+    
+    Parameters
+    ----------
+    solutions : iterable
+        The collection of solutions that have been non-dominated sorted
+    size : int
+        The size of the truncated result
+    """
     result = []
     rank = 0
     
@@ -344,6 +404,18 @@ def nondominated_split(solutions,
     return result, []
 
 def nondominated_prune(solutions, size):
+    """Prunes a population using non-dominated sorting.
+    
+    Similar to :code:`nondominated_truncate`, except the crowding distance
+    is recomputed after each solution is removed.  
+    
+    Parameters
+    ----------
+    solutions : iterable
+        The collection of solutions that have been non-domination sorted
+    size: int
+        The size of the truncated result
+    """
     result, remaining = nondominated_split(solutions, size)
     
     while len(result) + len(remaining) > size:
@@ -354,6 +426,25 @@ def nondominated_prune(solutions, size):
     return result + remaining
 
 def nondominated_truncate(solutions, size):
-    result = sorted(solutions, cmp=lambda x, y : cmp(x.rank, y.rank) if x.rank != y.rank else cmp(-x.crowding_distance, -y.crowding_distance))
+    """Truncates a population using non-dominated sorting.
+    
+    Truncates a population to the given size.  The resulting population is
+    filled with the first N-1 fronts.  The Nth front is too large and must be
+    split using crowding distance.
+    
+    Parameters
+    ----------
+    solutions : iterable
+        The collection of solutions that have been non-domination sorted
+    size: int
+        The size of the truncated result
+    """
+    def comparator(x, y):
+        if x.rank == y.rank:
+            return cmp(-x.crowding_distance, -y.crowding_distance)
+        else:
+            return cmp(x.rank, y.rank)
+    
+    result = sorted(solutions, cmp=comparator) 
     return result[0:size]
     

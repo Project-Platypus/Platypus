@@ -177,7 +177,7 @@ class GAOperator(Variator):
     
 class DifferentialEvolution(Variator):
     
-    def __init__(self, crossover_rate=0.9, step_size=1.0):
+    def __init__(self, crossover_rate=0.1, step_size=0.5):
         super(DifferentialEvolution, self).__init__(4)
         self.crossover_rate = crossover_rate
         self.step_size = step_size
@@ -185,7 +185,7 @@ class DifferentialEvolution(Variator):
     def evolve(self, parents):
         result = copy.deepcopy(parents[0])
         problem = result.problem
-        jrand = random.randint(problem.nvars)
+        jrand = random.randrange(problem.nvars)
         
         for j in range(problem.nvars):
             if random.uniform(0.0, 1.0) <= self.crossover_rate or j == jrand:
@@ -198,3 +198,5 @@ class DifferentialEvolution(Variator):
                 
                 result.variables[j] = y
                 result.evaluated = False
+                
+        return [result]

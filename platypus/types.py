@@ -1,5 +1,8 @@
+from abc import ABCMeta
 
 class Type(object):
+    
+    __metaclass__ = ABCMeta
     
     def __init__(self):
         super(Type, self).__init__()
