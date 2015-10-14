@@ -1,9 +1,10 @@
 #from platypus.algorithms import NSGAII
 #from platypus.problems import DTLZ2
-from platypus.core import Problem, Solution
+from platypus.core import Problem, Solution, nondominated_sort
 from platypus.types import Real
 from platypus.algorithms import NSGAII
 from platypus.operators import TournamentSelector, RandomGenerator, PM
+import operator
 #from platypus.algorithms import NSGAII
 
 def createSolution(problem, x):
@@ -13,7 +14,7 @@ def createSolution(problem, x):
     return solution
 
 problem = Problem(1, 2, 0)
-problem.types[:] = Real(0, 1)
+problem.types[:] = Real(0, 2)
 problem.directions[:] = Problem.MINIMIZE
 problem.function = lambda x : [x[0]**2, (x[0]-2)**2]
 

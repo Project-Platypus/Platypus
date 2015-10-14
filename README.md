@@ -13,7 +13,7 @@ multiobjective evolutionary algorithms (MOEAs).
 2. **Parallelization** - Platypus is designed from the bottom up with
    parallelization in mind.
    
-3. **Compatability with Python Ecosystem** - Python supports many powerful
+3. **Compatibility with Python Ecosystem** - Python supports many powerful
    modeling and analysis frameworks, and Platypus is designed with these in
    mind.  Integration into tools such as OpenMDAO are built-in.
 

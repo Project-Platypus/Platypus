@@ -1,8 +1,6 @@
-import random
 import operator
 import functools
 import itertools
-from platypus.types import Real
 
 class PlatypusError(Exception):
     pass
@@ -101,7 +99,7 @@ class Selector(object):
         super(Selector, self).__init__()
         
     def select(self, n, population):
-        return map(operator.methodcaller("select_one"), itertools.repeat(population, n))
+        return map(self.select_one, itertools.repeat(population, n))
         
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
@@ -117,7 +115,9 @@ class Algorithm(object):
         raise NotImplementedError("method not implemented")
     
     def evaluateAll(self, solutions):
-        map(self.problem.evaluate, [s for s in solutions if not s.evaluated])
+        unevaluated = [s for s in solutions if not s.evaluated]
+        map(self.problem.evaluate, unevaluated)
+        self.nfe += len(unevaluated)
     
     def run(self, NFE):
         start_nfe = self.nfe
@@ -185,7 +185,7 @@ class Solution(object):
         return self.__str__()
         
     def __str__(self):
-        return "Solution[" + ",".join(map(str, self.objectives)) + "]"
+        return "Solution[" + ",".join(map(str, self.objectives)) + ";rank=" + str(self.rank) + ";crowding=" + str(self.crowding_distance) + "]"
         
 class Dominance(object):
     
@@ -285,6 +285,7 @@ def crowding_distance(solutions):
             sorted_solutions = sorted(solutions, key=lambda x : x.objectives[i])
             min_value = sorted_solutions[0].objectives[i]
             max_value = sorted_solutions[-1].objectives[i]
+            
             sorted_solutions[0].crowding_distance += float("inf")
             sorted_solutions[-1].crowding_distance += float("inf")
             
@@ -294,8 +295,8 @@ def crowding_distance(solutions):
 
 def truncate(solutions,
              size,
-             primary_key=operator.methodcaller("rank"),
-             secondary_key=operator.methodcaller("crowding_distance")):
-    result = sorted(solutions, cmp=lambda x, y : cmp(primary_key(x), primary_key(y)) if primary_key(x)==primary_key(y) else cmp(-secondary_key(x), -secondary_key(y)))
+             primary_key=operator.attrgetter("rank"),
+             secondary_key=operator.attrgetter("crowding_distance")):
+    result = sorted(solutions, cmp=lambda x, y : cmp(primary_key(x), primary_key(y)) if primary_key(x)!=primary_key(y) else cmp(-secondary_key(x), -secondary_key(y)))
     return result[0:size]
     

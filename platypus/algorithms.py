@@ -9,10 +9,12 @@ class GeneticAlgorithm(Algorithm):
         super(GeneticAlgorithm, self).__init__(problem)
         self.population_size = population_size
         self.generator = generator
+        self.result = []
         
     def step(self):
         if self.nfe == 0:
             self.initialize()
+            self.result = self.population
         else:
             self.iterate()
             self.result = self.population
@@ -42,11 +44,11 @@ class NSGAII(GeneticAlgorithm):
         
         while len(offspring) < self.population_size:
             parents = self.selector.select(self.variator.arity, self.population)
-            offspring.append(self.variator.evolve(parents))
+            offspring.extend(self.variator.evolve(parents))
             
         self.evaluateAll(offspring)
         
-        offspring.append(self.population)
+        offspring.extend(self.population)
         nondominated_sort(offspring)
-        self.population = truncate(offspring)
+        self.population = truncate(offspring, self.population_size)
             

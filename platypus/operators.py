@@ -1,3 +1,4 @@
+import copy
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Operator, Mutation
 from platypus.types import Real
@@ -20,7 +21,7 @@ class RandomGenerator(Generator):
 
 class TournamentSelector(Selector):
     
-    def __init__(self, tournament_size = 2, dominance = ParetoDominance):
+    def __init__(self, tournament_size = 2, dominance = ParetoDominance()):
         super(TournamentSelector, self).__init__()
         self.tournament_size = tournament_size
         self.dominance = dominance
@@ -34,6 +35,8 @@ class TournamentSelector(Selector):
             
             if flag > 0:
                 winner = candidate
+                
+        return winner
    
 class PM(Mutation):
     
@@ -43,32 +46,38 @@ class PM(Mutation):
         self.distributionIndex = distributionIndex
         
     def mutate(self, parent):
-        for i in range(len(parent.variables)):
-            if isinstance(parent.problem.types[i], Real):
-                parent.variables[i] = self.pm_mutation(float(parent.variables[i]),
-                                                       parent.problem.types[i].min_value,
-                                                       parent.problem.types[i].max_value)
+        child = copy.deepcopy(parent)
+        problem = child.problem
+        
+        for i in range(len(child.variables)):
+            if isinstance(problem.types[i], Real):
+                child.variables[i] = self.pm_mutation(float(child.variables[i]),
+                                                       problem.types[i].min_value,
+                                                       problem.types[i].max_value)
+        
+        child.evaluated = False
+        return child
     
     def pm_mutation(self, x, lb, ub):
         if random.uniform(0, 1) < self.probability:
             u = random.uniform(0, 1)
-            dx = type.max - type.min
+            dx = ub - lb
         
             if u < 0.5:
-                bl = (x - type.min) / dx
+                bl = (x - lb) / dx
                 b = 2.0*u + (1.0 - 2.0*u)*pow(1.0 - bl, self.distributionIndex + 1.0)
                 delta = pow(b, 1.0 / (self.distributionIndex + 1.0)) - 1.0
             else:
-                bu = (type.max - x) / dx
+                bu = (ub - x) / dx
                 b = 2.0*(1.0 - u) + 2.0*(u - 0.5)*pow(1.0 - bu, self.distributionIndex + 1.0)
                 delta = 1.0 - pow(b, 1.0 / (self.distributionIndex + 1.0))
             
             x = x + delta*dx
             
-            if x < type.min:
-                x = type.min
-            if x > type.max:
-                x = type.max
+            if x < lb:
+                x = lb
+            if x > ub:
+                x = ub
             
         return x
     
