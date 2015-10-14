@@ -1,7 +1,13 @@
-from platypus.core import Algorithm, Operator, nondominated_sort, truncate
+import random
+import operator
+import itertools
+from abc import ABCMeta
+from platypus.core import Algorithm, Variator, ParetoDominance, nondominated_sort, nondominated_prune, nondominated_truncate
 from platypus.operators import TournamentSelector, RandomGenerator
             
 class GeneticAlgorithm(Algorithm):
+    
+    __metaclass__ = ABCMeta
     
     def __init__(self, problem,
                  population_size = 100,
@@ -32,10 +38,9 @@ class NSGAII(GeneticAlgorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
-                 variator = Operator(2)):
-        super(NSGAII, self).__init__(problem)
+                 variator = None):
+        super(NSGAII, self).__init__(problem, generator)
         self.population_size = population_size
-        self.generator = generator
         self.selector = selector
         self.variator = variator
         
@@ -50,5 +55,50 @@ class NSGAII(GeneticAlgorithm):
         
         offspring.extend(self.population)
         nondominated_sort(offspring)
-        self.population = truncate(offspring, self.population_size)
+        self.population = nondominated_truncate(offspring, self.population_size)
+
+class GDE3(GeneticAlgorithm):
+    
+    def __init__(self, problem,
+                 population_size = 100,
+                 generator = RandomGenerator(),
+                 variator = None):
+        super(GDE3, self).__init__(problem, generator)
+        self.population_size = population_size
+        self.variator = variator
+        self.dominance = ParetoDominance()
+        
+    def select(self, i, arity):
+        indices = []
+        indices.append(i)
+        indices.extend(random.sample(range(0, i) + range(i+1, len(self.population)),
+                                     arity-1))
+        return operator.itemgetter(*indices)(self.population)
+    
+    def survival(self, offspring):
+        next_population = []
+        
+        for i in range(self.population_size):
+            flag = self.dominance.compare(offspring[i], self.population[i])
             
+            if flag <= 0:
+                next_population.append(offspring[i])
+                
+            if flag >= 0:
+                next_population.append(self.population[i])
+                
+        nondominated_sort(next_population)
+        return nondominated_prune(next_population, self.population_size)    
+           
+    def iterate(self):
+        offspring = []
+        
+        for i in range(self.population_size):
+            parents = self.select(i, self.variator.arity)
+            offspring.extend(self.variator.evolve(parents))
+            
+        self.evaluateAll(offspring)
+        self.population = self.survival(offspring)
+        
+                
+        

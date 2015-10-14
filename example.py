@@ -2,27 +2,24 @@
 #from platypus.problems import DTLZ2
 from platypus.core import Problem, Solution, nondominated_sort
 from platypus.types import Real
-from platypus.algorithms import NSGAII
-from platypus.operators import TournamentSelector, RandomGenerator, PM
+from platypus.algorithms import NSGAII, GDE3
+from platypus.operators import TournamentSelector, RandomGenerator, PM, SBX, GAOperator
+from platypus.problems import DTLZ2
 import operator
 #from platypus.algorithms import NSGAII
 
-def createSolution(problem, x):
-    solution = Solution(problem)
-    solution.variables = x
-    solution.evaluate()
-    return solution
+problem = DTLZ2()
 
-problem = Problem(1, 2, 0)
-problem.types[:] = Real(0, 2)
-problem.directions[:] = Problem.MINIMIZE
-problem.function = lambda x : [x[0]**2, (x[0]-2)**2]
+# algorithm = NSGAII(problem,
+#                    population_size = 100,
+#                    generator = RandomGenerator(),
+#                    selector = TournamentSelector(2),
+#                    variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
 
-algorithm = NSGAII(problem,
-                   population_size = 100,
-                   generator = RandomGenerator(),
-                   selector = TournamentSelector(2),
-                   variator = PM(1.0))
+algorithm = GDE3(problem,
+                 population_size = 100,
+                 generator = RandomGenerator(),
+                 variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
 
 algorithm.run(10000)
 

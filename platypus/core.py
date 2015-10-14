@@ -1,6 +1,11 @@
+import sys
 import operator
 import functools
 import itertools
+from abc import ABCMeta, abstractmethod
+
+EPSILON = sys.float_info.epsilon
+POSITIVE_INFINITY = float("inf")
 
 class PlatypusError(Exception):
     pass
@@ -13,13 +18,22 @@ class FixedLengthArray(object):
         self._data = [default_value]*size
         self.convert = convert
         
+    def __len__(self):
+        return self._size
+        
     def __setitem__(self, index, value):
         if self.convert is not None:
             value = self.convert(value)
         
         if type(index) == slice:
-            for entry in range(*index.indices(self._size)):
-                self._data[entry] = value    
+            indices = range(*index.indices(self._size))
+            
+            if hasattr(value, "__len__") and len(value) == len(indices):
+                for i, entry in enumerate(indices):
+                    self._data[entry] = value[i]
+            else:
+                for entry in range(*index.indices(self._size)):
+                    self._data[entry] = value    
         else:
             if index < 0 or index >= self._size:
                 raise ValueError("index is out of bounds")
@@ -67,33 +81,47 @@ class Problem(object):
 
 class Generator(object):
     
+    __metaclass__ = ABCMeta
+    
     def __init__(self):
         super(Generator, self).__init__()
         
+    @abstractmethod
     def generate(self, problem):
         raise NotImplementedError("method not implemented")
     
-class Operator(object):
+class Variator(object):
+    
+    __metaclass__ = ABCMeta
     
     def __init__(self, arity):
-        super(Operator, self).__init__()
+        super(Variator, self).__init__()
         self.arity = arity
         
+    @abstractmethod
     def evolve(self, parents):
         raise NotImplementedError("method not implemented")
     
-class Mutation(Operator):
+class Mutation(Variator):
     
+    __metaclass__ = ABCMeta
+
     def __init__(self):
         super(Mutation, self).__init__(1)
         
     def evolve(self, parents):
-        return map(self.mutate, parents)
+        if hasattr(parents, "__iter__"):
+            return map(self.mutate, parents)
+        else:
+            return self.mutate(parents)
         
+    @abstractmethod
     def mutate(self, parent):
         raise NotImplementedError("method not implemented")
     
 class Selector(object):
+    
+    __metaclass__ = ABCMeta
     
     def __init__(self):
         super(Selector, self).__init__()
@@ -101,16 +129,20 @@ class Selector(object):
     def select(self, n, population):
         return map(self.select_one, itertools.repeat(population, n))
         
+    @abstractmethod
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
     
 class Algorithm(object):
+    
+    __metaclass__ = ABCMeta
     
     def __init__(self, problem):
         super(Algorithm, self).__init__()
         self.problem = problem
         self.nfe = 0
     
+    @abstractmethod
     def step(self):
         raise NotImplementedError("method not implemented")
     
@@ -176,6 +208,7 @@ class Solution(object):
         self.variables = FixedLengthArray(problem.nvars)
         self.objectives = FixedLengthArray(problem.nobjs)
         self.constraints = FixedLengthArray(problem.nconstrs)
+        self.constraint_violation = 0.0
         self.evaluated = False
         
     def evaluate(self):
@@ -185,7 +218,7 @@ class Solution(object):
         return self.__str__()
         
     def __str__(self):
-        return "Solution[" + ",".join(map(str, self.objectives)) + ";rank=" + str(self.rank) + ";crowding=" + str(self.crowding_distance) + "]"
+        return "Solution[" + ",".join(map(str, self.objectives)) + "]"
         
 class Dominance(object):
     
@@ -229,7 +262,7 @@ class Archive(object):
         self._contents = []
         
     def add(self, solution):
-        flags = list(itertools.starmap(self._dominance.compare, itertools.izip(itertools.cycle([solution]), self._contents)))
+        flags = [self._dominance.compare(solution, s) for s in self._contents]
         dominates = map(lambda x : x > 0, flags)
         nondominated = map(lambda x : x <= 0, flags)
         
@@ -274,7 +307,7 @@ def nondominated_sort(solutions):
 def crowding_distance(solutions):
     if len(solutions) < 3:
         for solution in solutions:
-            solution.crowding_distance = float("inf")
+            solution.crowding_distance = POSITIVE_INFINITY
     else:
         nobjs = solutions[0].problem.nobjs
         
@@ -286,17 +319,41 @@ def crowding_distance(solutions):
             min_value = sorted_solutions[0].objectives[i]
             max_value = sorted_solutions[-1].objectives[i]
             
-            sorted_solutions[0].crowding_distance += float("inf")
-            sorted_solutions[-1].crowding_distance += float("inf")
+            sorted_solutions[0].crowding_distance += POSITIVE_INFINITY
+            sorted_solutions[-1].crowding_distance += POSITIVE_INFINITY
             
             for j in range(1, len(sorted_solutions)-1):
                 diff = sorted_solutions[j+1].objectives[i] - sorted_solutions[j-1].objectives[i]
                 sorted_solutions[j].crowding_distance += diff / (max_value - min_value)
 
-def truncate(solutions,
-             size,
-             primary_key=operator.attrgetter("rank"),
-             secondary_key=operator.attrgetter("crowding_distance")):
-    result = sorted(solutions, cmp=lambda x, y : cmp(primary_key(x), primary_key(y)) if primary_key(x)!=primary_key(y) else cmp(-secondary_key(x), -secondary_key(y)))
+def nondominated_split(solutions,
+          size):
+    result = []
+    rank = 0
+    
+    while len(result) < size:
+        front = [x for x in solutions if x.rank==rank]
+        
+        if len(result)+len(front) <= size:
+            result.extend(front)
+        elif len(front) == 0:
+            return (result, [])
+        else:
+            return (result, front)
+        
+    return result, []
+
+def nondominated_prune(solutions, size):
+    result, remaining = nondominated_split(solutions, size)
+    
+    while len(result) + len(remaining) > size:
+        crowding_distance(remaining)
+        remaining = sorted(remaining, key=operator.attrgetter("crowding_distance"))
+        del remaining[0]
+        
+    return result + remaining
+
+def nondominated_truncate(solutions, size):
+    result = sorted(solutions, cmp=lambda x, y : cmp(x.rank, y.rank) if x.rank != y.rank else cmp(-x.crowding_distance, -y.crowding_distance))
     return result[0:size]
     
