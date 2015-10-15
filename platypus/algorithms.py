@@ -1,11 +1,17 @@
+import sys
 import math
 import random
 import operator
 import itertools
+from sets import Set
 from abc import ABCMeta, abstractmethod
-from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, AttributeDominance, nondominated_sort, nondominated_prune, nondominated_truncate, POSITIVE_INFINITY
+from platypus.core import Algorithm, Variator, Dominance, ParetoDominance,\
+    AttributeDominance, nondominated_sort, nondominated_prune,\
+    nondominated_truncate, nondominated_split,\
+    EPSILON, POSITIVE_INFINITY
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution
 from platypus.tools import DistanceMatrix
+from platypus.weights import random_weights, chebyshev, normal_boundary_weights
             
 class GeneticAlgorithm(Algorithm):
     
@@ -188,49 +194,6 @@ class SPEA2(GeneticAlgorithm):
         self._assign_fitness(offspring)
         self.population = self._truncate(offspring, self.population_size)
         
-def random_weights(size, nobjs):
-    weights = []
-    
-    if nobjs == 2:
-        weights = [[1, 0], [0, 1]]
-        weights.extend([(i/(size-1.0), 1.0-i/(size-1.0)) for i in range(1, size-1)])
-    else:
-        # generate candidate weights
-        candidate_weights = []
-        
-        for i in range(size*50):
-            random_values = [random.uniform(0.0, 1.0) for _ in range(nobjs)]
-            candidate_weights.append([x/sum(random_values) for x in random_values])
-        
-        # add weights for the corners
-        for i in range(nobjs):
-            weights.append([0]*i + [1] + [0]*(nobjs-i-1))
-            
-        # iteratively fill in the remaining weights by finding the candidate
-        # weight with the largest distance from the assigned weights
-        while len(weights) < size:
-            max_index = -1
-            max_distance = -POSITIVE_INFINITY
-            
-            for i in range(len(candidate_weights)):
-                distance = POSITIVE_INFINITY
-                
-                for j in range(len(weights)):
-                    temp = math.sqrt(sum([math.pow(candidate_weights[i][k]-weights[j][k], 2.0) for k in range(nobjs)]))
-                    distance = min(distance, temp)
-                    
-                if distance > max_distance:
-                    max_index = i
-                    max_distance = distance
-                    
-            weights.append(candidate_weights[max_index])
-            del candidate_weights[max_index]
-            
-    return weights
-    
-def chebyshev(values, weights):
-    return max([max(weights[i], 0.0001) * values[i] for i in range(len(values))])
-
 class MOEAD(GeneticAlgorithm):
     
     def __init__(self, problem,
@@ -334,9 +297,12 @@ class MOEAD(GeneticAlgorithm):
         if self.update_utility is None:
             indices.extend(range(self.population_size))
         else:
-            indices = range(self.problem.nobjs)
+            indices = []
             
-            for _ in range(self.problem.nobjs, self.population_size / 5):
+            if self.weight_generator == random_weights:
+                indices.extend(range(self.problem.nobjs))
+            
+            while len(indices) < self.population_size:
                 index = random.randrange(self.population_size)
                 
                 for _ in range(9):
@@ -345,7 +311,7 @@ class MOEAD(GeneticAlgorithm):
                     if self.utilities[temp_index] > self.utilities[index]:
                         index = temp_index
             
-            indices.append(index)
+                indices.append(index)
             
         random.shuffle(indices)
         return indices
@@ -390,3 +356,180 @@ class MOEAD(GeneticAlgorithm):
         
         if self.update_utility >= 0 and self.generation % self.update_utility == 0:
             self._update_utility()
+
+def _find_extreme_points(solutions, objective):
+    eps = 0.000001
+    nobjs = solutions[0].problem.nobjs
+    
+    weights = [eps]*nobjs
+    weights[objective] = 1.0
+    
+    min_index = -1
+    min_value = POSITIVE_INFINITY
+    
+    for i in range(len(solutions)):
+        objectives = solutions[i].normalized_objectives
+        value = max([objectives[i]/weights[i] for i in range(nobjs)])
+        
+        if value < min_value:
+            min_index = i
+            min_value = value
+            
+    return solutions[min_index]
+
+def _point_line_distance(line, point):
+    n = len(line)
+    lp_dot = reduce(operator.add, [line[i]*point[i] for i in range(n)], 0)
+    ll_dot = reduce(operator.add, [line[i]*line[i] for i in range(n)], 0)
+    pline = [(lp_dot / ll_dot) * line[i] for i in range(n)]
+    diff = [pline[i] - point[i] for i in range(n)]
+    return math.sqrt(reduce(operator.add, [diff[i]*diff[i] for i in range(n)], 0))
+
+def _associate_to_reference_point(solutions, reference_points):
+    result = [[] for _ in range(len(reference_points))]
+    
+    for solution in solutions:
+        min_index = -1
+        min_distance = POSITIVE_INFINITY
+        
+        for i in range(len(reference_points)):
+            distance = _point_line_distance(reference_points[i], solution.normalized_objectives)
+    
+            if distance < min_distance:
+                min_index = i
+                min_distance = distance
+                
+        result[min_index].append(solution)
+        
+    return result
+
+def _find_minimum_distance(solutions, reference_point):
+    min_index = -1
+    min_distance = POSITIVE_INFINITY
+        
+    for i in range(len(solutions)):
+        solution = solutions[i]
+        distance = _point_line_distance(reference_point, solution.normalized_objectives)
+    
+        if distance < min_distance:
+            min_index = i
+            min_distance = distance
+                
+    return solutions[min_index]
+    
+def reference_point_truncate(solutions, size, ideal_point, reference_points):
+    from numpy.linalg import lstsq, LinAlgError
+    nobjs = solutions[0].problem.nobjs
+    
+    if len(solutions) > size:
+        result, remaining = nondominated_split(solutions, size)
+        
+        # update the ideal point
+        for solution in solutions:
+            for i in range(nobjs):
+                ideal_point[i] = min(ideal_point[i], solution.objectives[i])
+                
+        # translate points by ideal point
+        for solution in solutions:
+            solution.normalized_objectives = [solution.objectives[i] - ideal_point[i] for i in range(nobjs)]
+        
+        # find the extreme points
+        extreme_points = [_find_extreme_points(solutions, i) for i in range(nobjs)]
+        
+        # calculate the intercepts
+        degenerate = False
+        
+        try:
+            b = [1.0]*nobjs
+            A = [s.normalized_objectives for s in extreme_points]
+            x = lstsq(A, b)
+            intercepts = [1.0 / i for i in x]
+        except LinAlgError:
+            degenerate = True
+            
+        if not degenerate:
+            for i in range(nobjs):
+                if intercepts[i] < 0.001:
+                    degenerate = True
+                    break
+                
+        if degenerate:
+            intercepts = [-POSITIVE_INFINITY]*nobjs
+            
+            for i in range(nobjs):
+                intercepts[i] = max([s.normalized_objectives for s in solutions] + [EPSILON])
+
+        # normalize objectives using intercepts
+        for solution in solutions:
+            solution.normalized_objectives = [solution.normalized_objectives[i] / intercepts[i] for i in range(nobjs)]
+
+        # associate each solution to a reference point
+        members = _associate_to_reference_point(result, reference_points)
+        potential_members = _associate_to_reference_point(remaining, reference_points)
+        excluded = Set()
+        
+        while len(result) < size:
+            # identify reference point with the fewest associated members
+            min_indices = []
+            min_count = sys.maxint
+            
+            for i in range(len(members)):
+                if i not in excluded and len(members[i]) <= min_count:
+                    if len(members[i]) < min_count:
+                        min_indices = []
+                        min_count = len(members[i])
+                    min_indices.append(i)
+            
+            # pick one randomly if there are multiple options
+            min_index = random.choice(min_indices)
+            
+            # add associated solution
+            if min_count == 0:
+                if len(potential_members[min_index]) == 0:
+                    excluded.add(min_index)
+                else:
+                    min_solution = _find_minimum_distance(potential_members[min_index], reference_points[min_index])
+                    result.append(min_solution)
+                    members[min_index].append(min_solution)
+                    potential_members[min_index].remove(min_solution)
+            else:
+                if len(potential_members[min_index]) == 0:
+                    excluded.add(min_index)
+                else:
+                    rand_solution = random.choice(potential_members[min_index])
+                    result.append(rand_solution)
+                    members[min_index].append(rand_solution)
+                    potential_members[min_index].remove(rand_solution)
+                    
+        return result
+    else:
+        return solutions
+
+class NSGAIII(GeneticAlgorithm):
+    
+    def __init__(self, problem,
+                 divisions_outer,
+                 divisions_inner = 0,
+                 population_size = 100,
+                 generator = RandomGenerator(),
+                 selector = TournamentSelector(2),
+                 variator = None):
+        super(NSGAIII, self).__init__(problem, generator)
+        self.population_size = population_size
+        self.selector = selector
+        self.variator = variator
+        self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
+        self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
+        
+    def iterate(self):
+        offspring = []
+        
+        while len(offspring) < self.population_size:
+            parents = self.selector.select(self.variator.arity, self.population)
+            offspring.extend(self.variator.evolve(parents))
+            
+        self.evaluateAll(offspring)
+        
+        offspring.extend(self.population)
+        nondominated_sort(offspring)
+        self.population = reference_point_truncate(offspring, self.population_size, self.ideal_point, self.reference_points)

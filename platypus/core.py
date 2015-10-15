@@ -1,4 +1,5 @@
 import sys
+import copy
 import operator
 import functools
 import itertools
@@ -469,5 +470,6 @@ def nondominated_truncate(solutions, size):
             return cmp(x.rank, y.rank)
     
     result = sorted(solutions, cmp=comparator) 
-    return result[0:size]
-    
+    return result[:size]
+        
+        
