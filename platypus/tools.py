@@ -1,6 +1,5 @@
 import math
-import itertools
-from platypus.core import Solution, Problem
+from platypus.core import POSITIVE_INFINITY
 
 def euclidean_dist(solution1, solution2):
     o1 = solution1.objectives
@@ -8,50 +7,89 @@ def euclidean_dist(solution1, solution2):
     return math.sqrt(sum([math.pow(o1[i]-o2[i], 2.0) for i in range(len(o1))]))
 
 class DistanceMatrix(object):
+    """Maintains pairwise distances between solutions.
+    
+    The distance matrix, used by SPEA2, maintains the pairwise distances
+    between solutions.  It also provides convenient routines to lookup the
+    distance between any two solutions, find the most crowded solution, and
+    remove a solution.
+    """
     
     def __init__(self, solutions, distance_fun=euclidean_dist):
         super(DistanceMatrix, self).__init__()
-        self._solutions = solutions
-        self._distance_fun = distance_fun
+        self.distances = []
         
-        keys = list(itertools.combinations(range(len(solutions)), 2))
-        distances = map(distance_fun, [solutions[x[0]] for x in keys], [solutions[x[1]] for x in keys])
+        for i in range(len(solutions)):
+            distances_i = []
+            for j in range(len(solutions)):
+                if i != j:
+                    distances_i.append((j, distance_fun(solutions[i], solutions[j])))
+                      
+            self.distances.append(sorted(distances_i, cmp=lambda x, y : cmp(x[1], y[1])))                       
+    
+    def find_most_crowded(self):
+        """Finds the most crowded solution.
         
-        self._map = {}
-        for key, distance in zip(keys, distances):
-            self._map[key] = distance
+        Returns the index of the most crowded solution, which is the solution
+        with the smallest distance to the nearest neighbor.  Any ties are
+        broken by looking at the next distant neighbor.
+        """
+        minimum_distance = POSITIVE_INFINITY
+        minimum_index = -1
+        
+        for i in range(len(self.distances)):
+            distances_i = self.distances[i]
             
+            if distances_i[0][1] < minimum_distance:
+                minimum_distance = distances_i[0][1]
+                minimum_index = i
+            elif distances_i[0][1] == minimum_distance:
+                for j in range(len(distances_i)):
+                    dist1 = distances_i[j][1]
+                    dist2 = self.distances[minimum_index][j][1]
+                    
+                    if dist1 < dist2:
+                        minimum_index = i
+                        break
+                    if dist2 < dist1:
+                        break
+        
+        return minimum_index
+    
+    def remove_point(self, index):
+        """Removes the distance entries for the given solution.
+        
+        Parameters
+        ----------
+        index : int
+            The index of the solution
+        """
+        del self.distances[index]
+        
+        for i in range(len(self.distances)):
+            self.distances[i] = [(x if x < index else x-1, y) for (x, y) in self.distances[i] if x != index]
+    
+    def kth_distance(self, i, k):
+        """Returns the distance to the k-th nearest neighbor.
+        
+        Parameters
+        ----------
+        i : int
+            The index of the solution
+        k : int
+            Finds the k-th nearest neightbor distance
+        """
+        return self.distances[i][k][1]
+    
     def __getitem__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
-            x = key[0]
-            y = key[1]
-            
-            if x == y:
+            if key[0] == key[1]:
                 return 0.0
-            if y < x:
-                x, y = y, x
+            else:
+                for i, d in self.distances[key[0]]:
+                    if i == key[1]:
+                        return d
                 
-            return self._map[(x, y)]
+                raise ValueError("key not found")
         else:
             raise ValueError("key must be a tuple")
-
-problem = Problem(0, 2)
-
-def createSolution(objs):
-    s = Solution(problem)
-    s.objectives[:] = objs
-    return s
-        
-d = DistanceMatrix([createSolution([0, 1]), createSolution([1, 0]), createSolution([0.5, 0.5]), createSolution([0.5, 0.5])])
-print d[0,1]
-print d[0,2]
-print d[0,3]
-print d[1,2]
-print d[1,3]
-print d[2,3]
-print d[1,0]
-print d[2,0]
-print d[3,0]
-print d[2,1]
-print d[3,1]
-print d[3,2]

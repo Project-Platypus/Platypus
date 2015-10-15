@@ -200,3 +200,8 @@ class DifferentialEvolution(Variator):
                 result.evaluated = False
                 
         return [result]
+    
+class DefaultVariator(Variator):
+    
+    def __init__(self):
+        super(DefaultVariator, self).__init__()

@@ -236,7 +236,10 @@ class ParetoDominance(Dominance):
         super(ParetoDominance, self).__init__()
     
     def compare(self, solution1, solution2):
-        if solution1.constraint_violation != solution2.constraint_violation:
+        problem = solution1.problem
+        
+        # first check constraint violation
+        if problem.nconstrs > 0 and solution1.constraint_violation != solution2.constraint_violation:
             if solution1.constraint_violation == 0:
                 return -1
             elif solution2.constraint_violation == 0:
@@ -246,12 +249,32 @@ class ParetoDominance(Dominance):
             elif solution2.constraint_violation < solution1.constraint_violation:
                 return 1
         
-        dominates1 = any(itertools.starmap(operator.lt, itertools.izip(solution1.objectives, solution2.objectives)))
-        dominates2 = any(itertools.starmap(operator.gt, itertools.izip(solution1.objectives, solution2.objectives)))
+        # then use Pareto dominance on the objectives
+        dominate1 = False
+        dominate2 = False
         
-        if dominates1 == dominates2:
+        for i in range(problem.nobjs):
+            o1 = solution1.objectives[i]
+            o2 = solution2.objectives[i]
+            
+            if problem.directions[i] == Problem.MAXIMIZE:
+                o1 = -o1
+                o2 = -o2
+
+            if o1 < o2:
+                dominate1 = True
+                    
+                if dominate2:
+                    return 0
+            elif o1 > o2:
+                dominate2 = True
+                
+                if dominate1:
+                    return 0
+            
+        if dominate1 == dominate2:
             return 0
-        elif dominates1:
+        elif dominate1:
             return -1
         else:
             return 1
