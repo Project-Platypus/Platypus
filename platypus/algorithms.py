@@ -6,12 +6,12 @@ import operator
 import itertools
 from sets import Set
 from abc import ABCMeta, abstractmethod
-from platypus.core import Algorithm, Variator, Dominance, ParetoDominance,\
+from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, AttributeDominance,\
     AttributeDominance, nondominated_sort, nondominated_prune,\
-    nondominated_truncate, nondominated_split,\
+    nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
-    clip
+    clip, Mutation, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
             
@@ -607,16 +607,18 @@ class ParticleSwarm(Algorithm):
                  leader_size = 100,
                  generator = RandomGenerator(),
                  mutate = None,
-                 leader_comparator = None,
+                 leader_comparator = AttributeDominance("fitness"),
+                 dominance = ParetoDominance(),
                  fitness = None,
                  larger_preferred = True,
                  fitness_getter = operator.attrgetter("fitness")):
-        super(ParticleSwarm, self).__init__()
+        super(ParticleSwarm, self).__init__(problem)
         self.swarm_size = swarm_size
         self.leader_size = leader_size
         self.generator = generator
         self.mutate = mutate
         self.leader_comparator = leader_comparator
+        self.dominance = dominance
         self.fitness = fitness
         self.larger_preferred = larger_preferred
         self.fitness_getter = fitness_getter
@@ -636,26 +638,21 @@ class ParticleSwarm(Algorithm):
         self.local_best = self.particles[:]
         
         self.leaders = self.particles[:]
-        truncate_fitness(self.leaders, self.leader_size, self.fitness, self.larger_preferred, self.fitness_getter)
+        self.fitness(self.leaders)
+        truncate_fitness(self.leaders, self.leader_size, self.larger_preferred, self.fitness_getter)
         
-        self.result = self.leaders
+        self.velocities = [[0.0]*self.problem.nvars for _ in range(self.swarm_size)]
     
     def iterate(self):
         self._update_velocities()
         self._update_positions()
         self._mutate()
-        
         self.evaluateAll(self.particles)
-        
         self._update_local_best()
         
         self.leaders.extend(self.particles)
-        truncate_fitness(self.leaders, self.leader_size, self.fitness, self.larger_preferred, self.fitness_getter)
-        
-        self.result = self.leaders
-    
-    def _evaluate_fitness(self, solutions):
-        pass
+        self.fitness(self.leaders)
+        truncate_fitness(self.leaders, self.leader_size, self.larger_preferred, self.fitness_getter)
     
     def _update_velocities(self):
         for i in range(self.swarm_size):
@@ -726,26 +723,52 @@ class ParticleSwarm(Algorithm):
             for i in range(self.swarm_size):
                 self.particles[i] = self.mutate([self.particles[i]])[0]
                 
-# class OMOPSO(ParticleSwarm):
-#     
-#     def __init__(self, problem,
-#                  swarm_size = 100,
-#                  leader_size = 100,
-#                  generator = RandomGenerator(),
-#                  mutation_probability = 0.1,
-#                  mutation_perturbation = 0.5,
-#                  max_iterations = 100)
-#         super(ParticleSwarm, self).__init__(problem,
-#                                             swarm_size=swarm_size,
-#                                             leader_size=leader_size,
-#                                             generator = generator,
-#                                             leader_comparator = ParetoDominance(),
-#                                             fitness = crowding_distance)
-#         
-#     def _mutate(self):
-#         if self.mutate is not None:
-#             for i in range(self.swarm_size):
-#                 if i % 3 == 0:
-#                     pass
-#                 elif i % 3 == 1:
-#                     self.particles[i] = self.mutate([self.particles[i]])[0]
+class OMOPSO(ParticleSwarm):
+     
+    def __init__(self, problem,
+                 epsilons,
+                 swarm_size = 100,
+                 leader_size = 100,
+                 generator = RandomGenerator(),
+                 mutation_probability = 0.1,
+                 mutation_perturbation = 0.5,
+                 max_iterations = 100):
+        super(OMOPSO, self).__init__(problem,
+                                     swarm_size=swarm_size,
+                                     leader_size=leader_size,
+                                     generator = generator,
+                                     leader_comparator = AttributeDominance("crowding_distance"),
+                                     dominance = ParetoDominance(),
+                                     fitness = crowding_distance,
+                                     fitness_getter = operator.attrgetter("crowding_distance"))
+        self.max_iterations = max_iterations
+        self.archive = Archive(EpsilonDominance(epsilons))
+        self.uniform_mutation = UniformMutation(mutation_probability,
+                                                 mutation_perturbation)
+        self.nonuniform_mutation = NonUniformMutation(mutation_probability,
+                                                       mutation_perturbation,
+                                                       max_iterations,
+                                                       self)
+        
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+            self.result = self.archive
+        else:
+            self.iterate()
+            self.result = self.archive
+    
+    def initialize(self):
+        super(OMOPSO, self).initialize()
+        self.archive += self.particles
+        
+    def iterate(self):
+        super(OMOPSO, self).iterate()
+        self.archive += self.particles
+        
+    def _mutate(self):
+        for i in range(self.swarm_size):
+            if i % 3 == 0:
+                self.particles[i] = self.nonuniform_mutation.mutate(self.particles[i])
+            elif i % 3 == 1:
+                self.particles[i] = self.uniform_mutation.mutate(self.particles[i])

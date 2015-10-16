@@ -1,4 +1,5 @@
 import copy
+import math
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real
@@ -200,8 +201,57 @@ class DifferentialEvolution(Variator):
                 result.evaluated = False
                 
         return [result]
-    
-class DefaultVariator(Variator):
-    
-    def __init__(self):
-        super(DefaultVariator, self).__init__()
+
+class UniformMutation(Mutation):
+        
+    def __init__(self, probability, perturbation):
+        super(UniformMutation, self).__init__()
+        self.probability = probability
+        self.perturbation = perturbation
+        
+    def mutate(self, parent):
+        result = copy.deepcopy(parent)
+        problem = result.problem
+        
+        for i in range(problem.nvars):
+            if random.uniform(0.0, 1.0) <= self.probability:
+                type = problem.types[i]
+                value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
+                result.variables[i] = clip(value, type.min_value, type.max_value)
+                result.evaluated = False
+                
+        return result
+
+class NonUniformMutation(Mutation):
+        
+    def __init__(self, probability, perturbation, max_iterations, algorithm):
+        super(NonUniformMutation, self).__init__()
+        self.probability = probability
+        self.perturbation = perturbation
+        self.max_iterations = max_iterations
+        self.algorithm = algorithm
+        
+    def _delta(self, difference):
+        current_iteration = self.algorithm.nfe / self.algorithm.swarm_size
+        fraction = min(1.0, current_iteration / float(self.max_iterations))
+        return difference * (1.0 - math.pow(random.uniform(0.0, 1.0), math.pow(1.0 - fraction, self.perturbation)))
+        
+    def mutate(self, parent):
+        result = copy.deepcopy(parent)
+        problem = result.problem
+        
+        for i in range(problem.nvars):
+            if random.uniform(0.0, 1.0) <= self.probability:
+                type = problem.types[i]
+                value = result.variables[i]
+                
+                if bool(random.getrandbits(1)):
+                    value += self._delta(type.max_value - value)
+                else:
+                    value += self._delta(type.min_value - value)
+                    
+                result.variables[i] = clip(value, type.min_value, type.max_value)
+                result.evaluated = False
+                
+        return result
+                

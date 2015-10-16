@@ -3,8 +3,8 @@ import copy
 import random
 from platypus.core import POSITIVE_INFINITY
 
-def chebyshev(values, weights):
-    return max([max(weights[i], 0.0001) * values[i] for i in range(len(values))])
+def chebyshev(values, weights, min_weight=0.0001):
+    return max([max(weights[i], min_weight) * values[i] for i in range(len(values))])
 
 def random_weights(size, nobjs):
     weights = []

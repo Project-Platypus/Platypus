@@ -221,6 +221,17 @@ class Solution(object):
         
     def __str__(self):
         return "Solution[" + ",".join(map(str, self.objectives)) + "]"
+    
+    def __deepcopy__(self, memo):
+        """Override to avoid cloning problem definition."""
+        result = Solution(self.problem)
+        memo[id(self)] = result
+        
+        for k, v in self.__dict__.items():
+            if k != "problem":
+                setattr(result, k, copy.deepcopy(v, memo))
+                
+        return result
         
 class Dominance(object):
     
@@ -379,7 +390,7 @@ class Archive(object):
     def add(self, solution):
         flags = [self._dominance.compare(solution, s) for s in self._contents]
         dominates = map(lambda x : x > 0, flags)
-        nondominated = map(lambda x : x <= 0, flags)
+        nondominated = map(lambda x : x == 0, flags)
         
         if any(dominates):
             return False
@@ -552,13 +563,13 @@ def nondominated_truncate(solutions, size):
     result = sorted(solutions, cmp=comparator) 
     return result[:size]
         
-def truncate_fitness(solutions, size, fitness, prefer_larger=True, getter=operator.attrgetter("fitness")):
+def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.attrgetter("fitness")):
     
     def comparator(x, y):
         fitness1 = getter(x)
         fitness2 = getter(y)
         
-        if prefer_larger:
+        if larger_preferred:
             fitness1 = -fitness1
             fitness2 = -fitness2
             

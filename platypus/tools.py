@@ -1,9 +1,9 @@
 import math
 import operator
-from platypus.core import POSITIVE_INFINITY, EPSILON, PlatypusError
+from platypus.core import Solution, POSITIVE_INFINITY, EPSILON, PlatypusError
 
 def point_line_dist(point, line):
-    return magnitude(subtract(multiply(dot(line, point)/dot(line, line), line), point))
+    return magnitude(subtract(multiply(float(dot(line, point))/float(dot(line, line)), line), point))
     
 def magnitude(x):
     return math.sqrt(dot(x, x))
@@ -17,16 +17,6 @@ def multiply(s, x):
 def dot(x, y):
     return reduce(operator.add, [x[i]*y[i] for i in range(len(x))], 0)
 
-#     // Gaussian elimination with partial pivoting
-#     // Copied from http://introcs.cs.princeton.edu/java/95linear/GaussianElimination.java.html
-#     /**
-#      * Gaussian elimination with partial pivoting.
-#      * 
-#      * @param A the A matrix
-#      * @param b the b vector
-#      * @return the solved equation using Gaussian elimination
-#      */
-
 class SingularError(PlatypusError):
     pass
     
@@ -36,8 +26,6 @@ def lsolve(A, b):
     This is implemented here to avoid a dependency on numpy.  This could be
     replaced by :code:`(x, _, _, _) = lstsq(A, b)`, but we prefer the pure
     Python implementation here.
-     
-    Copied from http://introcs.cs.princeton.edu/java/95linear/GaussianElimination.java.html
     """
     N = len(b)
      
@@ -65,7 +53,7 @@ def lsolve(A, b):
                 A[i][j] -= alpha * A[p][j]
 
     # back substitution
-    x = []
+    x = [0.0]*N
     
     for i in range(N-1, -1, -1):
         sum = 0.0
@@ -73,7 +61,7 @@ def lsolve(A, b):
         for j in range(i+1, N):
             sum += A[i][j] * x[j]
             
-        x.append((b[i] - sum) / A[i][i])
+        x[i] = (b[i] - sum) / A[i][i]
 
     return x
 
@@ -89,10 +77,14 @@ def choose(n, k):
     else:
         return 0
 
-def euclidean_dist(solution1, solution2):
-    o1 = solution1.objectives
-    o2 = solution2.objectives
-    return math.sqrt(sum([math.pow(o1[i]-o2[i], 2.0) for i in range(len(o1))]))
+def euclidean_dist(x, y):
+    """Computes the Euclidean distance between two points."""
+    if isinstance(x, Solution):
+        x = x.objectives
+    if isinstance(y, Solution):
+        y = y.objectives
+
+    return math.sqrt(sum([math.pow(x[i]-y[i], 2.0) for i in range(len(x))]))
 
 class DistanceMatrix(object):
     """Maintains pairwise distances between solutions.
