@@ -1,4 +1,5 @@
 import sys
+import copy
 import math
 import random
 import operator
@@ -8,8 +9,9 @@ from abc import ABCMeta, abstractmethod
 from platypus.core import Algorithm, Variator, Dominance, ParetoDominance,\
     AttributeDominance, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split,\
-    EPSILON, POSITIVE_INFINITY
-from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution
+    EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance
+from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
+    clip
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
             
@@ -65,6 +67,67 @@ class NSGAII(GeneticAlgorithm):
         offspring.extend(self.population)
         nondominated_sort(offspring)
         self.population = nondominated_truncate(offspring, self.population_size)
+
+class EpsilonMOEA(GeneticAlgorithm):
+    
+    def __init__(self, problem,
+                 epsilons,
+                 population_size = 100,
+                 generator = RandomGenerator(),
+                 selector = TournamentSelector(2),
+                 variator = None):
+        super(EpsilonMOEA, self).__init__(problem, generator)
+        self.population_size = population_size
+        self.selector = selector
+        self.variator = variator
+        self.dominance = ParetoDominance()
+        self.archive = Archive(EpsilonDominance(epsilons))
+        
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+            self.result = self.archive
+        else:
+            self.iterate()
+            self.result = self.archive
+        
+    def initialize(self):
+        super(EpsilonMOEA, self).initialize()
+        self.archive += self.population
+        
+    def iterate(self):
+        if len(self.archive) <= 1:
+            parents = self.selector.select(self.variator.arity, self.population)
+        else:
+            parents = self.selector.select(self.variator.arity-1, self.population) + [random.choice(self.archive)]
+
+        random.shuffle(parents)
+        
+        children = self.variator.evolve(parents)
+        self.evaluateAll(children)
+        
+        for child in children:
+            self._add_to_population(child)
+            self.archive.add(child)
+            
+    def _add_to_population(self, solution):
+        dominates = []
+        dominated = False
+        
+        for i in range(self.population_size):
+            flag = self.dominance.compare(solution, self.population[i])
+
+            if flag < 0:
+                dominates.append(i)
+            elif flag > 0:
+                dominated = True
+                
+        if len(dominates) > 0:
+            del self.population[random.choice(dominates)]
+            self.population.append(solution)
+        elif not dominated:
+            self.population.remove(random.choice(self.population))
+            self.population.append(solution)
 
 class GDE3(GeneticAlgorithm):
     
@@ -252,6 +315,16 @@ class MOEAD(GeneticAlgorithm):
                 
             if c >= self.eta:
                 break
+            
+    def _sort_weights(self, base, weights):
+        """Returns the index of weights nearest to the base weight."""
+        def compare(weight1, weight2):
+            dist1 = math.sqrt(sum([math.pow(base[i]-weight1[1][i], 2.0) for i in range(len(base))]))
+            dist2 = math.sqrt(sum([math.pow(base[i]-weight2[1][i], 2.0) for i in range(len(base))]))
+            return cmp(dist1, dist2)
+        
+        sorted_weights = sorted(enumerate(weights), cmp=compare)
+        return [i[0] for i in sorted_weights]
     
     def initialize(self):
         self.population = []
@@ -263,7 +336,7 @@ class MOEAD(GeneticAlgorithm):
         self.neighborhoods = []
         
         for i in range(self.population_size):
-            sorted_weights = [i[0] for i in sorted(enumerate(self.weights), key=lambda x:x[1])]
+            sorted_weights = self._sort_weights(self.weights[i], self.weights)
             self.neighborhoods.append(sorted_weights[:self.neighborhood_size])
             
         # initialize the ideal point
@@ -526,3 +599,153 @@ class NSGAIII(GeneticAlgorithm):
         offspring.extend(self.population)
         nondominated_sort(offspring)
         self.population = self._reference_point_truncate(offspring, self.population_size)
+
+class ParticleSwarm(Algorithm):
+    
+    def __init__(self, problem,
+                 swarm_size = 100,
+                 leader_size = 100,
+                 generator = RandomGenerator(),
+                 mutate = None,
+                 leader_comparator = None,
+                 fitness = None,
+                 larger_preferred = True,
+                 fitness_getter = operator.attrgetter("fitness")):
+        super(ParticleSwarm, self).__init__()
+        self.swarm_size = swarm_size
+        self.leader_size = leader_size
+        self.generator = generator
+        self.mutate = mutate
+        self.leader_comparator = leader_comparator
+        self.fitness = fitness
+        self.larger_preferred = larger_preferred
+        self.fitness_getter = fitness_getter
+        
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+            self.result = self.leaders
+        else:
+            self.iterate()
+            self.result = self.leaders
+            
+    def initialize(self):
+        self.particles = [self.generator.generate(self.problem) for _ in range(self.swarm_size)]
+        self.evaluateAll(self.particles)
+        
+        self.local_best = self.particles[:]
+        
+        self.leaders = self.particles[:]
+        truncate_fitness(self.leaders, self.leader_size, self.fitness, self.larger_preferred, self.fitness_getter)
+        
+        self.result = self.leaders
+    
+    def iterate(self):
+        self._update_velocities()
+        self._update_positions()
+        self._mutate()
+        
+        self.evaluateAll(self.particles)
+        
+        self._update_local_best()
+        
+        self.leaders.extend(self.particles)
+        truncate_fitness(self.leaders, self.leader_size, self.fitness, self.larger_preferred, self.fitness_getter)
+        
+        self.result = self.leaders
+    
+    def _evaluate_fitness(self, solutions):
+        pass
+    
+    def _update_velocities(self):
+        for i in range(self.swarm_size):
+            self._update_velocity(i)
+    
+    def _select_leader(self):
+        leader1 = random.choice(self.leaders)
+        leader2 = random.choice(self.leaders)
+        flag = self.leader_comparator.compare(leader1, leader2)
+        
+        if flag < 0:
+            return leader1
+        elif flag > 0:
+            return leader2
+        elif bool(random.getrandbits(1)):
+            return leader1
+        else:
+            return leader2
+        
+    def _update_velocity(self, i):
+        particle = self.particles[i].variables
+        local_best = self.local_best[i].variables
+        leader = self._select_leader().variables
+        
+        r1 = random.uniform(0.0, 1.0)
+        r2 = random.uniform(0.0, 1.0)
+        C1 = random.uniform(1.5, 2.0)
+        C2 = random.uniform(1.5, 2.0)
+        W = random.uniform(0.1, 0.5)
+        
+        for j in range(self.problem.nvars):
+            self.velocities[i][j] = W * self.velocities[i][j] + \
+                    C1*r1*(local_best[j] - particle[j]) + \
+                    C2*r2*(leader[j] - particle[j])
+    
+    def _update_positions(self):
+        for i in range(self.swarm_size):
+            self._update_position(i)
+            
+    def _update_position(self, i):
+        particle = self.particles[i].variables
+        offspring = copy.deepcopy(self.particles[i])
+        
+        for j in range(self.problem.nvars):
+            type = self.problem.types[j]
+            value = particle[j] + self.velocities[i][j]
+            
+            if value < type.min_value:
+                value = type.min_value
+                self.velocities[i][j] *= -1
+            elif value > type.max_value:
+                value = type.max_value
+                self.velocities[i][j] *= -1
+                
+            offspring.variables[j] = value
+            
+        self.particles[i] = offspring
+    
+    def _update_local_best(self):
+        for i in range(self.swarm_size):
+            flag = self.dominance.compare(self.particles[i], self.local_best[i])
+            
+            if flag <= 0:
+                self.local_best[i] = self.particles[i]
+                
+    def _mutate(self):
+        if self.mutate is not None:
+            for i in range(self.swarm_size):
+                self.particles[i] = self.mutate([self.particles[i]])[0]
+                
+# class OMOPSO(ParticleSwarm):
+#     
+#     def __init__(self, problem,
+#                  swarm_size = 100,
+#                  leader_size = 100,
+#                  generator = RandomGenerator(),
+#                  mutation_probability = 0.1,
+#                  mutation_perturbation = 0.5,
+#                  max_iterations = 100)
+#         super(ParticleSwarm, self).__init__(problem,
+#                                             swarm_size=swarm_size,
+#                                             leader_size=leader_size,
+#                                             generator = generator,
+#                                             leader_comparator = ParetoDominance(),
+#                                             fitness = crowding_distance)
+#         
+#     def _mutate(self):
+#         if self.mutate is not None:
+#             for i in range(self.swarm_size):
+#                 if i % 3 == 0:
+#                     pass
+#                 elif i % 3 == 1:
+#                     self.particles[i] = self.mutate([self.particles[i]])[0]

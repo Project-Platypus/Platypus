@@ -1,5 +1,6 @@
 import sys
 import copy
+import math
 import operator
 import functools
 import itertools
@@ -280,6 +281,74 @@ class ParetoDominance(Dominance):
         else:
             return 1
         
+class EpsilonDominance(Dominance):
+    
+    def __init__(self, epsilons):
+        super(EpsilonDominance, self).__init__()
+        self.epsilons = epsilons
+    
+    def compare(self, solution1, solution2):
+        problem = solution1.problem
+        
+        # first check constraint violation
+        if problem.nconstrs > 0 and solution1.constraint_violation != solution2.constraint_violation:
+            if solution1.constraint_violation == 0:
+                return -1
+            elif solution2.constraint_violation == 0:
+                return -1
+            elif solution1.constraint_violation < solution2.constraint_violation:
+                return -1
+            elif solution2.constraint_violation < solution1.constraint_violation:
+                return 1
+        
+        # then use epsilon dominance on the objectives
+        dominate1 = False
+        dominate2 = False
+        
+        for i in range(problem.nobjs):
+            o1 = solution1.objectives[i]
+            o2 = solution2.objectives[i]
+            
+            if problem.directions[i] == Problem.MAXIMIZE:
+                o1 = -o1
+                o2 = -o2
+                
+            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            i1 = math.floor(o1 / epsilon)
+            i2 = math.floor(o2 / epsilon)
+
+            if i1 < i2:
+                dominate1 = True
+                    
+                if dominate2:
+                    return 0
+            elif i1 > i2:
+                dominate2 = True
+                
+                if dominate1:
+                    return 0
+        
+        if not dominate1 and not dominate2:
+            dist1 = 0.0
+            dist2 = 0.0
+            
+            for i in range(problem.nobjs):
+                epsilon = float(self.epsilons[i % len(self.epsilons)])
+                i1 = math.floor(solution1.objectives[i] / epsilon)
+                i2 = math.floor(solution2.objectives[i] / epsilon)
+                
+                dist1 += math.pow(solution1.objectives[i] - i1*epsilon, 2.0)
+                dist2 += math.pow(solution2.objectives[i] - i2*epsilon, 2.0)
+            
+            if dist1 < dist2:
+                return -1
+            else:
+                return 1
+        elif dominate1:
+            return -1
+        else:
+            return 1
+        
 class AttributeDominance(Dominance):
     
     def __init__(self, getter):
@@ -306,9 +375,10 @@ class Archive(object):
         nondominated = map(lambda x : x <= 0, flags)
         
         if any(dominates):
-            return
+            return False
         else:
             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
+            return True
     
     def __len__(self):
         return len(self._contents)
@@ -327,7 +397,7 @@ class Archive(object):
     
     def __iter__(self):
         return iter(self._contents)
-        
+    
 def nondominated_sort(solutions):
     """Fast non-dominated sorting.
     
@@ -475,4 +545,20 @@ def nondominated_truncate(solutions, size):
     result = sorted(solutions, cmp=comparator) 
     return result[:size]
         
+def truncate_fitness(solutions, size, fitness, prefer_larger=True, getter=operator.attrgetter("fitness")):
+    
+    def comparator(x, y):
+        fitness1 = getter(x)
+        fitness2 = getter(y)
         
+        if prefer_larger:
+            fitness1 = -fitness1
+            fitness2 = -fitness2
+            
+        return cmp(fitness1, fitness2)
+    
+    result = sorted(solutions, cmp=comparator)
+    return result[:size]
+    
+    
+    
