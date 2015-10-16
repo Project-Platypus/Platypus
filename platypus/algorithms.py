@@ -428,7 +428,6 @@ class NSGAIII(GeneticAlgorithm):
         return solutions[min_index]
         
     def _reference_point_truncate(self, solutions, size):
-        from numpy.linalg import lstsq, LinAlgError
         nobjs = self.problem.nobjs
         
         if len(solutions) > size:
