@@ -333,12 +333,19 @@ class EpsilonDominance(Dominance):
             dist2 = 0.0
             
             for i in range(problem.nobjs):
-                epsilon = float(self.epsilons[i % len(self.epsilons)])
-                i1 = math.floor(solution1.objectives[i] / epsilon)
-                i2 = math.floor(solution2.objectives[i] / epsilon)
+                o1 = solution1.objectives[i]
+                o2 = solution2.objectives[i]
+            
+                if problem.directions[i] == Problem.MAXIMIZE:
+                    o1 = -o1
+                    o2 = -o2
                 
-                dist1 += math.pow(solution1.objectives[i] - i1*epsilon, 2.0)
-                dist2 += math.pow(solution2.objectives[i] - i2*epsilon, 2.0)
+                epsilon = float(self.epsilons[i % len(self.epsilons)])
+                i1 = math.floor(o1 / epsilon)
+                i2 = math.floor(o2 / epsilon)
+                
+                dist1 += math.pow(o1 - i1*epsilon, 2.0)
+                dist2 += math.pow(o2 - i2*epsilon, 2.0)
             
             if dist1 < dist2:
                 return -1
