@@ -656,7 +656,20 @@ class ParticleSwarm(Algorithm):
     
     def _update_velocities(self):
         for i in range(self.swarm_size):
-            self._update_velocity(i)
+            particle = self.particles[i].variables
+            local_best = self.local_best[i].variables
+            leader = self._select_leader().variables
+            
+            r1 = random.uniform(0.0, 1.0)
+            r2 = random.uniform(0.0, 1.0)
+            C1 = random.uniform(1.5, 2.0)
+            C2 = random.uniform(1.5, 2.0)
+            W = random.uniform(0.1, 0.5)
+            
+            for j in range(self.problem.nvars):
+                self.velocities[i][j] = W * self.velocities[i][j] + \
+                        C1*r1*(local_best[j] - particle[j]) + \
+                        C2*r2*(leader[j] - particle[j])
     
     def _select_leader(self):
         leader1 = random.choice(self.leaders)
@@ -671,45 +684,25 @@ class ParticleSwarm(Algorithm):
             return leader1
         else:
             return leader2
-        
-    def _update_velocity(self, i):
-        particle = self.particles[i].variables
-        local_best = self.local_best[i].variables
-        leader = self._select_leader().variables
-        
-        r1 = random.uniform(0.0, 1.0)
-        r2 = random.uniform(0.0, 1.0)
-        C1 = random.uniform(1.5, 2.0)
-        C2 = random.uniform(1.5, 2.0)
-        W = random.uniform(0.1, 0.5)
-        
-        for j in range(self.problem.nvars):
-            self.velocities[i][j] = W * self.velocities[i][j] + \
-                    C1*r1*(local_best[j] - particle[j]) + \
-                    C2*r2*(leader[j] - particle[j])
     
     def _update_positions(self):
         for i in range(self.swarm_size):
-            self._update_position(i)
+            offspring = copy.deepcopy(self.particles[i])
             
-    def _update_position(self, i):
-        particle = self.particles[i].variables
-        offspring = copy.deepcopy(self.particles[i])
-        
-        for j in range(self.problem.nvars):
-            type = self.problem.types[j]
-            value = particle[j] + self.velocities[i][j]
-            
-            if value < type.min_value:
-                value = type.min_value
-                self.velocities[i][j] *= -1
-            elif value > type.max_value:
-                value = type.max_value
-                self.velocities[i][j] *= -1
+            for j in range(self.problem.nvars):
+                type = self.problem.types[j]
+                value = offspring.variables[j] + self.velocities[i][j]
                 
-            offspring.variables[j] = value
-            
-        self.particles[i] = offspring
+                if value < type.min_value:
+                    value = type.min_value
+                    self.velocities[i][j] *= -1
+                elif value > type.max_value:
+                    value = type.max_value
+                    self.velocities[i][j] *= -1
+                    
+                offspring.variables[j] = value
+                
+            self.particles[i] = offspring
     
     def _update_local_best(self):
         for i in range(self.swarm_size):
@@ -744,11 +737,11 @@ class OMOPSO(ParticleSwarm):
         self.max_iterations = max_iterations
         self.archive = Archive(EpsilonDominance(epsilons))
         self.uniform_mutation = UniformMutation(mutation_probability,
-                                                 mutation_perturbation)
+                                                mutation_perturbation)
         self.nonuniform_mutation = NonUniformMutation(mutation_probability,
-                                                       mutation_perturbation,
-                                                       max_iterations,
-                                                       self)
+                                                      mutation_perturbation,
+                                                      max_iterations,
+                                                      self)
         
     def step(self):
         if self.nfe == 0:

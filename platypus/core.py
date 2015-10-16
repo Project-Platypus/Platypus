@@ -564,7 +564,24 @@ def nondominated_truncate(solutions, size):
     return result[:size]
         
 def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.attrgetter("fitness")):
+    """Truncates a population based on a fitness value.
     
+    Truncates a population to the given size based on fitness values.  By
+    default, the attribute :code:`fitness` is used, but can be customized by
+    specifying a custom :code:`attrgetter`.
+    
+    Parameters
+    ----------
+    solutions : iterable
+        The collection of solutions that have already been assigned fitness
+        values
+    size : int
+        The size of the truncated result
+    larger_preferred : bool (default True)
+        If larger fitness values are preferred
+    getter : callable (default :code:`attrgetter("fitness")`)
+        Retrieves the fitness value from a solution
+    """
     def comparator(x, y):
         fitness1 = getter(x)
         fitness2 = getter(y)
