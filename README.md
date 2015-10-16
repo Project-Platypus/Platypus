@@ -7,7 +7,9 @@ available.**
 ### What is Platypus-Optimize?
 
 Platypus is a framework for evolutionary computing in Python with a focus on
-multiobjective evolutionary algorithms (MOEAs).
+multiobjective evolutionary algorithms (MOEAs).  There are a number of Python
+libraries for optimization, including PyGMO, Inspyred, DEAP and Scipy, but only
+Platypus provides extensive support for multiobjective optimization.
 
 1. **Minimal Setup** - With only minimal information about the optimization
    problem, Platypus automatically fills in the rest.  You can always specify
@@ -31,6 +33,7 @@ multiobjective evolutionary algorithms (MOEAs).
 For example, optimizing a simple biobjective problem with a single real-valued
 decision variables is accomplished in Platypus with:
 
+```python
     from platypus.core import Problem
     from platypus.types import Real
     from platypus.algorithms import NSGAII
@@ -48,3 +51,4 @@ decision variables is accomplished in Platypus with:
 
     for solution in algorithm.result:
         print solution
+```
