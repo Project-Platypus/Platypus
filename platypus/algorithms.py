@@ -10,7 +10,7 @@ from platypus.core import Algorithm, Variator, Dominance, ParetoDominance,\
     nondominated_truncate, nondominated_split,\
     EPSILON, POSITIVE_INFINITY
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution
-from platypus.tools import DistanceMatrix
+from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
             
 class GeneticAlgorithm(Algorithm):
@@ -357,170 +357,164 @@ class MOEAD(GeneticAlgorithm):
         if self.update_utility >= 0 and self.generation % self.update_utility == 0:
             self._update_utility()
 
-def _find_extreme_points(solutions, objective):
-    eps = 0.000001
-    nobjs = solutions[0].problem.nobjs
-    
-    weights = [eps]*nobjs
-    weights[objective] = 1.0
-    
-    min_index = -1
-    min_value = POSITIVE_INFINITY
-    
-    for i in range(len(solutions)):
-        objectives = solutions[i].normalized_objectives
-        value = max([objectives[i]/weights[i] for i in range(nobjs)])
-        
-        if value < min_value:
-            min_index = i
-            min_value = value
-            
-    return solutions[min_index]
-
-def _point_line_distance(line, point):
-    n = len(line)
-    lp_dot = reduce(operator.add, [line[i]*point[i] for i in range(n)], 0)
-    ll_dot = reduce(operator.add, [line[i]*line[i] for i in range(n)], 0)
-    pline = [(lp_dot / ll_dot) * line[i] for i in range(n)]
-    diff = [pline[i] - point[i] for i in range(n)]
-    return math.sqrt(reduce(operator.add, [diff[i]*diff[i] for i in range(n)], 0))
-
-def _associate_to_reference_point(solutions, reference_points):
-    result = [[] for _ in range(len(reference_points))]
-    
-    for solution in solutions:
-        min_index = -1
-        min_distance = POSITIVE_INFINITY
-        
-        for i in range(len(reference_points)):
-            distance = _point_line_distance(reference_points[i], solution.normalized_objectives)
-    
-            if distance < min_distance:
-                min_index = i
-                min_distance = distance
-                
-        result[min_index].append(solution)
-        
-    return result
-
-def _find_minimum_distance(solutions, reference_point):
-    min_index = -1
-    min_distance = POSITIVE_INFINITY
-        
-    for i in range(len(solutions)):
-        solution = solutions[i]
-        distance = _point_line_distance(reference_point, solution.normalized_objectives)
-    
-        if distance < min_distance:
-            min_index = i
-            min_distance = distance
-                
-    return solutions[min_index]
-    
-def reference_point_truncate(solutions, size, ideal_point, reference_points):
-    from numpy.linalg import lstsq, LinAlgError
-    nobjs = solutions[0].problem.nobjs
-    
-    if len(solutions) > size:
-        result, remaining = nondominated_split(solutions, size)
-        
-        # update the ideal point
-        for solution in solutions:
-            for i in range(nobjs):
-                ideal_point[i] = min(ideal_point[i], solution.objectives[i])
-                
-        # translate points by ideal point
-        for solution in solutions:
-            solution.normalized_objectives = [solution.objectives[i] - ideal_point[i] for i in range(nobjs)]
-        
-        # find the extreme points
-        extreme_points = [_find_extreme_points(solutions, i) for i in range(nobjs)]
-        
-        # calculate the intercepts
-        degenerate = False
-        
-        try:
-            b = [1.0]*nobjs
-            A = [s.normalized_objectives for s in extreme_points]
-            x = lstsq(A, b)
-            intercepts = [1.0 / i for i in x]
-        except LinAlgError:
-            degenerate = True
-            
-        if not degenerate:
-            for i in range(nobjs):
-                if intercepts[i] < 0.001:
-                    degenerate = True
-                    break
-                
-        if degenerate:
-            intercepts = [-POSITIVE_INFINITY]*nobjs
-            
-            for i in range(nobjs):
-                intercepts[i] = max([s.normalized_objectives for s in solutions] + [EPSILON])
-
-        # normalize objectives using intercepts
-        for solution in solutions:
-            solution.normalized_objectives = [solution.normalized_objectives[i] / intercepts[i] for i in range(nobjs)]
-
-        # associate each solution to a reference point
-        members = _associate_to_reference_point(result, reference_points)
-        potential_members = _associate_to_reference_point(remaining, reference_points)
-        excluded = Set()
-        
-        while len(result) < size:
-            # identify reference point with the fewest associated members
-            min_indices = []
-            min_count = sys.maxint
-            
-            for i in range(len(members)):
-                if i not in excluded and len(members[i]) <= min_count:
-                    if len(members[i]) < min_count:
-                        min_indices = []
-                        min_count = len(members[i])
-                    min_indices.append(i)
-            
-            # pick one randomly if there are multiple options
-            min_index = random.choice(min_indices)
-            
-            # add associated solution
-            if min_count == 0:
-                if len(potential_members[min_index]) == 0:
-                    excluded.add(min_index)
-                else:
-                    min_solution = _find_minimum_distance(potential_members[min_index], reference_points[min_index])
-                    result.append(min_solution)
-                    members[min_index].append(min_solution)
-                    potential_members[min_index].remove(min_solution)
-            else:
-                if len(potential_members[min_index]) == 0:
-                    excluded.add(min_index)
-                else:
-                    rand_solution = random.choice(potential_members[min_index])
-                    result.append(rand_solution)
-                    members[min_index].append(rand_solution)
-                    potential_members[min_index].remove(rand_solution)
-                    
-        return result
-    else:
-        return solutions
-
 class NSGAIII(GeneticAlgorithm):
     
     def __init__(self, problem,
                  divisions_outer,
                  divisions_inner = 0,
-                 population_size = 100,
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
                  variator = None):
         super(NSGAIII, self).__init__(problem, generator)
-        self.population_size = population_size
         self.selector = selector
         self.variator = variator
+        
+        self.population_size = choose(problem.nobjs + divisions_outer - 1, divisions_outer) + \
+                (0 if divisions_inner == 0 else choose(problem.nobjs + divisions_inner - 1, divisions_inner))
+        self.population_size = int(math.ceil(self.population_size / 4.0)) * 4;
+
         self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
         self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
+    
+    def _find_extreme_points(self, solutions, objective):
+        nobjs = self.problem.nobjs
         
+        weights = [0.000001]*nobjs
+        weights[objective] = 1.0
+        
+        min_index = -1
+        min_value = POSITIVE_INFINITY
+        
+        for i in range(len(solutions)):
+            objectives = solutions[i].normalized_objectives
+            value = max([objectives[j]/weights[j] for j in range(nobjs)])
+            
+            if value < min_value:
+                min_index = i
+                min_value = value
+                
+        return solutions[min_index]
+
+    def _associate_to_reference_point(self, solutions, reference_points):
+        result = [[] for _ in range(len(reference_points))]
+        
+        for solution in solutions:
+            min_index = -1
+            min_distance = POSITIVE_INFINITY
+            
+            for i in range(len(reference_points)):
+                distance = point_line_dist(solution.normalized_objectives, reference_points[i])
+        
+                if distance < min_distance:
+                    min_index = i
+                    min_distance = distance
+                    
+            result[min_index].append(solution)
+            
+        return result
+    
+    def _find_minimum_distance(self, solutions, reference_point):
+        min_index = -1
+        min_distance = POSITIVE_INFINITY
+            
+        for i in range(len(solutions)):
+            solution = solutions[i]
+            distance = point_line_dist(solution.normalized_objectives, reference_point)
+        
+            if distance < min_distance:
+                min_index = i
+                min_distance = distance
+                    
+        return solutions[min_index]
+        
+    def _reference_point_truncate(self, solutions, size):
+        from numpy.linalg import lstsq, LinAlgError
+        nobjs = self.problem.nobjs
+        
+        if len(solutions) > size:
+            result, remaining = nondominated_split(solutions, size)
+
+            # update the ideal point
+            for solution in solutions:
+                for i in range(nobjs):
+                    self.ideal_point[i] = min(self.ideal_point[i], solution.objectives[i])
+                    
+            # translate points by ideal point
+            for solution in solutions:
+                solution.normalized_objectives = [solution.objectives[i] - self.ideal_point[i] for i in range(nobjs)]
+            
+            # find the extreme points
+            extreme_points = [self._find_extreme_points(solutions, i) for i in range(nobjs)]
+            
+            # calculate the intercepts
+            degenerate = False
+            
+            try:
+                b = [1.0]*nobjs
+                A = [s.normalized_objectives for s in extreme_points]
+                x = lsolve(A, b)
+                intercepts = [1.0 / i for i in x]
+            except:
+                degenerate = True
+                
+            if not degenerate:
+                for i in range(nobjs):
+                    if intercepts[i] < 0.001:
+                        degenerate = True
+                        break
+                    
+            if degenerate:
+                intercepts = [-POSITIVE_INFINITY]*nobjs
+                
+                for i in range(nobjs):
+                    intercepts[i] = max([s.normalized_objectives[i] for s in solutions] + [EPSILON])
+    
+            # normalize objectives using intercepts
+            for solution in solutions:
+                solution.normalized_objectives = [solution.normalized_objectives[i] / intercepts[i] for i in range(nobjs)]
+    
+            # associate each solution to a reference point
+            members = self._associate_to_reference_point(result, self.reference_points)
+            potential_members = self._associate_to_reference_point(remaining, self.reference_points)
+            excluded = Set()
+            
+            while len(result) < size:
+                # identify reference point with the fewest associated members
+                min_indices = []
+                min_count = sys.maxint
+                
+                for i in range(len(members)):
+                    if i not in excluded and len(members[i]) <= min_count:
+                        if len(members[i]) < min_count:
+                            min_indices = []
+                            min_count = len(members[i])
+                        min_indices.append(i)
+                
+                # pick one randomly if there are multiple options
+                min_index = random.choice(min_indices)
+                
+                # add associated solution
+                if min_count == 0:
+                    if len(potential_members[min_index]) == 0:
+                        excluded.add(min_index)
+                    else:
+                        min_solution = self._find_minimum_distance(potential_members[min_index], self.reference_points[min_index])
+                        result.append(min_solution)
+                        members[min_index].append(min_solution)
+                        potential_members[min_index].remove(min_solution)
+                else:
+                    if len(potential_members[min_index]) == 0:
+                        excluded.add(min_index)
+                    else:
+                        rand_solution = random.choice(potential_members[min_index])
+                        result.append(rand_solution)
+                        members[min_index].append(rand_solution)
+                        potential_members[min_index].remove(rand_solution)
+                        
+            return result
+        else:
+            return solutions
+    
     def iterate(self):
         offspring = []
         
@@ -532,4 +526,4 @@ class NSGAIII(GeneticAlgorithm):
         
         offspring.extend(self.population)
         nondominated_sort(offspring)
-        self.population = reference_point_truncate(offspring, self.population_size, self.ideal_point, self.reference_points)
+        self.population = self._reference_point_truncate(offspring, self.population_size)

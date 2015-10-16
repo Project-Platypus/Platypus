@@ -1,5 +1,93 @@
 import math
-from platypus.core import POSITIVE_INFINITY
+import operator
+from platypus.core import POSITIVE_INFINITY, EPSILON, PlatypusError
+
+def point_line_dist(point, line):
+    return magnitude(subtract(multiply(dot(line, point)/dot(line, line), line), point))
+    
+def magnitude(x):
+    return math.sqrt(dot(x, x))
+
+def subtract(x, y):
+    return [x[i] - y[i] for i in range(len(x))]
+
+def multiply(s, x):
+    return [s*x[i] for i in range(len(x))]
+
+def dot(x, y):
+    return reduce(operator.add, [x[i]*y[i] for i in range(len(x))], 0)
+
+#     // Gaussian elimination with partial pivoting
+#     // Copied from http://introcs.cs.princeton.edu/java/95linear/GaussianElimination.java.html
+#     /**
+#      * Gaussian elimination with partial pivoting.
+#      * 
+#      * @param A the A matrix
+#      * @param b the b vector
+#      * @return the solved equation using Gaussian elimination
+#      */
+
+class SingularError(PlatypusError):
+    pass
+    
+def lsolve(A, b):
+    """Gaussian elimination with partial pivoting.
+    
+    This is implemented here to avoid a dependency on numpy.  This could be
+    replaced by :code:`(x, _, _, _) = lstsq(A, b)`, but we prefer the pure
+    Python implementation here.
+     
+    Copied from http://introcs.cs.princeton.edu/java/95linear/GaussianElimination.java.html
+    """
+    N = len(b)
+     
+    for p in range(N):
+        # find pivot row and swap
+        max = p
+         
+        for i in range(p+1, N):
+            if abs(A[i][p]) > abs(A[max][p]):
+                max = i
+                 
+        A[p], A[max] = A[max], A[p]
+        b[p], b[max] = b[max], b[p]
+        
+        # singular or nearly singular
+        if abs(A[p][p]) <= EPSILON:
+            raise SingularError("matrix is singular or nearly singular")
+        
+        # pivot within A and b
+        for i in range(p+1, N):
+            alpha = A[i][p] / A[p][p]
+            b[i] -= alpha * b[p]
+            
+            for j in range(p, N):
+                A[i][j] -= alpha * A[p][j]
+
+    # back substitution
+    x = []
+    
+    for i in range(N-1, -1, -1):
+        sum = 0.0
+        
+        for j in range(i+1, N):
+            sum += A[i][j] * x[j]
+            
+        x.append((b[i] - sum) / A[i][i])
+
+    return x
+
+def choose(n, k):
+    if 0 <= k <= n:
+        ntok = 1
+        ktok = 1
+        for t in xrange(1, min(k, n - k) + 1):
+            ntok *= n
+            ktok *= t
+            n -= 1
+        return ntok // ktok
+    else:
+        return 0
 
 def euclidean_dist(solution1, solution2):
     o1 = solution1.objectives

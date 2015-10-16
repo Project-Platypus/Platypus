@@ -418,12 +418,15 @@ def nondominated_split(solutions, size):
     while len(result) < size:
         front = [x for x in solutions if x.rank==rank]
         
+        if len(front) == 0:
+            break
+        
         if len(result)+len(front) <= size:
             result.extend(front)
-        elif len(front) == 0:
-            return (result, [])
         else:
             return (result, front)
+        
+        rank += 1
         
     return result, []
 
