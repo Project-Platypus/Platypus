@@ -633,10 +633,29 @@ def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.att
     result = sorted(solutions, cmp=comparator)
     return result[:size]
 
-def normalize(solutions, problem, minimum=None, maximum=None):
+def normalize(solutions, minimum=None, maximum=None):
+    """Normalizes the solution objectives.
+    
+    Normalizes the objectives of each solution within the minimum and maximum
+    bounds.  If the minimum and maximum bounds are not provided, then the
+    bounds are computed based on the bounds of the solutions.
+    
+    Parameters
+    ----------
+    solutions : iterable
+        The solutions to be normalized.
+    minimum : int list
+        The minimum values used to normalize the objectives.
+    maximum : int list
+        The maximum values used to normalize the objectives.
+    """
+    if len(solutions) == 0:
+        return
+    
+    problem = solutions[0].problem
+    feasible = [s for s in solutions if s.constraint_violation == 0.0]
+    
     if minimum is None or maximum is None:
-        feasible = [s for s in solutions if s.constraint_violation == 0.0]
-        
         if minimum is None:
             minimum = [min([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
         
@@ -648,6 +667,8 @@ def normalize(solutions, problem, minimum=None, maximum=None):
 
     for s in feasible:
         s.normalized_objectives = [(s.objectives[i] - minimum[i]) / (maximum[i] - minimum[i]) for i in range(problem.nobjs)]
+        
+    return minimum, maximum
     
 def hypervolume_fitness(solutions,
                         rho = 2.0,

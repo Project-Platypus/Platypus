@@ -18,9 +18,8 @@ Platypus provides extensive support for multiobjective optimization.
    
 2. **Pure Python** - Unlike other libraries including PyGMO, Inspyred, DEAP, and
    Scipy, Platypus is focused on minimizing dependencies on non-pure Python
-   libraries such as Numpy (Numpy is great, but can be challenging to install
-   in certain environments).  By eliminating these dependencies, Platypus can
-   be used on any system where Python is available.
+   libraries.  By eliminating these dependencies, Platypus can run on any
+   system where Python is available.
    
 3. **Parallelization** - Platypus is designed from the bottom up with
    parallelization in mind, both using local threading and distributed
@@ -51,4 +50,19 @@ decision variables is accomplished in Platypus with:
 
     for solution in algorithm.result:
         print solution
+```
+
+### Constraints
+
+Platypus allows simple expressions for constraints.  For example, if a solution
+is feasible when constraints are non-negative, this can be expressed by:
+
+```python
+    problem.constraints[:] == ">=0"
+```
+
+Alternatively, say the constraint must be greater than 0.95:
+
+```python
+    problem.constraints[0] == ">= 0.95"
 ```
