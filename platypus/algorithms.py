@@ -23,9 +23,10 @@ import itertools
 from sets import Set
 from abc import ABCMeta, abstractmethod
 from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, AttributeDominance,\
-    AttributeDominance, nondominated_sort, nondominated_prune,\
+    AttributeDominance, nondominated, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
-    EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance
+    EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance, \
+    FitnessArchive
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
     clip, Mutation, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve
@@ -653,9 +654,11 @@ class ParticleSwarm(Algorithm):
         
         self.local_best = self.particles[:]
         
-        self.leaders = self.particles[:]
-        self.fitness(self.leaders)
-        truncate_fitness(self.leaders, self.leader_size, self.larger_preferred, self.fitness_getter)
+        self.leaders = FitnessArchive(self.fitness,
+                                      larger_preferred = self.larger_preferred,
+                                      getter = self.fitness_getter)
+        self.leaders += self.particles
+        self.leaders.truncate(self.leader_size)
         
         self.velocities = [[0.0]*self.problem.nvars for _ in range(self.swarm_size)]
     
@@ -666,9 +669,8 @@ class ParticleSwarm(Algorithm):
         self.evaluateAll(self.particles)
         self._update_local_best()
         
-        self.leaders.extend(self.particles)
-        self.fitness(self.leaders)
-        truncate_fitness(self.leaders, self.leader_size, self.larger_preferred, self.fitness_getter)
+        self.leaders += self.particles
+        self.leaders.truncate(self.leader_size)
     
     def _update_velocities(self):
         for i in range(self.swarm_size):
@@ -718,6 +720,7 @@ class ParticleSwarm(Algorithm):
                     
                 offspring.variables[j] = value
                 
+            offspring.evaluated = False
             self.particles[i] = offspring
     
     def _update_local_best(self):
@@ -730,7 +733,7 @@ class ParticleSwarm(Algorithm):
     def _mutate(self):
         if self.mutate is not None:
             for i in range(self.swarm_size):
-                self.particles[i] = self.mutate([self.particles[i]])[0]
+                self.particles[i] = self.mutate.mutate([self.particles[i]])[0]
                 
 class OMOPSO(ParticleSwarm):
      
@@ -781,3 +784,61 @@ class OMOPSO(ParticleSwarm):
                 self.particles[i] = self.nonuniform_mutation.mutate(self.particles[i])
             elif i % 3 == 1:
                 self.particles[i] = self.uniform_mutation.mutate(self.particles[i])
+
+class SMPSO(ParticleSwarm):
+     
+    def __init__(self, problem,
+                 swarm_size = 100,
+                 leader_size = 100,
+                 generator = RandomGenerator(),
+                 mutation_probability = 0.1,
+                 mutation_perturbation = 0.5,
+                 max_iterations = 100,
+                 mutate = None):
+        super(SMPSO, self).__init__(problem,
+                                    swarm_size=swarm_size,
+                                    leader_size=leader_size,
+                                    generator = generator,
+                                    leader_comparator = AttributeDominance("crowding_distance"),
+                                    dominance = ParetoDominance(),
+                                    fitness = crowding_distance,
+                                    fitness_getter = operator.attrgetter("crowding_distance"),
+                                    mutate = mutate)
+        self.max_iterations = max_iterations
+        self.maximum_velocity = [(t.max_value - t.min_value)/2.0 for t in problem.types]
+        self.minimum_velocity = [-(t.max_value - t.min_value)/2.0 for t in problem.types]
+    
+    def _update_velocities(self):
+        for i in range(self.swarm_size):
+            particle = self.particles[i].variables
+            local_best = self.local_best[i].variables
+            leader = self._select_leader().variables
+            
+            r1 = random.uniform(0.0, 1.0)
+            r2 = random.uniform(0.0, 1.0)
+            C1 = random.uniform(1.5, 2.5)
+            C2 = random.uniform(1.5, 2.5)
+            W = random.uniform(0.1, 0.1)
+            
+            for j in range(self.problem.nvars):
+                self.velocities[i][j] = self._constriction(C1, C2) * \
+                        (W * self.velocities[i][j] + \
+                        C1*r1*(local_best[j] - particle[j]) + \
+                        C2*r2*(leader[j] - particle[j]))
+                        
+                self.velocities[i][j] = clip(self.velocities[i][j],
+                                             self.minimum_velocity[j],
+                                             self.maximum_velocity[j])
+
+    def _constriction(self, C1, C2):
+        rho = C1 + C2
+        
+        if rho <= 4:
+            return 1.0
+        else:
+            return 2.0 / (2.0 - rho - math.sqrt(math.pow(rho, 2.0) - 4.0*rho))
+        
+    def _mutate(self):
+        for i in range(self.swarm_size):
+            if i % 6 == 0:
+                self.particles[i] = self.mutate.mutate(self.particles[i])

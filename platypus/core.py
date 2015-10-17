@@ -432,6 +432,27 @@ class Archive(object):
     def __iter__(self):
         return iter(self._contents)
     
+class FitnessArchive(Archive):
+    
+    def __init__(self, fitness, dominance = ParetoDominance(), larger_preferred=True, getter=operator.attrgetter("fitness")):
+        super(FitnessArchive, self).__init__(dominance)
+        self.fitness = fitness
+        self.larger_preferred = larger_preferred
+        self.getter = getter
+        
+    def truncate(self, size):
+        self.fitness(self._contents)
+        self._contents = truncate_fitness(self._contents,
+                                          size,
+                                          larger_preferred=self.larger_preferred,
+                                          getter=self.getter)
+    
+def nondominated(solutions):
+    """Returns the non-dominated solutions."""
+    archive = Archive()
+    archive += solutions
+    return archive._contents
+    
 def nondominated_sort(solutions):
     """Fast non-dominated sorting.
     
