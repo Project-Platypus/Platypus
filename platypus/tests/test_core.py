@@ -20,12 +20,12 @@ import unittest
 from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
         POSITIVE_INFINITY
-from platypus.core import nondominated_split, truncate_fitness
+from platypus.core import nondominated_split, truncate_fitness, normalize
 
 def createSolution(*args):
     problem = Problem(0, len(args))
     solution = Solution(problem)
-    solution.objectives[:] = args
+    solution.objectives[:] = [float(x) for x in args]
     return solution
 
 class TestSolution(unittest.TestCase):
@@ -260,3 +260,18 @@ class TestNondominatedSort(unittest.TestCase):
         self.assertIn(self.s1, result)
         self.assertIn(self.s5, result)
         self.assertIn(self.s3, result)
+        
+class TestNormalize(unittest.TestCase):
+    
+    def test_normalize(self):
+        s1 = createSolution(0, 2)
+        s2 = createSolution(2, 3)
+        s3 = createSolution(1, 1)
+        solutions = [s1, s2, s3]
+        
+        normalize(solutions, s1.problem)
+        
+        self.assertEqual([0.0, 0.5], s1.normalized_objectives)
+        self.assertEqual([1.0, 1.0], s2.normalized_objectives)
+        self.assertEqual([0.5, 0.0], s3.normalized_objectives)
+        

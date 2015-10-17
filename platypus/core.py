@@ -21,6 +21,7 @@ import operator
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
+from rexec import RHooks
 
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
@@ -631,6 +632,72 @@ def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.att
     
     result = sorted(solutions, cmp=comparator)
     return result[:size]
+
+def normalize(solutions, problem, minimum=None, maximum=None):
+    if minimum is None or maximum is None:
+        feasible = [s for s in solutions if s.constraint_violation == 0.0]
+        
+        if minimum is None:
+            minimum = [min([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
+        
+        if maximum is None:
+            maximum = [max([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
     
+    if any([maximum[i]-minimum[i] < EPSILON for i in range(problem.nobjs)]):
+        raise PlatypusError("objective with empty range")
+
+    for s in feasible:
+        s.normalized_objectives = [(s.objectives[i] - minimum[i]) / (maximum[i] - minimum[i]) for i in range(problem.nobjs)]
     
+def hypervolume_fitness(solutions,
+                        rho = 2.0,
+                        kappa = 0.05,
+                        dominance = ParetoDominance()):
+    def hypervolume(solution1, solution2, d):
+        a = solution1.normalized_objectives[d-1]
+        
+        if solution2 is None:
+            b = rho
+        else:
+            b = solution2.normalized_objectives[d-1]
+
+        if d == 1:
+            if a < b:
+                return (b - a) / rho
+            else:
+                return 0.0
+        else:
+            if a < b:
+                return hypervolume(solution1, None, d-1)*(b-a)/rho + \
+                       hypervolume(solution1, solution2, d-1)*(rho-b)/rho
+            else:
+                return hypervolume(solution1, solution2, d-1)*(rho-a)/rho
+            
+    if len(solutions) == 0:
+        return
     
+    normalize(solutions)
+    problem = solutions[0].problem      
+    fitnesses = []
+    max_fitness = -POSITIVE_INFINITY
+    
+    for i in range(len(solutions)):
+        fitnesses.append([])
+        
+        for j in range(len(solutions)):
+            if dominance.compare(solutions[i], solutions[j]) < 0:
+                value = -hypervolume(solutions[i], solutions[j], problem.nobjs)
+            else:
+                value = hypervolume(solutions[j], solutions[i], problem.nobjs)
+
+            fitnesses[i].append(value)
+            max_fitness = max(max_fitness, abs(value))
+        
+    for i in range(len(solutions)):
+        sum = 0.0
+        
+        for j in range(len(solutions)):
+            if i != j:
+                sum += math.exp((-fitnesses[j][i] / max_fitness) / kappa)
+                
+        solutions[i].fitness = sum
