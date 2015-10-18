@@ -111,7 +111,7 @@ def epsilon_indicator(reference_set):
         normalize(feasible, minimum, maximum)
         return max([min([max([s2.normalized_objectives[k] - s1.normalized_objectives[k] for k in range(s2.problem.nobjs)]) for s2 in set]) for s1 in reference_set])
         
-    return calc    
+    return calc
     
 def spacing():
     def calc(set):
@@ -128,3 +128,99 @@ def spacing():
         return math.sqrt(sum([math.pow(d - avg_distance, 2.0) for d in distances]) / (len(feasible)-1))
     
     return calc
+
+def hypervolume(reference_set):
+    reference_set = [s for s in reference_set if s.constraint_violation==0.0]
+    minimum, maximum = normalize(reference_set)
+    
+    def invert(solution):
+        solution.normalized_objectives = [1.0-max(0.0, min(1.0, solution.normalized_objectives[i])) for i in range(solution.problem.nobjs)]
+    
+    def dominates(solution1, solution2, nobjs):
+        better = False
+        worse = False
+        
+        for i in range(nobjs):
+            if solution1.normalized_objectives[i] > solution2.normalized_objectives[i]:
+                better = True
+            else:
+                worse = True
+                break
+            
+        return not worse and better
+    
+    def swap(solutions, i, j):
+        solutions[i], solutions[j] = solutions[j], solutions[i]
+        
+    def filter_nondominated(solutions, nsols, nobjs):
+        i = 0
+        n = nsols
+        
+        while i < n:
+            j = i + 1
+            
+            while j < n:
+                if dominates(solutions[i], solutions[j], nobjs):
+                    n -= 1
+                    swap(solutions, j, n)
+                elif dominates(solutions[j], solutions[i], nobjs):
+                    n -= 1
+                    swap(solutions, i, n)
+                    i -= 1
+                    break
+                else:
+                    j += 1
+                
+            i += 1
+            
+        return n
+    
+    def surface_unchanged_to(solutions, nsols, obj):
+        return min([solutions[i].normalized_objectives[obj] for i in range(nsols)])
+    
+    def reduce_set(solutions, nsols, obj, threshold):
+        i = 0
+        n = nsols
+        
+        while i < n:
+            if solutions[i].normalized_objectives[obj] <= threshold:
+                n -= 1
+                swap(solutions, i, n)
+            i += 1
+            
+        return n
+    
+    def calc_internal(solutions, nsols, nobjs):
+        volume = 0.0
+        distance = 0.0
+        n = nsols
+        
+        while n > 0:
+            nnondom = filter_nondominated(solutions, n, nobjs-1)
+            
+            if nobjs < 3:
+                temp_volume = solutions[0].normalized_objectives[0]
+            else:
+                temp_volume = calc_internal(solutions, nnondom, nobjs-1)
+                
+            temp_distance = surface_unchanged_to(solutions, n, nobjs-1)
+            volume += temp_volume * (temp_distance - distance)
+            distance = temp_distance
+            n = reduce_set(solutions, n, nobjs-1, distance)
+            
+        return volume
+    
+    def calc(set):
+        feasible = [s for s in set if s.constraint_violation==0.0]
+        normalize(feasible, minimum, maximum)
+        feasible = [s for s in feasible if all([o <= 1.0 for o in s.normalized_objectives])]
+        
+        if len(feasible) == 0:
+            return 0.0
+        
+        for s in feasible:
+            invert(s)
+            
+        return calc_internal(feasible, len(feasible), set[0].problem.nobjs)
+
+    return calc   

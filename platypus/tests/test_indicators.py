@@ -17,13 +17,13 @@
 import math
 import unittest
 from .test_core import createSolution
-from ..indicators import generational_distance, inverted_generational_distance
+from ..indicators import generational_distance, inverted_generational_distance, \
+    epsilon_indicator, spacing, hypervolume
 from ..core import POSITIVE_INFINITY
-from platypus.indicators import epsilon_indicator, spacing
 
 class TestGenerationalDistance(unittest.TestCase):
     
-    def test_dist(self):
+    def test(self):
         reference_set = [createSolution(0, 1), createSolution(1, 0)]
         gd = generational_distance(reference_set)
         
@@ -44,7 +44,7 @@ class TestGenerationalDistance(unittest.TestCase):
 
 class TestInvertedGenerationalDistance(unittest.TestCase):
     
-    def test_dist(self):
+    def test(self):
         reference_set = [createSolution(0, 1), createSolution(1, 0)]
         igd = inverted_generational_distance(reference_set)
         
@@ -62,7 +62,7 @@ class TestInvertedGenerationalDistance(unittest.TestCase):
 
 class TestEpsilonIndicator(unittest.TestCase):
     
-    def test_dist(self):
+    def test(self):
         reference_set = [createSolution(0, 1), createSolution(1, 0)]
         ei = epsilon_indicator(reference_set)
         
@@ -97,3 +97,24 @@ class TestSpacing(unittest.TestCase):
         
         set = [createSolution(0.0, 1.0), createSolution(0.25, 0.75), createSolution(1.0, 0.0)]
         self.assertGreater(sp(set), 0.0)
+        
+class TestHypervolume(unittest.TestCase):
+    
+    def test(self):
+        reference_set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+        hyp = hypervolume(reference_set)
+        
+        set = []
+        self.assertEqual(0.0, hyp(set))
+        
+        set = [createSolution(0.5, 0.5)]
+        self.assertEqual(0.25, hyp(set))
+        
+        set = [createSolution(0.0, 0.0)]
+        self.assertEqual(1.0, hyp(set))
+        
+        set = [createSolution(1.0, 1.0)]
+        self.assertEqual(0.0, hyp(set))
+        
+        set = [createSolution(0.5, 0.0), createSolution(0.0, 0.5)]
+        self.assertEqual(0.75, hyp(set))
