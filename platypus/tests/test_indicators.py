@@ -19,6 +19,7 @@ import unittest
 from .test_core import createSolution
 from ..indicators import generational_distance, inverted_generational_distance
 from ..core import POSITIVE_INFINITY
+from platypus.indicators import epsilon_indicator, spacing
 
 class TestGenerationalDistance(unittest.TestCase):
     
@@ -59,4 +60,40 @@ class TestInvertedGenerationalDistance(unittest.TestCase):
         set = [createSolution(2.0, 2.0)]
         self.assertEqual(math.sqrt(10.0)/2.0, igd(set))
 
+class TestEpsilonIndicator(unittest.TestCase):
+    
+    def test_dist(self):
+        reference_set = [createSolution(0, 1), createSolution(1, 0)]
+        ei = epsilon_indicator(reference_set)
         
+        set = []
+        self.assertEqual(POSITIVE_INFINITY, ei(set))
+        
+        set = [createSolution(0.0, 1.0)]
+        self.assertEqual(1.0, ei(set))
+        
+        set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+        self.assertEqual(0.0, ei(set))
+        
+        set = [createSolution(2.0, 2.0)]
+        self.assertEqual(2.0, ei(set))
+
+class TestSpacing(unittest.TestCase):
+    
+    def test(self):
+        sp = spacing()
+        
+        set = []
+        self.assertEqual(0.0, sp(set))
+        
+        set = [createSolution(0.5, 0.5)]
+        self.assertEqual(0.0, sp(set))
+        
+        set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+        self.assertEqual(0.0, sp(set))
+        
+        set = [createSolution(0.0, 1.0), createSolution(0.5, 0.5), createSolution(1.0, 0.0)]
+        self.assertEqual(0.0, sp(set))
+        
+        set = [createSolution(0.0, 1.0), createSolution(0.25, 0.75), createSolution(1.0, 0.0)]
+        self.assertGreater(sp(set), 0.0)
