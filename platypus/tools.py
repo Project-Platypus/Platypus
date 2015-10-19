@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
+import sys
 import math
 import operator
 from platypus.core import Solution, POSITIVE_INFINITY, EPSILON, PlatypusError
@@ -189,3 +190,237 @@ class DistanceMatrix(object):
                 raise ValueError("key not found")
         else:
             raise ValueError("key must be a tuple")
+
+def tred2(n, V, d, e):
+    """Symmetric Householder reduction to tridiagonal form.
+    
+    This is derived from the Algol procedures tred2 by Bowdler, Martin,
+    Reinsch, and Wilkinson, Handbook for Auto. Comp., Vol.ii-Linear Algebra,
+    and the corresponding Fortran subroutine in EISPACK.
+    """
+    for j in range(n):
+        d[j] = V[n-1][j]
+        
+    for i in range(n-1, -1, -1):
+        scale = 0.0
+        h = 0.0
+        
+        for k in range(i):
+            scale += abs(d[k])
+            
+        if scale == 0.0:
+            e[i] = d[i-1]
+            
+            for j in range(i):
+                d[j] = V[i-1][j]
+                V[i][j] = V[j][i] = 0.0
+                
+        else:
+            for k in range(i):
+                d[k] /= scale
+                h += d[k]**2
+                
+            f = d[i-1]
+            g = math.sqrt(h)
+            
+            if f > 0.0:
+                g = -g
+                
+            e[i] = scale*g
+            h -= f*g
+            d[i-1] = f-g
+            
+            for j in range(i):
+                e[j] = 0.0
+                
+            for j in range(i):
+                f = d[j]
+                V[j][i] = f
+                g = e[j] + V[j][j]*f
+                
+                for k in range(j+1, i):
+                    g += V[k][j]*d[k]
+                    e[k] += V[k][j]*f
+                    
+                e[j] = g
+            
+            f = 0.0
+            
+            for j in range(i):
+                e[j] /= h
+                f += e[j]*d[j]
+                
+            hh = f / (2*h)
+            
+            for j in range(i):
+                e[j] -= hh*d[j]
+                
+            for j in range(i):
+                f = d[j]
+                g = e[j]
+                
+                for k in range(j, i):
+                    V[k][j] -= f*e[k] + g*d[k]
+                    
+                d[j] = V[i-1][j]
+                V[i][j] = 0.0
+                
+        d[i] = h
+    
+    for i in range(n-1):
+        V[n-1][i] = V[i][i]
+        V[i][i] = 1.0
+        h = d[i+1]
+        
+        if h != 0.0:
+            for k in range(i+1):
+                d[k] = V[k][i+1] / h
+                
+            for j in range(i+1):
+                g = 0.0
+                
+                for k in range(i+1):
+                    g += V[k][i+1] * V[k][j]
+                    
+                for k in range(i+1):
+                    V[k][j] -= g*d[k]
+                    
+        for k in range(n):
+            d[j] = V[n-1][j]
+            V[n-1][j] = 0.0
+            
+    V[n-1][n-1] = 1.0
+    e[0] = 0.0
+    
+def tql2(n, d, e, V):
+    """Symmetric tridiagonal QL algorithm.
+    
+    This is derived from the Algol procedures tql2, by Bowdler, Martin,
+    Reinsch, and Wilkinson, Handbook for Auto. Comp., Vol.ii-Linear Algebra,
+    and the corresponding Fortran subroutine in EISPACK.
+    """
+    for i in range(1, n):
+        e[i-1] = e[i]
+        
+    e[n-1] = 0.0
+    
+    f = 0.0
+    tst1 = 0.0
+    eps = math.pow(2.0, -52.0)
+    
+    for l in range(n):
+        tst1 = max(tst1, abs(d[l]) + abs(e[l]))
+        m = 1
+        
+        while m < n:
+            if abs(e[m]) <= eps*tst1:
+                break
+            m += 1
+        
+        if m > l:
+            iter = 0
+            
+            while True:
+                iter += 1
+                g = d[l]
+                p = (d[l+1] - g) / (2.0*e[l])
+                r = hypot(p, 1.0)
+                
+                if p < 0:
+                    r = -r
+                    
+                d[l] = e[l] / (p + r)
+                d[l+1] = e[l] * (p + r)
+                dl1 = d[l+1]
+                h = g - d[l]
+                
+                for i in range(l+2, n):
+                    d[i] -= h
+                    
+                f += h
+                p = d[m]
+                c = 1.0
+                c2 = c
+                c3 = c
+                el1 = e[l+1]
+                s = 0.0
+                s2 = 0.0
+                
+                for i in range(m-1, l-1, -1):
+                    c3 = c2
+                    c2 = c
+                    s2 = s
+                    g = c*e[i]
+                    h = c*p
+                    r = hypot(p, e[i])
+                    e[i+1] = s*r
+                    s = e[i] / r
+                    c = p / r
+                    p = c*d[i] - s*g
+                    d[i+1] = h + s*(c*g + s*d[i])
+                    
+                    for k in range(n):
+                        h = V[k][i+1]
+                        V[k][i+1] = s*V[k][i] + c*h
+                        V[k][i] = c*V[k][i] - s*h
+                    
+                p = -s*s2*c3*el1*e[l] / dl1
+                e[l] = s*p
+                d[l] = c*p
+                
+                if abs(e[l]) < eps*tst1:
+                    break
+            
+        d[l] = d[l] + f
+        e[l] = 0.0
+        
+    for i in range(n-1):
+        k = i
+        p = d[i]
+        
+        for j in range(i+1, n):
+            if d[j] < p:
+                k = j
+                p = d[j]
+        
+        if k != i:
+            d[k] = d[i]
+            d[i] = p
+            
+            for j in range(n):
+                p = V[j][i]
+                V[j][i] = V[j][k]
+                V[j][k] = p
+                
+def hypot(a, b):
+    """Computes sqrt(a**2 + b**2) without under/overflow."""
+    if abs(a) > abs(b):
+        r = b / a
+        r = abs(a) * math.sqrt(1 + r*r)
+    elif b != 0.0:
+        r = a / b
+        r = abs(b) * math.sqrt(1 + r*r)
+        
+    return r
+
+def check_eigensystem(n, C, diag, Q):
+    res = 0
+    
+    for i in range(n):
+        for j in range(n):
+            cc = 0.0
+            dd = 0.0
+            
+            for k in range(n):
+                cc += diag[k] * Q[i][k] * Q[j][k]
+                dd += Q[i][k] * Q[j][k]
+                
+            if abs(cc - C[i if i>j else j][j if i>j else i])/math.sqrt(C[i][i]*C[j][j]) > 1e-10 and abs(cc - C[i if i>j else j][j if i>j else i]) > 1e-9:
+                print >> sys.stderr, "imprecise result detected", i, j, cc, C[i if i>j else j][j if i>j else i], (cc-C[i if i>j else j][j if i>j else i])
+                res += 1
+            
+            if abs(dd - (1 if i==j else 0)) > 1e-10:
+                print >> sys.stderr, "imprecise result detected (Q not orthog.)", i, j, dd
+                res += 1
+                
+    return res

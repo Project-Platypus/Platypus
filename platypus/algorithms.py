@@ -26,11 +26,13 @@ from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, Attri
     AttributeDominance, nondominated, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance, \
-    FitnessArchive
+    FitnessArchive, Solution
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
     clip, Mutation, UniformMutation, NonUniformMutation
-from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve
+from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
+    tred2, tql2, check_eigensystem
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
+from __builtin__ import True
             
 class GeneticAlgorithm(Algorithm):
     
@@ -842,3 +844,261 @@ class SMPSO(ParticleSwarm):
         for i in range(self.swarm_size):
             if i % 6 == 0:
                 self.particles[i] = self.mutate.mutate(self.particles[i])
+                
+class CMAES(Algorithm):
+    
+    def __init__(self, problem,
+                 offspring_size = 100,
+                 cc = None,
+                 cs = None,
+                 damps = None,
+                 ccov = None,
+                 ccovsep = None,
+                 sigma = None,
+                 diagonal_iterations = None,
+                 indicator = "crowding",
+                 initial_search_point = None,
+                 check_consistency = False,
+                 epsilons = None,
+                 fitness = None):
+        super(CMAES, self).__init__(problem)
+        self.offspring_size = offspring_size
+        self.cc = cc
+        self.cs = cs
+        self.damps = damps
+        self.ccov = ccov
+        self.ccovsep = ccovsep
+        self.sigma = sigma
+        self.diagonal_iterations = diagonal_iterations
+        self.indicator = indicator
+        self.initial_search_point = initial_search_point
+        self.check_consistency = check_consistency
+        self.fitness = fitness
+        self.population = []
+        self.iteration = 0
+        self.last_eigenupdate = 0
+        
+        if epsilons is None:
+            self.archive = Archive()
+        else:
+            self.archive = Archive(EpsilonDominance(epsilons))
+        
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+            self.iterate()
+            self.result = self.population
+        else:
+            self.iterate()
+            self.result = self.population
+            print self.nfe
+        
+    def initialize(self):
+        if self.sigma is None:
+            self.sigma = 0.5
+            
+        if self.diagonal_iterations is None:
+            self.diagonal_iterations = 150 * self.problem.nvars / self.offspring_size
+            
+        self.diag_D = [1.0]*self.problem.nvars
+        self.pc = [0.0]*self.problem.nvars
+        self.ps = [0.0]*self.problem.nvars
+        self.B = [[1.0 if i==j else 0.0 for j in range(self.problem.nvars)] for i in range(self.problem.nvars)]
+        self.C = [[1.0 if i==j else 0.0 for j in range(self.problem.nvars)] for i in range(self.problem.nvars)]
+        self.xmean = [0.0]*self.problem.nvars
+        
+        if self.initial_search_point is None:
+            for i in range(self.problem.nvars):
+                type = self.problem.types[i]
+                offset = self.sigma * self.diag_D[i]
+                rangev = type.max_value - type.min_value - 2*self.sigma*self.diag_D[i]
+                
+                if offset > 0.4 * (type.max_value - type.min_value):
+                    offset = 0.4 * (type.max_value - type.min_value)
+                    rangev = 0.2 * (type.max_value - type.min_value)
+                    
+                self.xmean[i] = type.min_value + offset + random.uniform(0.0, 1.0) * rangev
+        else:
+            for i in range(self.problem.nvars):
+                self.xmean[i] = self.initial_search_point[i] + self.sigma*self.diag_D[i]*random.gauss()  
+            
+        self.chi_N = math.sqrt(self.problem.nvars) * (1.0 - 1.0/(4.0*self.problem.nvars) + 1.0/(21.0*self.problem.nvars**2))
+        self.mu = int(math.floor(self.offspring_size / 2.0))
+        self.weights = [math.log(self.mu + 1.0) - math.log(i + 1.0) for i in range(self.mu)]
+        
+        sum_of_weights = sum(self.weights)
+        self.weights = [w / sum_of_weights for w in self.weights]
+        
+        sumsq_of_weights = sum([w**2 for w in self.weights])
+        self.mueff = 1.0 / sumsq_of_weights
+        
+        if self.cs is None:
+            self.cs = (self.mueff + 2.0) / (self.problem.nvars + self.mueff + 3.0)
+            
+        if self.damps is None:
+            self.damps = (1.0 + 2.0*max(0, math.sqrt((self.mueff - 1.0) / (self.problem.nvars + 1.0)) - 1.0)) + self.cs
+            
+        if self.cc is None:
+            self.cc = 4.0 / (self.problem.nvars + 4.0)
+            
+        if self.ccov is None:
+            self.ccov = 2.0 / (self.problem.nvars + 1.41) / (self.problem.nvars + 1.41) / self.mueff + (1.0 - (1.0 / self.mueff)) * min(1.0, (2.0*self.mueff - 1.0) / (self.mueff + (self.problem.nvars + 2.0)**2))
+            
+        if self.ccovsep is None:
+            self.ccovsep = min(1.0, self.ccov * (self.problem.nvars + 1.5) / 3.0)
+            
+    def eigendecomposition(self):
+        self.last_eigenupdate = self.iteration
+        
+        if self.diagonal_iterations >= self.iteration:
+            for i in range(self.problem.nvars):
+                self.diag_D[i] = math.sqrt(self.C[i][i])
+        else:
+            for i in range(self.problem.nvars):
+                for j in range(i+1):
+                    self.B[i][j] = self.B[j][i] = self.C[i][j]
+                    
+            offdiag = [0.0]*self.problem.nvars
+            tred2(self.problem.nvars, self.B, self.diag_D, offdiag)
+            tql2(self.problem.nvars, self.diag_D, offdiag, self.B)
+            
+            if self.check_consistency:
+                check_eigensystem(self.problem.nvars, self.C, self.diag_D, self.B)
+                
+            for i in range(self.problem.nvars):
+                if self.diag_D[i] < 0.0:
+                    print >> sys.stderr, "an eigenvalue has become negative"
+                    self.diag_D[i] = 0.0
+                    
+                self.diag_D[i] = math.sqrt(self.diag_D[i])
+            
+    def test_and_correct_numerics(self):
+        if len(self.population) > 0:
+            pass
+            
+    def sample(self):
+        if (self.iteration - self.last_eigenupdate) > 1.0 / self.ccov / self.problem.nvars / 5.0:
+            self.eigendecomposition()
+            
+        if self.check_consistency:
+            self.test_and_correct_numerics()
+            
+        samples = []
+        
+        for i in range(self.offspring_size):
+            solution = Solution(self.problem)
+            
+            if self.diagonal_iterations >= self.iteration:
+                while True:
+                    feasible = True
+                    
+                    for j in range(self.problem.nvars):
+                        type = self.problem.types[j]
+                        value = self.xmean[j] + self.sigma * self.diag_D[j] * random.gauss(0.0, 1.0)
+                        if value < type.min_value or value > type.max_value:
+                            feasible = False
+                            break
+                        
+                        solution.variables[j] = value
+                        
+                    if feasible:
+                        break
+            else:
+                artmp = [0.0]*self.problem.nvars
+                
+                while True:
+                    feasible = True
+                    
+                    for j in range(self.problem.nvars):
+                        artmp[j] = self.diag_D[j] * random.gauss(0.0, 1.0)
+                        
+                    for j in range(self.problem.nvars):
+                        type = self.problem.types[j]
+                        mutation = 0.0
+                        
+                        for k in range(self.problem.nvars):
+                            mutation += self.B[j][k] * artmp[k]
+                            
+                        value = self.xmean[j] + self.sigma * mutation
+                        
+                        if value < type.min_value or value > type.max_value:
+                            feasible = False
+                            break
+                        
+                        solution.variables[j] = value
+                        
+                    if feasible:
+                        break
+                    
+            samples.append(solution)
+        
+        self.iteration += 1
+        return samples
+    
+    def update_distribution(self):
+        xold = self.xmean[:]
+        BDz = [0.0]*self.problem.nvars
+        artmp = [0.0]*self.problem.nvars
+        
+        if self.problem.nobjs == 1:
+            self.population = sorted(self.population, key=lambda x : x.objectives[0])
+        else:
+            if self.fitness is None:
+                def comparator(x, y):
+                    if x.rank == y.rank:
+                        return cmp(-x.crowding_distance, -y.crowding_distance)
+                    else:
+                        return cmp(x.rank, y.rank)
+    
+                self.population = sorted(self.population, cmp=comparator) 
+            else:
+                self.population = sorted(self.population, cmp=AttributeDominance().compare)
+            
+        for i in range(self.problem.nvars):
+            self.xmean[i] = 0.0
+            
+            for j in range(self.mu):
+                self.xmean[i] += self.weights[j] * self.population[j].variables[i]
+                      
+            BDz[i] = math.sqrt(self.mueff) * (self.xmean[i] - xold[i]) / self.sigma
+              
+        if self.diagonal_iterations >= self.iteration:
+            for i in range(self.problem.nvars):
+                self.ps[i] = (1.0 - self.cs) * self.ps[i] + math.sqrt(self.cs * (2.0 - self.cs)) * BDz[i] / self.diag_D[i]
+        else:
+            for i in range(self.problem.nvars):
+                artmp[i] = sum([self.B[j][i]*BDz[j] for j in range(self.problem.nvars)]) / self.diag_D[i]
+            
+            for i in range(self.problem.nvars):
+                self.ps[i] = (1.0 - self.cs) * self.ps[i] + math.sqrt(self.cs * (2.0 - self.cs)) * sum([self.B[i][j] * artmp[j] for j in range(self.problem.nvars)])
+              
+        psxps = sum([self.ps[i]**2 for i in range(self.problem.nvars)])
+        hsig = 0.0
+        
+        if math.sqrt(psxps) / math.sqrt(1.0 - math.pow(1.0 - self.cs, 2.0 * self.iteration)) / self.chi_N < 1.4 + 2.0 / (self.problem.nvars+1):
+            hsig = 1.0
+            
+        for i in range(self.problem.nvars):
+            self.pc[i] = (1.0 - self.cc) * self.pc[i] + hsig * math.sqrt(self.cc * (2.0 - self.cc)) * BDz[i]
+            
+        for i in range(self.problem.nvars):
+            for j in range(i if self.diagonal_iterations >= self.iteration else 0, i+1):
+                self.C[i][j] = (1.0 - (self.ccovsep if self.diagonal_iterations >= self.iteration else self.ccov)) * self.C[i][j] + self.ccov * (1.0 / self.mueff) * (self.pc[i] * self.pc[j] + (1.0 - hsig) * self.cc * (2.0 - self.cc) * self.C[i][j])
+                
+                for k in range(self.mu):
+                    self.C[i][j] += self.ccov * (1.0 - 1.0 / self.mueff) * self.weights[k] * (self.population[k].variables[i] - xold[i]) * (self.population[k].variables[j] - xold[j]) / (self.sigma**2)
+              
+        self.sigma *= math.exp(((math.sqrt(psxps) / self.chi_N) - 1.0) * self.cs / self.damps)
+        
+    def iterate(self):
+        self.population = self.sample()
+        self.evaluateAll(self.population)
+        
+        if self.problem.nobjs > 1:
+            nondominated_sort(self.population)
+            
+            if self.fitness is not None:
+                self.fitness(self.population)
+
+        self.archive += self.population
+        self.update_distribution()
