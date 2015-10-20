@@ -19,7 +19,7 @@ import math
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real
-from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector
+from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -308,7 +308,7 @@ class PCX(Variator):
     def evolve(self, parents):
         result = []
         
-        for i in range(self.noffspring):
+        for _ in range(self.noffspring):
             index = random.randrange(len(parents))
             parents[index], parents[-1] = parents[-1], parents[index]
             
@@ -373,7 +373,7 @@ class UNDX(Variator):
     def evolve(self, parents):
         result = []
         
-        for i in range(self.noffspring):
+        for _ in range(self.noffspring):
             result.append(self.undx(parents))
             
         return result
@@ -432,3 +432,54 @@ class UNDX(Variator):
             
         result.evaluated = False
         return result
+    
+class SPX(Variator):
+    
+    def __init__(self, nparents = 10, noffspring = 2, expansion = None):
+        super(UNDX, self).__init__(nparents)
+        self.nparents = nparents
+        self.noffspring = noffspring
+        
+        if expansion is None:
+            self.expansion = math.sqrt(nparents+1)
+        else:
+            self.expansion = expansion
+        
+    def evolve(self, parents):
+        n = len(parents)
+        m = parents[0].problem.nvars
+        x = []
+        
+        for i in range(n):
+            x.append(parents[i].variables[:])
+        
+        # compute center of mass
+        G = [sum([x[i][j] for i in range(n)]) / n for j in range(m)]
+        
+        # compute expanded simplex vertices
+        for i in range(n):
+            x[i] = add(G, multiply(self.expansion, subtract(x[i], G)))
+                
+        # generate offspring
+        result = []
+        
+        for _ in range(self.noffspring):
+            child = copy.deepcopy(parents[n-1])
+            r = [math.pow(random.uniform(0.0, 1.0), 1.0 / (i + 1.0)) for i in range(n-1)]
+            C = zeros(n, m)
+            
+            for i in range(n):
+                for j in range(m):
+                    if i == 0:
+                        C[i][j] = 0.0
+                    else:
+                        C[i][j] = r[i-1] * (x[i-1][j] - x[i][j] + C[i-1][j])
+            
+            for j in range(m):
+                type = child.problem.types[j]
+                child.variables[j] = clip(x[n-1][j] + C[n-1][j], type.min_value, type.max_value)
+            
+            result.append(child)
+            
+        return result
+    

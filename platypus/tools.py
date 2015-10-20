@@ -60,6 +60,9 @@ def normalize(u):
 def random_vector(n, rng=functools.partial(random.gauss, 0.0, 1.0)):
     return [rng() for _ in range(n)]
 
+def zeros(m, n):
+    return [[0.0]*n for _ in range(m)]
+
 class SingularError(PlatypusError):
     pass
     
