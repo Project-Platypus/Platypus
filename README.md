@@ -4,6 +4,8 @@
 tested.  Please refrain from using in applications until a stable release is
 available.**
 
+[![Build Status](https://travis-ci.org/Project-Platypus/Platypus.svg?branch=master)](https://travis-ci.org/Project-Platypus/Platypus)
+
 ### What is Platypus?
 
 Platypus is a framework for evolutionary computing in Python with a focus on
