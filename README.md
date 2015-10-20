@@ -1,33 +1,58 @@
-# Platypus-Optimize
+# Platypus
 
 **Note: Platypus is current under development and has not been extensively
 tested.  Please refrain from using in applications until a stable release is
 available.**
 
-### What is Platypus-Optimize?
+### What is Platypus?
 
 Platypus is a framework for evolutionary computing in Python with a focus on
-multiobjective evolutionary algorithms (MOEAs).  There are a number of Python
-libraries for optimization, including PyGMO, Inspyred, DEAP and Scipy, but only
-Platypus provides extensive support for multiobjective optimization.
+multiobjective evolutionary algorithms (MOEAs).  It differs from existing
+optimization libraries, including PyGMO, Inspyred, DEAP, and Scipy, by providing
+optimization algorithms and analysis tools for multiobjective optimization.
+It currently supports the following algorithms:
 
-1. **Minimal Setup** - With only minimal information about the optimization
-   problem, Platypus automatically fills in the rest.  You can always specify
-   more details, but Platypus will automatically supply missing options based
+Algorithm | Original Authors
+---------------------------------------------------------------------
+NSGA-II      | K. Deb, A. Pratap, S. Agarwal, T. Meyarivan
+NSGA-III     | K. Deb, H. Jain
+MOEA/D       | H. Li, Q. Zhang
+IBEA         | E. Zitzler, S. Kunzli
+Epsilon MOEA | K. Deb, M. Mohan, S. Mishra
+SPEA2        | E. Zitzler, M. Laumanns, L. Thiele
+GDE3         | S. Kukkonen, J. Lampinen
+OMOPSO       | M. R. Sierra, C. A. Coello Coello
+SMPSO        | A. J. Nebro, J. J. Durillo, J. Garcia-Nieto, C. A. Coello Coello
+
+### Design Goals
+
+Platypus is currently under development and we welcome new collaborators.
+The design of Platypus is focused on the following:
+
+1. **Multiobjective** - Focus on solving multiobjective optimization problems.
+
+2. **Separation of Concerns** - There should be a clear separation between
+   the problem definition and the method of solving the problem.  Doing so
+   allows swapping in different algorithms or operators without altering the
+   problem formulation.
+   
+3. **Minimal Setup** - Minimize the amount of code needed to define and
+   optimize a problem.  Platypus automatically supplies missing options based
    on best practices.
    
-2. **Pure Python** - Unlike other libraries including PyGMO, Inspyred, DEAP, and
-   Scipy, Platypus is focused on minimizing dependencies on non-pure Python
-   libraries.  By eliminating these dependencies, Platypus can run on any
-   system where Python is available.
+4. **Pure Python** - Minimize external dependencies on non-pure Python
+   libraries.  By eliminating such dependencies, Platypus can run on any system
+   where vanilla Python is installed.
    
-3. **Parallelization** - Platypus is designed from the bottom up with
-   parallelization in mind, both using local threading and distributed
-   computing across a network.
+5. **Cloud Computing** - Scientific computing with multiobjective evolutionary
+   algorithms is computationally expensive.  Platypus should facilitate
+   distributed computing with minimal setup.
    
-4. **Compatibility with Python Ecosystem** - Python supports many powerful
-   modeling and analysis frameworks, and Platypus is designed with these in
-   mind.  Integration into tools such as OpenMDAO are built-in.
+6. **Ecosystem** - Python supports many powerful modeling, design and analysis
+   frameworks (e.g., OpenMDAO), and Platypus should facilitate collaboration
+   with these tools.
+
+### Example
 
 For example, optimizing a simple biobjective problem with a single real-valued
 decision variables is accomplished in Platypus with:
@@ -41,8 +66,7 @@ decision variables is accomplished in Platypus with:
     	return [x**2, (x-2)**2]
 
     problem = Problem(1, 2)
-    problem.variables[:] = Real(0, 1)
-    problem.objectives[:] = Problem.MINIMIZE
+    problem.types[:] = Real(0, 1)
     problem.function = schaffer
 
     algorithm = NSGAII(problem)
@@ -52,17 +76,6 @@ decision variables is accomplished in Platypus with:
         print solution
 ```
 
-### Constraints
+### License
 
-Platypus allows simple expressions for constraints.  For example, if a solution
-is feasible when constraints are non-negative, this can be expressed by:
-
-```python
-    problem.constraints[:] == ">=0"
-```
-
-Alternatively, say the constraint must be greater than 0.95:
-
-```python
-    problem.constraints[0] == ">= 0.95"
-```
+Platypus is released under the GNU General Public License.
