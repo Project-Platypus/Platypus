@@ -19,6 +19,7 @@ import math
 import random
 import operator
 import functools
+from functools import reduce
 from platypus.core import Solution, POSITIVE_INFINITY, EPSILON, PlatypusError
 
 def point_line_dist(point, line):
@@ -115,11 +116,11 @@ def choose(n, k):
     if 0 <= k <= n:
         ntok = 1
         ktok = 1
-        for t in xrange(1, min(k, n - k) + 1):
+        for t in range(1, min(k, n - k) + 1):
             ntok *= n
             ktok *= t
             n -= 1
-        return ntok // ktok
+        return ntok / ktok
     else:
         return 0
 
