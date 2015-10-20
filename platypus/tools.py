@@ -16,7 +16,9 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 import math
+import random
 import operator
+import functools
 from platypus.core import Solution, POSITIVE_INFINITY, EPSILON, PlatypusError
 
 def point_line_dist(point, line):
@@ -54,6 +56,9 @@ def normalize(u):
         raise ValueError("can not normalize a zero vector")
     
     return multiply(1.0 / magnitude(u), u)
+
+def random_vector(n, rng=functools.partial(random.gauss, 0.0, 1.0)):
+    return [rng() for _ in range(n)]
 
 class SingularError(PlatypusError):
     pass

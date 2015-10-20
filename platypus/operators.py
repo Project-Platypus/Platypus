@@ -19,7 +19,7 @@ import math
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real
-from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize
+from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -312,7 +312,7 @@ class PCX(Variator):
             index = random.randrange(len(parents))
             parents[index], parents[-1] = parents[-1], parents[index]
             
-            result.append(pcx(parents))
+            result.append(self.pcx(parents))
             
         return result
     
@@ -322,7 +322,7 @@ class PCX(Variator):
         x = []
         
         for i in range(k):
-            x.append(parents[i].variables)
+            x.append(parents[i].variables[:])
             
         g = [sum([x[i][j] for i in range(k)]) / k for j in range(n)]
         D = 0.0
@@ -351,6 +351,78 @@ class PCX(Variator):
         
         for i in range(1, len(e_eta)):
             variables = add(variables, multiply(eta*D, e_eta[i]))
+            
+        result = copy.deepcopy(parents[k-1])
+        
+        for j in range(n):
+            type = result.problem.types[j]
+            result.variables[j] = clip(variables[j], type.min_value, type.max_value)
+            
+        result.evaluated = False
+        return result
+    
+class UNDX(Variator):
+    
+    def __init__(self, nparents = 10, noffspring = 2, zeta = 0.5, eta = 0.35):
+        super(UNDX, self).__init__(nparents)
+        self.nparents = nparents
+        self.noffspring = noffspring
+        self.zeta = zeta
+        self.eta = eta
+        
+    def evolve(self, parents):
+        result = []
+        
+        for i in range(self.noffspring):
+            result.append(self.undx(parents))
+            
+        return result
+    
+    def undx(self, parents):
+        k = len(parents)
+        n = parents[0].problem.nvars
+        x = []
+        
+        for i in range(k):
+            x.append(parents[i].variables[:])
+            
+        g = [sum([x[i][j] for i in range(k)]) / k for j in range(n)]
+        
+        
+        # basis vectors defined by parents
+        e_zeta = []
+        e_eta = []
+        
+        for i in range(k-1):
+            d = subtract(x[i], g)
+            
+            if not is_zero(d):
+                dbar = magnitude(d)
+                e = orthogonalize(d, e_zeta)
+                
+                if not is_zero(e):
+                    e_zeta.append(multiply(dbar, normalize(e)))
+        
+        D = magnitude(subtract(x[k-1], g))
+        
+        # create the remaining basis vectors
+        for i in range(n-len(e_zeta)):
+            d = random_vector(n)
+            
+            if not is_zero(d):
+                e = orthogonalize(d, e_eta)
+                
+                if not is_zero(e):
+                    e_eta.append(multiply(d, normalize(e)))
+        
+        # construct the offspring
+        variables = g
+        
+        for i in range(len(e_zeta)):
+            variables = add(variables, multiply(random.gauss(0.0, self.zeta), e_zeta[i]))
+        
+        for i in range(1, len(e_eta)):
+            variables = add(variables, multiply(random.gauss(0.0, self.eta / math.sqrt(n)), e_eta[i]))
             
         result = copy.deepcopy(parents[k-1])
         
