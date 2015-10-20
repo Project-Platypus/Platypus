@@ -25,6 +25,9 @@ def point_line_dist(point, line):
 def magnitude(x):
     return math.sqrt(dot(x, x))
 
+def add(x, y):
+    return [x[i] + y[i] for i in range(len(x))]
+
 def subtract(x, y):
     return [x[i] - y[i] for i in range(len(x))]
 
@@ -33,6 +36,24 @@ def multiply(s, x):
 
 def dot(x, y):
     return reduce(operator.add, [x[i]*y[i] for i in range(len(x))], 0)
+
+def is_zero(x):
+    return all([abs(x[i]) < EPSILON for i in len(x)])
+
+def project(u, v):
+    return multiply(dot(u, v) / dot(v, v), v)
+
+def orthogonalize(u, vs):
+    for v in vs:
+        u = subtract(u, project(u, v))
+        
+    return u
+
+def normalize(u):
+    if is_zero(u):
+        raise ValueError("can not normalize a zero vector")
+    
+    return multiply(1.0 / magnitude(u), u)
 
 class SingularError(PlatypusError):
     pass
@@ -201,7 +222,7 @@ def tred2(n, V, d, e):
     for j in range(n):
         d[j] = V[n-1][j]
         
-    for i in range(n-1, -1, -1):
+    for i in range(n-1, 0, -1):
         scale = 0.0
         h = 0.0
         

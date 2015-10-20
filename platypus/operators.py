@@ -19,6 +19,7 @@ import math
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real
+from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -271,3 +272,91 @@ class NonUniformMutation(Mutation):
                 
         return result
                 
+class UM(Mutation):
+    """Uniform mutation."""
+    
+    def __init__(self, probability):
+        super(PM, self).__init__()
+        self.probability = probability
+        
+    def mutate(self, parent):
+        child = copy.deepcopy(parent)
+        problem = child.problem
+        
+        for i in range(len(child.variables)):
+            if isinstance(problem.types[i], Real):
+                if random.uniform(0.0, 1.0) <= self.probability:
+                    child.variables[i] = self.um_mutation(float(child.variables[i]),
+                                                          problem.types[i].min_value,
+                                                          problem.types[i].max_value)
+                    child.evaluated = False
+        
+        return child
+    
+    def um_mutation(self, x, lb, ub):
+        return random.uniform(lb, ub)
+    
+class PCX(Variator):
+    
+    def __init__(self, nparents = 10, noffspring = 2, eta = 0.1, zeta = 0.1):
+        super(PCX, self).__init__(nparents)
+        self.nparents = nparents
+        self.noffspring = noffspring
+        self.eta = eta
+        self.zeta = zeta
+        
+    def evolve(self, parents):
+        result = []
+        
+        for i in range(self.noffspring):
+            index = random.randrange(len(parents))
+            parents[index], parents[-1] = parents[-1], parents[index]
+            
+            result.append(pcx(parents))
+            
+        return result
+    
+    def pcx(self, parents):
+        k = len(parents)
+        n = parents[0].problem.nvars
+        x = []
+        
+        for i in range(k):
+            x.append(parents[i].variables)
+            
+        g = [sum([x[i][j] for i in range(k)]) / k for j in range(n)]
+        D = 0.0
+        
+        # basis vectors defined by parents
+        e_eta = []
+        e_eta.append(subtract(x[k-1], g))
+        
+        for i in range(k-1):
+            d = subtract(x[i], g)
+            
+            if not is_zero(d):
+                e = orthogonalize(d, e_eta)
+                
+                if not is_zero(e):
+                    D += magnitude(e)
+                    e_eta.append(normalize(e))
+        
+        D /= k-1
+        
+        # construct the offspring
+        variables = x[k-1]
+        variables = add(variables, multiply(random.gauss(0.0, self.zeta), e_eta[0]))
+        
+        eta = random.gauss(0.0, self.eta)
+        
+        for i in range(1, len(e_eta)):
+            variables = add(variables, multiply(eta*D, e_eta[i]))
+            
+        result = copy.deepcopy(parents[k-1])
+        
+        for j in range(n):
+            type = result.problem.types[j]
+            result.variables[j] = clip(variables[j], type.min_value, type.max_value)
+            
+        result.evaluated = False
+        return result
