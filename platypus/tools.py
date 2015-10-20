@@ -40,7 +40,7 @@ def dot(x, y):
     return reduce(operator.add, [x[i]*y[i] for i in range(len(x))], 0)
 
 def is_zero(x):
-    return all([abs(x[i]) < EPSILON for i in len(x)])
+    return all([abs(x[i]) < EPSILON for i in range(len(x))])
 
 def project(u, v):
     return multiply(dot(u, v) / dot(v, v), v)

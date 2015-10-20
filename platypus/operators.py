@@ -276,7 +276,7 @@ class UM(Mutation):
     """Uniform mutation."""
     
     def __init__(self, probability):
-        super(PM, self).__init__()
+        super(UM, self).__init__()
         self.probability = probability
         
     def mutate(self, parent):
@@ -436,7 +436,7 @@ class UNDX(Variator):
 class SPX(Variator):
     
     def __init__(self, nparents = 10, noffspring = 2, expansion = None):
-        super(UNDX, self).__init__(nparents)
+        super(SPX, self).__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
         
