@@ -394,7 +394,15 @@ class AttributeDominance(Dominance):
             self.getter = operator.attrgetter(getter)
         
     def compare(self, solution1, solution2):
-        return cmp(self.getter(solution1), self.getter(solution2))
+        a = self.getter(solution1)
+        b = self.getter(solution2)
+        
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+        else:
+            return 0
 
 class Archive(object):
     
@@ -452,6 +460,22 @@ def nondominated(solutions):
     archive = Archive()
     archive += solutions
     return archive._contents
+
+def nondominated_cmp(x, y):
+    if x.rank == y.rank:
+        if -x.crowding_distance < -y.crowding_distance:
+            return -1
+        elif -x.crowding_distance > -y.crowding_distance:
+            return 1
+        else:
+            return 0
+    else:
+        if x.rank < y.rank:
+            return -1
+        elif x.rank > y.rank:
+            return 1
+        else:
+            return 0
     
 def nondominated_sort(solutions):
     """Fast non-dominated sorting.
@@ -591,13 +615,7 @@ def nondominated_truncate(solutions, size):
     size: int
         The size of the truncated result
     """
-    def comparator(x, y):
-        if x.rank == y.rank:
-            return cmp(-x.crowding_distance, -y.crowding_distance)
-        else:
-            return cmp(x.rank, y.rank)
-    
-    result = sorted(solutions, key=functools.cmp_to_key(comparator)) 
+    result = sorted(solutions, key=functools.cmp_to_key(nondominated_cmp)) 
     return result[:size]
         
 def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.attrgetter("fitness")):
@@ -619,17 +637,7 @@ def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.att
     getter : callable (default :code:`attrgetter("fitness")`)
         Retrieves the fitness value from a solution
     """
-    def comparator(x, y):
-        fitness1 = getter(x)
-        fitness2 = getter(y)
-        
-        if larger_preferred:
-            fitness1 = -fitness1
-            fitness2 = -fitness2
-            
-        return cmp(fitness1, fitness2)
-    
-    result = sorted(solutions, key=functools.cmp_to_key(comparator))
+    result = sorted(solutions, key=lambda x : -getter(x) if larger_preferred else getter(x))
     return result[:size]
 
 def normalize(solutions, minimum=None, maximum=None):

@@ -27,7 +27,7 @@ from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, Attri
     AttributeDominance, nondominated, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance, \
-    FitnessArchive, Solution, HypervolumeFitnessEvaluator
+    FitnessArchive, Solution, HypervolumeFitnessEvaluator, nondominated_cmp
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
     clip, Mutation, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
@@ -341,7 +341,13 @@ class MOEAD(GeneticAlgorithm):
         def compare(weight1, weight2):
             dist1 = math.sqrt(sum([math.pow(base[i]-weight1[1][i], 2.0) for i in range(len(base))]))
             dist2 = math.sqrt(sum([math.pow(base[i]-weight2[1][i], 2.0) for i in range(len(base))]))
-            return cmp(dist1, dist2)
+            
+            if dist1 < dist2:
+                return -1
+            elif dist1 > dist2:
+                return 1
+            else:
+                return 0
         
         sorted_weights = sorted(enumerate(weights), key=functools.cmp_to_key(compare))
         return [i[0] for i in sorted_weights]
@@ -1045,13 +1051,7 @@ class CMAES(Algorithm):
             self.population = sorted(self.population, key=lambda x : x.objectives[0])
         else:
             if self.fitness is None:
-                def comparator(x, y):
-                    if x.rank == y.rank:
-                        return cmp(-x.crowding_distance, -y.crowding_distance)
-                    else:
-                        return cmp(x.rank, y.rank)
-    
-                self.population = sorted(self.population, key=functools.cmp_to_key(comparator)) 
+                self.population = sorted(self.population, key=functools.cmp_to_key(nondominated_cmp)) 
             else:
                 self.population = sorted(self.population, key=functools.cmp_to_key(AttributeDominance().compare))
             
