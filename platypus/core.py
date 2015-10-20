@@ -597,7 +597,7 @@ def nondominated_truncate(solutions, size):
         else:
             return cmp(x.rank, y.rank)
     
-    result = sorted(solutions, cmp=comparator) 
+    result = sorted(solutions, key=functools.cmp_to_key(comparator)) 
     return result[:size]
         
 def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.attrgetter("fitness")):
@@ -629,7 +629,7 @@ def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.att
             
         return cmp(fitness1, fitness2)
     
-    result = sorted(solutions, cmp=comparator)
+    result = sorted(solutions, key=functools.cmp_to_key(comparator))
     return result[:size]
 
 def normalize(solutions, minimum=None, maximum=None):

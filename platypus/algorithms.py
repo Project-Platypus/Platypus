@@ -20,6 +20,7 @@ import math
 import random
 import operator
 import itertools
+import functools
 from sets import Set
 from abc import ABCMeta, abstractmethod
 from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, AttributeDominance,\
@@ -342,7 +343,7 @@ class MOEAD(GeneticAlgorithm):
             dist2 = math.sqrt(sum([math.pow(base[i]-weight2[1][i], 2.0) for i in range(len(base))]))
             return cmp(dist1, dist2)
         
-        sorted_weights = sorted(enumerate(weights), cmp=compare)
+        sorted_weights = sorted(enumerate(weights), key=functools.cmp_to_key(compare))
         return [i[0] for i in sorted_weights]
     
     def initialize(self):
@@ -887,10 +888,10 @@ class CMAES(Algorithm):
         if self.nfe == 0:
             self.initialize()
             self.iterate()
-            self.result = self.population
+            self.result = self.archive
         else:
             self.iterate()
-            self.result = self.population
+            self.result = self.archive
             print self.nfe
         
     def initialize(self):
@@ -1050,9 +1051,9 @@ class CMAES(Algorithm):
                     else:
                         return cmp(x.rank, y.rank)
     
-                self.population = sorted(self.population, cmp=comparator) 
+                self.population = sorted(self.population, key=functools.cmp_to_key(comparator)) 
             else:
-                self.population = sorted(self.population, cmp=AttributeDominance().compare)
+                self.population = sorted(self.population, key=functools.cmp_to_key(AttributeDominance().compare))
             
         for i in range(self.problem.nvars):
             self.xmean[i] = 0.0
