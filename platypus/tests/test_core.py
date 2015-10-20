@@ -269,7 +269,7 @@ class TestNormalize(unittest.TestCase):
         s3 = createSolution(1, 1)
         solutions = [s1, s2, s3]
         
-        normalize(solutions, s1.problem)
+        normalize(solutions)
         
         self.assertEqual([0.0, 0.5], s1.normalized_objectives)
         self.assertEqual([1.0, 1.0], s2.normalized_objectives)

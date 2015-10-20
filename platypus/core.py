@@ -21,7 +21,6 @@ import operator
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
-from rexec import RHooks
 
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
