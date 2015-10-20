@@ -26,7 +26,7 @@ from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, Attri
     AttributeDominance, nondominated, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance, \
-    FitnessArchive, Solution
+    FitnessArchive, Solution, HypervolumeFitnessEvaluator
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
     clip, Mutation, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
@@ -1102,3 +1102,47 @@ class CMAES(Algorithm):
 
         self.archive += self.population
         self.update_distribution()
+        
+class IBEA(GeneticAlgorithm):
+    
+    def __init__(self, problem,
+                 population_size = 100,
+                 fitness_evaluator = HypervolumeFitnessEvaluator(),
+                 fitness_comparator = AttributeDominance("fitness"),
+                 variator = None):
+        super(IBEA, self).__init__(problem)
+        self.population_size = population_size
+        self.fitness_evaluator = fitness_evaluator
+        self.fitness_comparator = fitness_comparator
+        self.selector = TournamentSelector(2, fitness_comparator)
+        self.variator = variator
+        
+    def initialize(self):
+        super(IBEA, self).initialize()
+        self.fitness_evaluator.evaluate(self.population)
+        
+    def iterate(self):
+        print self.nfe
+        offspring = []
+        
+        while len(offspring) < self.population_size:
+            parents = self.selector.select(self.variator.arity, self.population)
+            offspring.extend(self.variator.evolve(parents))
+            
+        self.evaluateAll(offspring)
+        
+        self.population.extend(offspring)
+        self.fitness_evaluator.evaluate(self.population)
+        
+        while len(self.population) > self.population_size:
+            self.fitness_evaluator.remove(self.population, self._find_worst())
+        
+    def _find_worst(self):
+        index = 0
+        
+        for i in range(1, len(self.population)):
+            if self.fitness_comparator.compare(self.population[index], self.population[i]) < 0:
+                index = i
+                
+        return index
+        

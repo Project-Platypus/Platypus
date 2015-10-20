@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import math
-from .core import Solution, normalize, POSITIVE_INFINITY
+from .core import Solution, Problem, normalize, POSITIVE_INFINITY
 from .tools import euclidean_dist
 
 def normalized_euclidean_dist(x, y):
@@ -134,7 +134,9 @@ def hypervolume(reference_set):
     minimum, maximum = normalize(reference_set)
     
     def invert(solution):
-        solution.normalized_objectives = [1.0-max(0.0, min(1.0, solution.normalized_objectives[i])) for i in range(solution.problem.nobjs)]
+        for i in range(solution.problem.nobjs):
+            if solution.problem.directions[i] == Problem.MINIMIZE:
+                solution.normalized_objectives[i] = 1.0 - max(0.0, min(1.0, solution.normalized_objectives[i]))
     
     def dominates(solution1, solution2, nobjs):
         better = False

@@ -669,56 +669,98 @@ def normalize(solutions, minimum=None, maximum=None):
         s.normalized_objectives = [(s.objectives[i] - minimum[i]) / (maximum[i] - minimum[i]) for i in range(problem.nobjs)]
         
     return minimum, maximum
+
+class FitnessEvaluator(object):
     
-def hypervolume_fitness(solutions,
-                        rho = 2.0,
-                        kappa = 0.05,
-                        dominance = ParetoDominance()):
-    def hypervolume(solution1, solution2, d):
+    __metaclass__ = ABCMeta
+    
+    def __init__(self, kappa = 0.05):
+        super(FitnessEvaluator, self).__init__()
+        self.kappa = kappa
+    
+    @abstractmethod
+    def calculate_indicator(self, solution1, solution2):
+        raise NotImplementedError("method not implemented")
+        
+    def evaluate(self, solutions):
+        if len(solutions) == 0:
+            return
+        
+        normalize(solutions)
+        problem = solutions[0].problem      
+        self.fitcomp = []
+        self.max_fitness = -POSITIVE_INFINITY
+        
+        for i in range(len(solutions)):
+            self.fitcomp.append([])
+            
+            for j in range(len(solutions)):
+                value  = self.calculate_indicator(solutions[i], solutions[j])
+                self.fitcomp[i].append(value)
+                self.max_fitness = max(self.max_fitness, abs(value))
+            
+        for i in range(len(solutions)):
+            sum = 0.0
+            
+            for j in range(len(solutions)):
+                if i != j:
+                    sum += math.exp((-self.fitcomp[j][i] / self.max_fitness) / self.kappa)
+                    
+            solutions[i].fitness = sum
+            
+    def remove(self, solutions, index):
+        for i in range(len(solutions)):
+            if i != index:
+                fitness = solutions[i].fitness
+                fitness -= math.exp((-self.fitcomp[index][i] / self.max_fitness) / self.kappa)
+                solutions[i].fitness = fitness
+                
+        for i in range(len(solutions)):
+            for j in range(index+1, len(solutions)):
+                self.fitcomp[i][j-1] = self.fitcomp[i][j]
+                
+            if i > index:
+                self.fitcomp[i-1] = self.fitcomp[i]
+                
+        del solutions[index]
+            
+class HypervolumeFitnessEvaluator(FitnessEvaluator):
+    
+    def __init__(self,
+                 kappa = 0.05,
+                 rho = 2.0,
+                 dominance = ParetoDominance()):
+        super(HypervolumeFitnessEvaluator, self).__init__(kappa = kappa)
+        self.rho = rho
+        self.dominance = dominance
+    
+    def calculate_indicator(self, solution1, solution2):
+        if self.dominance.compare(solution1, solution2) < 0:
+            return -self.hypervolume(solution1, solution2, solution1.problem.nobjs)
+        else:
+            return self.hypervolume(solution2, solution2, solution1.problem.nobjs)
+    
+    def hypervolume(self, solution1, solution2, d):
         a = solution1.normalized_objectives[d-1]
         
         if solution2 is None:
-            b = rho
+            b = self.rho
         else:
             b = solution2.normalized_objectives[d-1]
+            
+        if solution1.problem.directions[d-1] == Problem.MAXIMIZE:
+            a = 1.0 - a
+            b = 1.0 - b
 
         if d == 1:
             if a < b:
-                return (b - a) / rho
+                return (b - a) / self.rho
             else:
                 return 0.0
         else:
             if a < b:
-                return hypervolume(solution1, None, d-1)*(b-a)/rho + \
-                       hypervolume(solution1, solution2, d-1)*(rho-b)/rho
+                return self.hypervolume(solution1, None, d-1)*(b-a)/self.rho + \
+                       self.hypervolume(solution1, solution2, d-1)*(self.rho-b)/self.rho
             else:
-                return hypervolume(solution1, solution2, d-1)*(rho-a)/rho
-            
-    if len(solutions) == 0:
-        return
-    
-    normalize(solutions)
-    problem = solutions[0].problem      
-    fitnesses = []
-    max_fitness = -POSITIVE_INFINITY
-    
-    for i in range(len(solutions)):
-        fitnesses.append([])
-        
-        for j in range(len(solutions)):
-            if dominance.compare(solutions[i], solutions[j]) < 0:
-                value = -hypervolume(solutions[i], solutions[j], problem.nobjs)
-            else:
-                value = hypervolume(solutions[j], solutions[i], problem.nobjs)
+                return self.hypervolume(solution1, solution2, d-1)*(self.rho-a)/self.rho
 
-            fitnesses[i].append(value)
-            max_fitness = max(max_fitness, abs(value))
-        
-    for i in range(len(solutions)):
-        sum = 0.0
-        
-        for j in range(len(solutions)):
-            if i != j:
-                sum += math.exp((-fitnesses[j][i] / max_fitness) / kappa)
-                
-        solutions[i].fitness = sum

@@ -19,7 +19,7 @@ import unittest
 from .test_core import createSolution
 from ..indicators import generational_distance, inverted_generational_distance, \
     epsilon_indicator, spacing, hypervolume
-from ..core import POSITIVE_INFINITY
+from ..core import Solution, Problem, POSITIVE_INFINITY
 
 class TestGenerationalDistance(unittest.TestCase):
     
@@ -118,3 +118,17 @@ class TestHypervolume(unittest.TestCase):
         
         set = [createSolution(0.5, 0.0), createSolution(0.0, 0.5)]
         self.assertEqual(0.75, hyp(set))
+        
+    def test_maximize(self):
+        reference_set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+        hyp = hypervolume(reference_set)
+        
+        problem = Problem(0, 2)
+        problem.directions[:] = Problem.MAXIMIZE
+        s1 = Solution(problem)
+        s2 = Solution(problem)
+        s1.objectives[:] = [0.5, 1.0]
+        s2.objectives[:] = [1.0, 0.5]
+        
+        self.assertEqual(0.75, hyp([s1, s2]))
+        
