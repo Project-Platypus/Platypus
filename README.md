@@ -12,17 +12,17 @@ optimization libraries, including PyGMO, Inspyred, DEAP, and Scipy, by providing
 optimization algorithms and analysis tools for multiobjective optimization.
 It currently supports the following algorithms:
 
-Algorithm | Original Authors
----------------------------------------------------------------------
-NSGA-II      | K. Deb, A. Pratap, S. Agarwal, T. Meyarivan
-NSGA-III     | K. Deb, H. Jain
-MOEA/D       | H. Li, Q. Zhang
-IBEA         | E. Zitzler, S. Kunzli
-Epsilon MOEA | K. Deb, M. Mohan, S. Mishra
-SPEA2        | E. Zitzler, M. Laumanns, L. Thiele
-GDE3         | S. Kukkonen, J. Lampinen
-OMOPSO       | M. R. Sierra, C. A. Coello Coello
-SMPSO        | A. J. Nebro, J. J. Durillo, J. Garcia-Nieto, C. A. Coello Coello
+| Algorithm    | Original Authors               
+| -------------|----------------------------------------------------------------- |
+| NSGA-II      | K. Deb, A. Pratap, S. Agarwal, T. Meyarivan                      |
+| NSGA-III     | K. Deb, H. Jain                                                  |
+| MOEA/D       | H. Li, Q. Zhang                                                  |
+| IBEA         | E. Zitzler, S. Kunzli                                            |
+| Epsilon MOEA | K. Deb, M. Mohan, S. Mishra                                      |
+| SPEA2        | E. Zitzler, M. Laumanns, L. Thiele                               |
+| GDE3         | S. Kukkonen, J. Lampinen                                         |
+| OMOPSO       | M. R. Sierra, C. A. Coello Coello                                |
+| SMPSO        | A. J. Nebro, J. J. Durillo, J. Garcia-Nieto, C. A. Coello Coello |
 
 ### Design Goals
 
