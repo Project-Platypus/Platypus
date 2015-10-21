@@ -53,9 +53,6 @@ class FixedLengthArray(object):
                 for entry in range(*index.indices(self._size)):
                     self._data[entry] = value    
         else:
-            if index < 0 or index >= self._size:
-                raise ValueError("index is out of bounds")
-            
             self._data[index] = value
             
     def __getitem__(self, index):
