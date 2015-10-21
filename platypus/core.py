@@ -418,6 +418,13 @@ class Archive(object):
         else:
             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
             return True
+        
+    def append(self, solution):
+        self.add(solution)
+        
+    def extend(self, solutions):
+        for solution in solutions:
+            self.append(solution)
     
     def __len__(self):
         return len(self._contents)
