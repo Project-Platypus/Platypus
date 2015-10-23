@@ -28,6 +28,18 @@ POSITIVE_INFINITY = float("inf")
 class PlatypusError(Exception):
     pass
 
+def evaluator(func):
+    """Decorates for a problem's evaluate method.
+    
+    Ensures the evaluated solution's ``evaluated`` attribute is set to True
+    by the evaluate method.
+    """
+    @functools.wraps(func)
+    def inner(self, solution):
+        func(self, solution)
+        solution.evaluated = True
+    return inner
+
 class FixedLengthArray(object):
 
     def __init__(self, size, default_value = None, convert = None):
@@ -76,6 +88,7 @@ class Problem(object):
         self.directions = FixedLengthArray(nobjs, self.MINIMIZE)
         self.constraints = FixedLengthArray(nconstrs, "==0", lambda x : Constraint(x))
         
+    @evaluator
     def evaluate(self, solution):
         if self.nconstrs > 0:
             (objs, constrs) = self.function(solution.variables)
@@ -92,7 +105,6 @@ class Problem(object):
         solution.objectives = objs
         solution.constraints = constrs
         solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(self.constraints, constrs)])
-        solution.evaluated = True
 
 class Generator(object):
     
