@@ -15,8 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import math
+import functools
 from .core import Solution, Problem, normalize, POSITIVE_INFINITY
 from .tools import euclidean_dist
+
+def _map(func):
+    """Decorates an indicator function to apply it to a list of sets.
+    
+    Converts an indicator function to a form that can be applied either to
+    a single set or an iterable of sets.
+    """
+    @functools.wraps(func)
+    def inner(sets):
+        if hasattr(sets, "__iter__"):
+            return map(func, sets)
+        else:
+            return func(sets)
+    return inner
 
 def normalized_euclidean_dist(x, y):
     return euclidean_dist(x.normalized_objectives, y.normalized_objectives)
@@ -52,6 +67,7 @@ def generational_distance(reference_set):
     reference_set = [s for s in reference_set if s.constraint_violation==0.0]
     minimum, maximum = normalize(reference_set)
     
+    @_map
     def calc(set):
         feasible = [s for s in set if s.constraint_violation==0.0]
         
@@ -79,6 +95,7 @@ def inverted_generational_distance(reference_set):
     reference_set = [s for s in reference_set if s.constraint_violation==0.0]
     minimum, maximum = normalize(reference_set)
     
+    @_map
     def calc(set):
         feasible = [s for s in set if s.constraint_violation==0.0]
         normalize(feasible, minimum, maximum)
@@ -102,6 +119,7 @@ def epsilon_indicator(reference_set):
     reference_set = [s for s in reference_set if s.constraint_violation==0.0]
     minimum, maximum = normalize(reference_set)
     
+    @_map
     def calc(set):
         feasible = [s for s in set if s.constraint_violation==0.0]
         
@@ -114,6 +132,7 @@ def epsilon_indicator(reference_set):
     return calc
     
 def spacing():
+    @_map
     def calc(set):
         feasible = [s for s in set if s.constraint_violation==0.0]
         distances = []
@@ -212,6 +231,7 @@ def hypervolume(reference_set):
             
         return volume
     
+    @_map
     def calc(set):
         feasible = [s for s in set if s.constraint_violation==0.0]
         normalize(feasible, minimum, maximum)
