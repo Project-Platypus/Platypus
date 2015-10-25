@@ -1628,4 +1628,77 @@ class CF10(Problem):
         c1 = (f1**2 + f2**2) / (1.0 - f3**2) - a*math.sin(N*math.pi*((f1**2 - f2**2) / (1.0 - f3**2) + 1.0)) - 1.0
         solution.objectives[:] = [f1, f2]
         solution.constraints[:] = [c1]
-                                  
+          
+################################################################################
+# ZDT Problems
+################################################################################
+
+class ZDT(Problem):
+    
+    __metaclass__ = ABCMeta
+    
+    def __init__(self, nvars):
+        super(ZDT, self).__init__(nvars, 2)
+        self.types[:] = Real(0, 1)
+        
+class ZDT1(ZDT):
+    
+    def __init__(self):
+        super(ZDT1, self).__init__(30)
+        
+    @evaluator
+    def evaluate(self, solution):
+        x = solution.variables[:]
+        g = (9.0 / (self.nvars - 1.0))*sum(x[1:]) + 1.0
+        h = 1.0 - math.sqrt(x[0] / g)
+        solution.objectives[:] = [x[0], g*h]
+
+class ZDT2(ZDT):
+    
+    def __init__(self):
+        super(ZDT2, self).__init__(30)
+        
+    @evaluator
+    def evaluate(self, solution):
+        x = solution.variables[:]
+        g = (9.0 / (self.nvars - 1.0))*sum(x[1:]) + 1.0
+        h = 1.0 - math.pow(x[0] / g, 2.0)
+        solution.objectives[:] = [x[0], g*h]
+
+class ZDT3(ZDT):
+    
+    def __init__(self):
+        super(ZDT3, self).__init__(30)
+        
+    @evaluator
+    def evaluate(self, solution):
+        x = solution.variables[:]
+        g = (9.0 / (self.nvars - 1.0))*sum(x[1:]) + 1.0
+        h = 1.0 - math.sqrt(x[0]/g) - (x[0]/g)*math.sin(10.0*math.pi*x[0])
+        solution.objectives[:] = [x[0], g*h]
+                              
+class ZDT4(ZDT):
+    
+    def __init__(self):
+        super(ZDT4, self).__init__(10)
+        
+    @evaluator
+    def evaluate(self, solution):
+        x = solution.variables[:]
+        g = 1.0 + 10.0*(self.nvars-1) + sum([math.pow(x[i], 2.0) - 10.0*math.cos(4.0*math.pi*x[i]) for i in range(1, self.nvars)])
+        h = 1.0 - math.sqrt(x[0] / g)
+        solution.objectives[:] = [x[0], g*h]
+        
+class ZDT6(ZDT):
+    
+    def __init__(self):
+        super(ZDT6, self).__init__(10)
+        
+    @evaluator
+    def evaluate(self, solution):
+        x = solution.variables[:]
+        f = 1.0 - math.exp(-4.0*x[0])*math.pow(math.sin(6.0*math.pi*x[0]), 6.0)
+        g = 1.0 + 9.0*math.pow(sum(x[1:]) / (self.nvars-1.0), 0.25)
+        h = 1.0 - math.pow(x[0] / g, 2.0)
+        solution.objectives[:] = [f, g*h]
+        
