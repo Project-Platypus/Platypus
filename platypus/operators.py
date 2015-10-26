@@ -17,6 +17,7 @@
 import copy
 import math
 import random
+import itertools
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real, Int, Binary
 from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros
@@ -65,7 +66,7 @@ class TournamentSelector(Selector):
    
 class PM(Mutation):
     
-    def __init__(self, probability, distribution_index = 20.0):
+    def __init__(self, probability = 1, distribution_index = 20.0):
         super(PM, self).__init__()
         self.probability = probability
         self.distribution_index = distribution_index
@@ -73,10 +74,14 @@ class PM(Mutation):
     def mutate(self, parent):
         child = copy.deepcopy(parent)
         problem = child.problem
+        probability = self.probability
+        
+        if isinstance(probability, int):
+            probability /= len([t for t in problem.types if isinstance(t, Real)])
         
         for i in range(len(child.variables)):
             if isinstance(problem.types[i], Real):
-                if random.uniform(0.0, 1.0) <= self.probability:
+                if random.uniform(0.0, 1.0) <= probability:
                     child.variables[i] = self.pm_mutation(float(child.variables[i]),
                                                           problem.types[i].min_value,
                                                           problem.types[i].max_value)
@@ -104,7 +109,7 @@ class PM(Mutation):
     
 class SBX(Variator):
      
-    def __init__(self, probability, distribution_index = 15.0):
+    def __init__(self, probability = 1.0, distribution_index = 15.0):
         super(SBX, self).__init__(2)
         self.probability = probability
         self.distribution_index = distribution_index
