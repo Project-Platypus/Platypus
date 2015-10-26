@@ -18,7 +18,7 @@ import copy
 import math
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
-from platypus.types import Real
+from platypus.types import Real, Int, Binary
 from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros
 
 def clip(value, min_value, max_value):
@@ -37,6 +37,10 @@ class RandomGenerator(Generator):
     def create_type(self, variable_type):
         if isinstance(variable_type, Real):
             return random.uniform(variable_type.min_value, variable_type.max_value)
+        elif isinstance(variable_type, Int):
+            return random.randint(variable_type.min_value, variable_type.max_value)
+        elif isinstance(variable_type, Binary):
+            return [random.choice([False, True]) for _ in range(variable_type.nbits)]
         else:
             raise PlatypusError("Type %s not supported" % type(variable_type))
 
@@ -483,3 +487,59 @@ class SPX(Variator):
             
         return result
     
+class BitFlip(Mutation):
+    
+    def __init__(self, probability=1):
+        """Bit Flip Mutation for Binary Strings.
+        
+        Parameters
+        ----------
+        probability : int or float
+            The probability of flipping an individual bit.  If the value is
+            an int, then the probability is divided by the number of bits.
+        """
+        super(BitFlip, self).__init__()
+        self.probability = probability
+        
+    def mutate(self, parent):
+        result = copy.deepcopy(parent)
+        problem = result.problem
+        probability = self.probability
+        
+        if isinstance(probability, int):
+            probability /= sum([t.nbits for t in problem.types if isinstance(t, Binary)])
+        
+        for i in range(problem.nvars):
+            type = problem.types[i]
+            
+            if isinstance(type, Binary):
+                for j in range(type.nbits):
+                    if random.uniform(0.0, 1.0) <= probability:
+                        result.variables[i][j] = not result.variables[i][j]
+                        result.evaluated = False
+                        
+        return result
+    
+class HUX(Variator):
+    
+    def __init__(self, probability = 1.0):
+        super(HUX, self).__init__(2)
+        self.probability = probability
+        
+    def evolve(self, parents):
+        result1 = copy.deepcopy(parents[0])
+        result2 = copy.deepcopy(parents[1])
+        problem = result1.problem
+        
+        if random.uniform(0.0, 1.0) <= self.probability:
+            for i in range(problem.nvars):
+                if isinstance(problem.types[i], Binary):
+                    for j in range(problem.types[i].nbits):
+                        if result1.variables[i][j] != result2.variables[i][j]:
+                            if bool(random.getrandbits(1)):
+                                result1.variables[i][j] = not result1.variables[i][j]
+                                result2.variables[i][j] = not result2.variables[i][j]
+                                result1.evaluated = False
+                                result2.evaluated = False
+                                
+        return [result1, result2]

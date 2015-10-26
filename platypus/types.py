@@ -22,7 +22,6 @@ class Type(object):
     
     def __init__(self):
         super(Type, self).__init__()
-        self.value = None
         
 class Real(Type):
     
@@ -43,4 +42,13 @@ class Int(Type):
         
     def __str__(self):
         return "Int(%d, %d)" % (self.min_value, self.max_value)
+    
+class Binary(Type):
+    
+    def __init__(self, nbits):
+        super(Binary, self).__init__()
+        self.nbits = nbits
+        
+    def __str__(self):
+        return "Binary(%d)" % self.nbits
         

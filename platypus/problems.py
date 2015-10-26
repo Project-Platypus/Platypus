@@ -19,7 +19,7 @@ import random
 import operator
 import functools
 from platypus.core import Problem, Solution, EPSILON, evaluator
-from platypus.types import Real
+from platypus.types import Real, Binary
 from abc import ABCMeta
 
 ################################################################################
@@ -1688,6 +1688,20 @@ class ZDT4(ZDT):
         g = 1.0 + 10.0*(self.nvars-1) + sum([math.pow(x[i], 2.0) - 10.0*math.cos(4.0*math.pi*x[i]) for i in range(1, self.nvars)])
         h = 1.0 - math.sqrt(x[0] / g)
         solution.objectives[:] = [x[0], g*h]
+        
+class ZDT5(ZDT):
+    
+    def __init__(self):
+        super(ZDT5, self).__init__(11)
+        self.types[0] = Binary(30)
+        self.types[1:] = Binary(5)
+        
+    @evaluator
+    def evaluate(self, solution):
+        f = 1.0 + sum(solution.variables[0])
+        g = sum([2+sum(v) if sum(v) < 5 else 1 for v in solution.variables[1:]])
+        h = 1.0 / f
+        solution.objectives[:] = [f, g*h]
         
 class ZDT6(ZDT):
     

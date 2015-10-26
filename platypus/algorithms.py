@@ -76,6 +76,7 @@ class NSGAII(GeneticAlgorithm):
         self.variator = variator
         
     def iterate(self):
+        print self.nfe
         offspring = []
         
         while len(offspring) < self.population_size:
