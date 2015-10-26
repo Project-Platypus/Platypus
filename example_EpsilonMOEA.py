@@ -4,7 +4,7 @@ from platypus.problems import DTLZ2
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-problem = DTLZ2(12, 3)
+problem = DTLZ2(3)
  
 algorithm = EpsilonMOEA(problem,
                         epsilons=[0.1],

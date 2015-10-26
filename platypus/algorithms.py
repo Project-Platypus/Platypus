@@ -898,7 +898,6 @@ class CMAES(Algorithm):
         else:
             self.iterate()
             self.result = self.archive
-            print self.nfe
         
     def initialize(self):
         if self.sigma is None:
@@ -980,10 +979,31 @@ class CMAES(Algorithm):
                 self.diag_D[i] = math.sqrt(self.diag_D[i])
             
     def test_and_correct_numerics(self):
+        # flat fitness, test if function values are identical
         if len(self.population) > 0:
-            pass
+            self.population = sorted(self.population, key=lambda x : x.objectives[0])
+            
+            if self.population[0].objectives[0] == self.population[min(self.offspring_size-1, self.offspring_size/2 + 1) - 1].objectives[0]:
+                print >> sys.stderr, "flat fitness landscape, consider reformulation of fitness, step size increased"
+                self.sigma *= math.exp(0.2 + self.cs / self.damps)
+                
+        # align (renormalize) scale C (and consequently sigma)
+        fac = 1.0
         
-        # TODO
+        if max(self.diag_D) < 1e-6:
+            fac = 1.0 / max(self.diag_D)
+        elif min(self.diag_D) > 1e4:
+            fac = 1.0 / min(self.diag_D)
+            
+        if fac != 1.0:
+            self.sigma /= fac
+        
+            for i in range(self.problem.nvars):
+                self.pc[i] *= fac
+                self.diag_D[i] *= fac
+                
+                for j in range(i+1):
+                    self.C[i][j] *= fac**2
             
     def sample(self):
         if (self.iteration - self.last_eigenupdate) > 1.0 / self.ccov / self.problem.nvars / 5.0:
