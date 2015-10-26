@@ -315,9 +315,12 @@ def tred2(n, V, d, e):
                 for k in range(i+1):
                     V[k][j] -= g*d[k]
                     
-        for k in range(n):
-            d[j] = V[n-1][j]
-            V[n-1][j] = 0.0
+        for k in range(i+1):
+            V[k][i+1] = 0.0
+                    
+    for j in range(n):
+        d[j] = V[n-1][j]
+        V[n-1][j] = 0.0
             
     V[n-1][n-1] = 1.0
     e[0] = 0.0
@@ -398,7 +401,7 @@ def tql2(n, d, e, V):
                 e[l] = s*p
                 d[l] = c*p
                 
-                if abs(e[l]) < eps*tst1:
+                if abs(e[l]) <= eps*tst1:
                     break
             
         d[l] = d[l] + f

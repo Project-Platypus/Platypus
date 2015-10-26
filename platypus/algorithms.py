@@ -982,6 +982,8 @@ class CMAES(Algorithm):
     def test_and_correct_numerics(self):
         if len(self.population) > 0:
             pass
+        
+        # TODO
             
     def sample(self):
         if (self.iteration - self.last_eigenupdate) > 1.0 / self.ccov / self.problem.nvars / 5.0:
@@ -992,7 +994,7 @@ class CMAES(Algorithm):
             
         samples = []
         
-        for i in range(self.offspring_size):
+        for _ in range(self.offspring_size):
             solution = Solution(self.problem)
             
             if self.diagonal_iterations >= self.iteration:
