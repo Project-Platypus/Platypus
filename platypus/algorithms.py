@@ -21,7 +21,6 @@ import random
 import operator
 import itertools
 import functools
-from sets import Set
 from abc import ABCMeta, abstractmethod
 from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, AttributeDominance,\
     AttributeDominance, nondominated, nondominated_sort, nondominated_prune,\
@@ -34,6 +33,11 @@ from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
 from platypus.settings import default_variator, default_mutator
+
+try:
+    set
+except NameError:
+    from sets import Set as set
             
 class GeneticAlgorithm(Algorithm):
     
@@ -597,7 +601,7 @@ class NSGAIII(GeneticAlgorithm):
             # associate each solution to a reference point
             members = self._associate_to_reference_point(result, self.reference_points)
             potential_members = self._associate_to_reference_point(remaining, self.reference_points)
-            excluded = Set()
+            excluded = set()
             
             while len(result) < size:
                 # identify reference point with the fewest associated members

@@ -143,11 +143,11 @@ To demonstrate this, we will use the Belegundu problem, defined by:
 
 .. math::
 
-    \text{minimize } (-2x+y, 2x+y) \text{ subject to } y-x<=1 \text{ and } x+y<=7
+    \text{minimize } (-2x+y, 2x+y) \text{ subject to } y-x \leq 1 \text{ and } x+y \leq 7
     
 Within Platypus, this is programmed as:
 
-.. code:: platypus
+.. code:: python
 
     from platypus.algorithms import NSGAII
     from platypus.core import Problem
