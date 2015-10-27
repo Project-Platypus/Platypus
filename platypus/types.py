@@ -46,7 +46,7 @@ class Permutation(Type):
     
     def __init__(self, elements):
         super(Permutation, self).__init__()
-        self.elements = elements
+        self.elements = list(elements)
         
     def __str__(self):
         return "Permutation"
