@@ -70,8 +70,9 @@ If *matplotlib* is available, we can also plot the results.  Note that
 produce a plot similar to:
     
 .. image:: images/figure_1.png
-   :scale: 50 %
+   :scale: 60 %
    :alt: Pareto front for the DTLZ2 problem
+   :align: center
     
 Note that we did not need to specify many settings when constructing NSGA-II.
 For any options not specified by the user, Platypus supplies the appropriate
