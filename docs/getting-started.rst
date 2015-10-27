@@ -79,7 +79,7 @@ For any options not specified by the user, Platypus supplies the appropriate
 settings using best practices.  In this example, Platypus inspected the
 problem definition to determine that the DTLZ2 problem consists of real-valued
 decision variables and selected the Simulated Binary Crossover (SBX) and
-Polynomial Mutation (PM) operators.  One can easily switch to using a different
+Polynomial Mutation (PM) operators.  One can easily switch to using different
 operators, such as Parent-Centric Crossover (PCX):
 
 .. code:: python
@@ -100,7 +100,7 @@ There are several ways to define problems in Platypus, but all revolve around
 the ``Problem`` class.  For unconstrained problems, the problem is defined
 by a function that accepts a single argument, a list of decision variables,
 and returns a list of objective values.  For example, the bi-objective,
-univariate Schaffer problem, defined by
+Schaffer problem, defined by
 
 .. math::
 
@@ -128,12 +128,12 @@ variable bounded between -10 and 10.  Finally, we define the function for
 evaluating the problem.
 
 **Tip:** The notation ``problem.types[:]`` is a shorthand way to assign all
-decision variables to the same type.  This is using Python's slice.  You can
-also assign a single type, such as ``problem.types[0]``, or a subset of the
-types, such as ``problem.types[1:]``.
+decision variables to the same type.  This is using Python's slice notation.
+You can also assign the type of a single decision variable, such as
+``problem.types[0]``, or any subset, such as ``problem.types[1:]``.
 
 An equivalent but more reusable way to define this problem is extending the
-``Problem`` class.  The types are defined in the ``__init__` method, and the
+``Problem`` class.  The types are defined in the ``__init__`` method, and the
 actual evaluation is performed in the ``evaluate`` method.
 
 .. code:: python
@@ -164,9 +164,10 @@ Defining Constrained Problems
 -----------------------------
     
 Constrained problems are defined similarly, but must provide two additional
-pieces of information.  First, they must compute the constraint value(s).
-Second, they must specify when constraint values are feasible and infeasible.
-To demonstrate this, we will use the Belegundu problem, defined by:
+pieces of information.  First, they must compute the constraint value (or values
+if the problem defines more than one constraint).  Second, they must specify
+when constraint is feasible and infeasible.  To demonstrate this, we will use
+the Belegundu problem, defined by:
 
 .. math::
 
@@ -197,15 +198,20 @@ Then, we program this problem within Platypus as follows:
     problem.constraints[:] = "<=0"
     problem.function = belegundu
     
-Observe how the ``belegundu`` function returns a tuple defining the objectives
-and constraints.  We also specify the feasibility criteria using the string
-``"<=0"``, which means a solution is feasible if the constraint values are
-less than or equal to zero.  Platypus is flexible in how constraints are
-defined, and can include inequality and equality constraints such as ``">=0"``,
-``"==0"``, or ``"!=5"``.
+First, we call ``Problem(2, 2, 2)`` to create a problem with two decision
+variables, two objectives, and two constraints, respectively.  Next, we set the
+decision variable types and the constraint feasibility criteria.  The constraint
+feasibility criteria is specified as the string ``"<=0"``, meaning a
+solution is feasible if the constraint values are less than or equal to zero.
+Platypus is flexible in how constraints are defined, and can include inequality
+and equality constraints such as ``">=0"``, ``"==0"``, or ``"!=5"``.  Finally,
+we set the evaluation function.  Note how the ``belegundu`` function returns
+a tuple (two lists) for the objectives and constraints.
 
 Alternatively, we can develop a reusable class for this problem by extending
-the ``Problem`` class:
+the ``Problem`` class.  Like before, we move the type and constraint
+declarations to the ``__init__`` method and assign the solution's
+``constraints`` attribute in the ``evaluate`` method.
 
 .. code:: python
 
