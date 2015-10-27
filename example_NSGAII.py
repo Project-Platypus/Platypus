@@ -1,43 +1,26 @@
 from platypus.algorithms import NSGAII
-from platypus.core import Problem, evaluator, Archive, nondominated
-from platypus.types import Real
+from platypus.problems import DTLZ2
 
-class Belegundu(Problem):
+# define the problem definition
+problem = DTLZ2()
 
-    def __init__(self):
-        super(Belegundu, self).__init__(2, 2, 2)
-        self.types[:] = [Real(0, 5), Real(0, 3)]
-        self.constraints[:] = "<=0"
-    
-    @evaluator
-    def evaluate(self, solution):
-        x = solution.variables[0]
-        y = solution.variables[1]
-        solution.objectives[:] = [-2*x + y, 2*x + y]
-        solution.constraints[:] = [-x + y - 1, x + y - 7]
+# instantiate the optimization algorithm
+algorithm = NSGAII(problem)
 
-algorithm = NSGAII(Belegundu())
-algorithm.run(20000)
+# optimize the problem using 10,000 function evaluations
+algorithm.run(10000)
 
+# display the results
+for solution in algorithm.result:
+   print solution.objectives
+   
+   
 import matplotlib.pyplot as plt
+
 plt.scatter([s.objectives[0] for s in algorithm.result],
             [s.objectives[1] for s in algorithm.result])
-plt.xlabel("$f_1(x)$")
-plt.ylabel("$f_2(x)$")
-plt.show()
-
-algorithm.result = nondominated(algorithm.result)
-
-import matplotlib.pyplot as plt
-plt.scatter([s.objectives[0] for s in algorithm.result],
-            [s.objectives[1] for s in algorithm.result])
-plt.xlabel("$f_1(x)$")
-plt.ylabel("$f_2(x)$")
-plt.show()
-
-import matplotlib.pyplot as plt
-plt.scatter([s.objectives[0] for s in algorithm.result if s.feasible],
-            [s.objectives[1] for s in algorithm.result if s.feasible])
+plt.xlim([0, 1.1])
+plt.ylim([0, 1.1])
 plt.xlabel("$f_1(x)$")
 plt.ylabel("$f_2(x)$")
 plt.show()

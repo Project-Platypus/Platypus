@@ -39,8 +39,20 @@ using the NSGA-II algorithm:
     # display the results
     for solution in algorithm.result:
        print solution.objectives
+       
+The output shows on each line the objectives for a Pareto optimal solution:
+
+.. code::
+
+    [1.00289403128, 6.63772921439e-05]
+    [0.000320076737668, 1.00499316652]
+    [1.00289403128, 6.63772921439e-05]
+    [0.705383878891, 0.712701387377]
+    [0.961083112366, 0.285860932437]
+    [0.729124908607, 0.688608373855]
+    ...
       
-If Matplotlib is available, we can also plot the results:
+If Matplotlib is available, we can also plot the results.
 
 .. code:: python
 
@@ -53,6 +65,8 @@ If Matplotlib is available, we can also plot the results:
     plt.xlabel("$f_1(x)$")
     plt.ylabel("$f_2(x)$")
     plt.show()
+    
+.. image:: figure_1.png
     
 Note that we did not need to specify many settings when constructing NSGA-II.
 For any options not specified by the user, Platypus supplies the appropriate
@@ -152,7 +166,6 @@ Within Platypus, this is programmed as:
 
 .. code:: python
 
-    from platypus.algorithms import NSGAII
     from platypus.core import Problem
     from platypus.types import Real
 
@@ -167,9 +180,6 @@ Within Platypus, this is programmed as:
     problem.types[:] = [Real(0, 5), Real(0, 3)]
     problem.constraints[:] = "<=0"
     problem.function = belegundu
-
-    algorithm = NSGAII(problem)
-    algorithm.run(10000)
     
 Observe how the ``belegundu`` function returns a tuple defining the objectives
 and constraints.  We also specify the feasibility criteria using the string
@@ -181,7 +191,6 @@ the ``Problem`` classs:
 
 .. code:: python
 
-    from platypus.algorithms import NSGAII
     from platypus.core import Problem, evaluator
     from platypus.types import Real
 
@@ -198,9 +207,6 @@ the ``Problem`` classs:
             y = solution.variables[1]
             solution.objectives[:] = [-2*x + y, 2*x + y]
             solution.constraints[:] = [-x + y - 1, x + y - 7]
-
-    algorithm = NSGAII(Belegundu())
-    algorithm.run(10000)
     
 In these examples, we have assumed that the objectives are being minimized.
 Platypus is flexible and allows the optimization direction to be changed per
