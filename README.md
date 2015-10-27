@@ -5,6 +5,7 @@ tested.  Please refrain from using in applications until a stable release is
 available.**
 
 [![Build Status](https://travis-ci.org/Project-Platypus/Platypus.svg?branch=master)](https://travis-ci.org/Project-Platypus/Platypus)
+[![Documentation Status](https://readthedocs.org/projects/platypus/badge/?version=latest)](http://platypus.readthedocs.org/en/latest/?badge=latest)
 
 ### What is Platypus?
 

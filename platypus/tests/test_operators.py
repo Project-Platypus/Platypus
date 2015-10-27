@@ -27,7 +27,7 @@ class TestSwap(unittest.TestCase):
         problem.types[0] = Permutation(range(10))
         
         solution = Solution(problem)
-        solution.variables[0] = range(10)
+        solution.variables[0] = list(range(10))
         
         with patch('random.randrange', side_effect=[2, 4]):
             result = Swap(1.0).mutate(solution)
@@ -42,7 +42,7 @@ class TestSwap(unittest.TestCase):
         problem.types[0] = Permutation(range(2))
         
         solution = Solution(problem)
-        solution.variables[0] = range(2)
+        solution.variables[0] = list(range(2))
         
         with patch('random.randrange', side_effect=[0, 1]):
             result = Swap(1.0).mutate(solution)
@@ -55,7 +55,7 @@ class TestSwap(unittest.TestCase):
         problem.types[0] = Permutation(range(2))
         
         solution = Solution(problem)
-        solution.variables[0] = range(2)
+        solution.variables[0] = list(range(2))
         
         with patch('random.randrange', side_effect=[1, 1, 0]):
             result = Swap(1.0).mutate(solution)
@@ -68,7 +68,7 @@ class TestSwap(unittest.TestCase):
         problem.types[0] = Permutation(range(1))
         
         solution = Solution(problem)
-        solution.variables[0] = range(1)
+        solution.variables[0] = list(range(1))
         
         with patch('random.randrange', side_effect=[0, 0]):
             result = Swap(1.0).mutate(solution)

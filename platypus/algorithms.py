@@ -34,7 +34,6 @@ from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
 from platypus.settings import default_variator, default_mutator
-from __builtin__ import True
             
 class GeneticAlgorithm(Algorithm):
     

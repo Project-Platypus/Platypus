@@ -86,7 +86,7 @@ univariate Schaffer problem, defined by
 
 .. math::
 
-    \text{minimize} (x^2, (x-2)^2) for x \in [-10, 10]
+    \text{minimize } (x^2, (x-2)^2) \text{ for } x \in [-10, 10]
     
 can be programmed as follows:
 
@@ -143,7 +143,7 @@ To demonstrate this, we will use the Belegundu problem, defined by:
 
 .. math::
 
-    \text{minimize} (-2x+y, 2x+y) \text{subject to} y-x<=1 \text{and} x+y<=7
+    \text{minimize } (-2x+y, 2x+y) \text{ subject to } y-x<=1 \text{ and } x+y<=7
     
 Within Platypus, this is programmed as:
 
