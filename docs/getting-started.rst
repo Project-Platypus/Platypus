@@ -75,8 +75,8 @@ operators, such as Parent-Centric Crossover (PCX):
                        variator = PCX())
     algorithm.run(10000)
     
-Defining Problems
------------------
+Defining Unconstrained Problems
+-------------------------------
 
 There are several ways to define problems in Platypus, but all revolve around
 the ``Problem`` class.  For unconstrained problems, the problem is defined
@@ -135,6 +135,9 @@ An equivalent but more reusable way to define this problem is extending the
 Note that the ``evaluate`` method is decorated by ``@evaluator``.  It is
 important to use this decoration when extending the ``Problem`` class,
 otherwise certain required attributes of a solution will not be computed.
+
+Defining Constrained Problems
+-----------------------------
     
 Constrained problems are defined similarly, but must provide two additional
 pieces of information.  First, they must compute the constraint value(s).
@@ -173,7 +176,8 @@ and constraints.  We also specify the feasibility criteria using the string
 ``"<=0"``, which means a solution is feasible if the constraint values are
 less than or equal to zero.
 
-As before, we can also extend the ``Problem`` class when defining problems:
+Alternatively, we can develop a reusable class for this problem by extending
+the ``Problem`` classs:
 
 .. code:: python
 
@@ -198,21 +202,11 @@ As before, we can also extend the ``Problem`` class when defining problems:
     algorithm = NSGAII(Belegundu())
     algorithm.run(10000)
     
-The results from optimization contain the final set produced by the optimization
-algorithm.  For some optimization algorithm, this may contain dominated and/or
-infeasible solutions.  The results can be pruned to only contain non-dominated
-solutions:
-
-.. code:: python
-
-    from platypus.core import nondominated
-    
-    nondominated_set = nondominated(algorithm.result)
-    
-Also note that by default all objectives are minimized.  The optimization
-direction can be changed per objective by setting the ``directions``
-attribute:
+In these examples, we have assumed that the objectives are being minimized.
+Platypus is flexible and allows the optimization direction to be changed per
+objective by setting the ``directions`` attribute.  For example:
 
 .. code:: python
 
     problem.directions[:] = Problem.MAXIMIZE
+    
