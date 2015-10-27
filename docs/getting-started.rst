@@ -112,7 +112,7 @@ evaluating the problem.
 An equivalent but more reusable way to define this problem is extending the
 ``Problem`` class:
 
-..code:: python
+.. code:: python
 
     from platypus.algorithms import NSGAII
     from platypus.core import Problem, evaluator
