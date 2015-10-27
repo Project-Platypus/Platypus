@@ -1,21 +1,20 @@
 from platypus.algorithms import *
 from platypus.problems import DTLZ2
-from platypus.operators import GAOperator, SBX, PM
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
 
 # setup the comparison
 problem = DTLZ2()
-algorithms = [NSGAII(problem, variator=GAOperator(SBX(), PM())),
-              NSGAIII(problem, divisions_outer=24, variator=GAOperator(SBX(), PM())),
+algorithms = [NSGAII(problem),
+              NSGAIII(problem, divisions_outer=24),
               CMAES(problem, epsilons=[0.01]),
               GDE3(problem),
-              IBEA(problem, variator=GAOperator(SBX(), PM())),
-              MOEAD(problem, variator=GAOperator(SBX(), PM())),
+              IBEA(problem),
+              MOEAD(problem),
               OMOPSO(problem, epsilons=[0.01]),
-              SMPSO(problem, mutate=PM()),
-              SPEA2(problem, variator=GAOperator(SBX(), PM())),
-              EpsilonMOEA(problem, epsilons=[0.01], variator=GAOperator(SBX(), PM()))]
+              SMPSO(problem),
+              SPEA2(problem),
+              EpsilonMOEA(problem, epsilons=[0.01])]
 
 # run the algorithms in parallel
 #pool = Pool(processes=8)

@@ -23,6 +23,7 @@ from ..operators import GAOperator, SBX, PM
 class TestPickling(unittest.TestCase):
     
     def test_NSGAII(self):
+        self.skipTest("in development")
         problem = DTLZ2()
         algorithm = NSGAII(problem, variator=GAOperator(SBX(), PM()))
         pickle.dumps(algorithm)

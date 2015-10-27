@@ -19,7 +19,7 @@ import math
 import random
 import itertools
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
-from platypus.types import Real, Int, Binary
+from platypus.types import Real, Binary, Permutation
 from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros
 
 def clip(value, min_value, max_value):
@@ -38,10 +38,12 @@ class RandomGenerator(Generator):
     def create_type(self, variable_type):
         if isinstance(variable_type, Real):
             return random.uniform(variable_type.min_value, variable_type.max_value)
-        elif isinstance(variable_type, Int):
-            return random.randint(variable_type.min_value, variable_type.max_value)
         elif isinstance(variable_type, Binary):
             return [random.choice([False, True]) for _ in range(variable_type.nbits)]
+        elif isinstance(variable_type, Permutation):
+            elements = copy.deepcopy(variable_type.elements)
+            random.shuffle(elements)
+            return elements
         else:
             raise PlatypusError("Type %s not supported" % type(variable_type))
 
@@ -201,6 +203,37 @@ class GAOperator(Variator):
         
     def evolve(self, parents):
         return map(self.mutation.evolve, self.variation.evolve(parents))
+    
+class CompoundMutation(Mutation):
+    
+    def __init__(self, *mutators):
+        super(CompoundMutation, self).__init__()
+        self.mutators = mutators
+        
+    def mutate(self, parent):
+        result = parent
+        
+        for mutator in self.mutators:
+            result = mutator.mutate(result)
+            
+        return result
+    
+class CompoundOperator(Variator):
+    
+    def __init__(self, *variators):
+        super(CompoundOperator, self).__init__(variators[0].arity)
+        self.variators = variators
+        
+    def evolve(self, parents):
+        offspring = parents
+        
+        for variator in self.variators:
+            if variator.arity == len(offspring):
+                offspring = variator.evolve(offspring)
+            elif variator.arity == 1 and len(offspring) >= 1:
+                offspring = map(variator.evolve, offspring)
+            else:
+                raise PlatypusError("unexpected number of offspring, expected %d, received %d" % (variator.arity, len(offspring)))
     
 class DifferentialEvolution(Variator):
     
@@ -548,3 +581,125 @@ class HUX(Variator):
                                 result2.evaluated = False
                                 
         return [result1, result2]
+    
+class Swap(Mutation):
+    
+    def __init__(self, probability = 0.3):
+        super(Swap, self).__init__()
+        self.probability = probability
+        
+    def mutate(self, parent):
+        result = copy.deepcopy(parent)
+        problem = result.problem
+        
+        for i in range(problem.nvars):
+            if isinstance(problem.types[i], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
+                permutation = result.variables[i]
+                i = random.randrange(len(permutation))
+                j = random.randrange(len(permutation))
+                
+                if len(permutation) > 1:
+                    while i == j:
+                        j = random.randrange(len(permutation))
+                
+                permutation[i], permutation[j] = permutation[j], permutation[i]
+                result.evaluated = False
+                
+        return result
+    
+class PMX(Variator):
+    
+    def __init__(self, probability = 1.0):
+        super(PMX, self).__init__(2)
+        self.probability = probability
+        
+    def evolve(self, parents):
+        result1 = copy.deepcopy(parents[0])
+        result2 = copy.deepcopy(parents[1])
+        problem = result1.problem
+        
+        for i in range(problem.nvars):
+            if isinstance(problem.types[i], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
+                p1 = result1.variables[i]
+                p2 = result2.variables[i]
+                n = len(p1)
+                o1 = []*n
+                o2 = []*n
+                
+                # select cutting points
+                cp1 = random.randrange(n)
+                cp2 = random.randrange(n)
+                
+                if n > 1:
+                    while cp1 == cp2:
+                        cp2 = random.randrange(n)
+                
+                if cp1 > cp2:
+                    cp1, cp2 = cp2, cp1
+                    
+                # exchange between the cutting points, setting up replacement arrays
+                replacement1 = {}
+                replacement2 = {}
+                
+                for i in range(cp1, cp2+1):
+                    o1[i] = p2[i]
+                    o2[i] = p1[i]
+                    replacement1[p2[i]] = p1[i]
+                    replacement2[p1[i]] = p2[i]
+                    
+                # fill in remaining slots with replacements
+                for i in range(n):
+                    if i < cp1 or i > cp2:
+                        n1 = p1[i]
+                        n2 = p2[i]
+                        
+                        while n1 in replacement1:
+                            n1 = replacement1[n1]
+                            
+                        while n2 in replacement2:
+                            n2 = replacement2[n2]
+                            
+                        o1[i] = n1
+                        o2[i] = n2
+                        
+                result1.variables[i] = o1
+                result2.variables[i] = o2
+                result1.evaluated = False
+                result2.evaluated = False       
+                
+        return [result1, result2]
+    
+class Insertion(Mutation):
+    
+    def __init__(self, probability = 0.3):
+        super(Insertion, self).__init__()
+        self.probability = probability
+        
+    def mutate(self, parent):
+        result = copy.deepcopy(parent)
+        problem = result.problem
+        
+        for i in range(problem.nvars):
+            if isinstance(problem.types[i], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
+                permutation = result.variables[i]
+                i = random.randrange(len(permutation))
+                j = random.randrange(len(permutation))
+                
+                if len(permutation) > 1:
+                    while i == j:
+                        j = random.randrange(len(permutation))
+                    
+                # remove the i-th element and insert at j-th position
+                temp = permutation[i]
+                
+                if i < j:
+                    for k in range(i+1, j+1):
+                        permutation[k-1] = permutation[k]
+                elif i > j:
+                    for k in range(i-1, j-1, -1):
+                        permutation[k+1] = permutation[k]
+                        
+                permutation[j] = temp
+                result.evaluated = False
+                
+        return result

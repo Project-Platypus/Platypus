@@ -29,10 +29,11 @@ from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, Attri
     EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance, \
     FitnessArchive, Solution, HypervolumeFitnessEvaluator, nondominated_cmp
 from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
-    clip, Mutation, UniformMutation, NonUniformMutation
+    clip, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
+from platypus.settings import default_variator, default_mutator
 from __builtin__ import True
             
 class GeneticAlgorithm(Algorithm):
@@ -75,6 +76,12 @@ class NSGAII(GeneticAlgorithm):
         self.selector = selector
         self.variator = variator
         
+    def initialize(self):
+        super(NSGAII, self).initialize()
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
+        
     def iterate(self):
         offspring = []
         
@@ -114,6 +121,9 @@ class EpsilonMOEA(GeneticAlgorithm):
     def initialize(self):
         super(EpsilonMOEA, self).initialize()
         self.archive += self.population
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
         
     def iterate(self):
         if len(self.archive) <= 1:
@@ -180,7 +190,13 @@ class GDE3(GeneticAlgorithm):
                 next_population.append(self.population[i])
                 
         nondominated_sort(next_population)
-        return nondominated_prune(next_population, self.population_size)    
+        return nondominated_prune(next_population, self.population_size)
+    
+    def initialize(self):
+        super(GDE3, self).initialize()
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)   
            
     def iterate(self):
         offspring = []
@@ -263,6 +279,9 @@ class SPEA2(GeneticAlgorithm):
     def initialize(self):
         super(SPEA2, self).initialize()
         self._assign_fitness(self.population)
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
          
     def iterate(self):
         offspring = []
@@ -384,6 +403,10 @@ class MOEAD(GeneticAlgorithm):
         for i in range(self.population_size):
             self.fitnesses[i] = self._calculate_fitness(self.population[i], self.weights[i])
             
+        # set the default variator if one is not provided
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
+            
     def _get_subproblems(self):
         """ Determines the subproblems to search.
         
@@ -431,11 +454,12 @@ class MOEAD(GeneticAlgorithm):
         for i in range(self.population_size):
             old_fitness = self.fitnesses[i]
             new_fitness = self._calculate_fitness(self.population[i], self.weights[i])
+            relative_decrease = (old_fitness - new_fitness) / old_fitness
 
             if old_fitness - new_fitness > 0.001:
                 self.utilities[i] = 1.0
             else:
-                self.utilities[i] = min(1.0, 0.95 * (1.0 + self.delta / 0.001) * self.utilities[i])
+                self.utilities[i] = min(1.0, 0.95 * (1.0 + 0.05*relative_decrease/0.001) * self.utilities[i])
             
             self.fitnesses[i] = new_fitness
             
@@ -612,6 +636,12 @@ class NSGAIII(GeneticAlgorithm):
             return result
         else:
             return solutions
+        
+    def initialize(self):
+        super(NSGAIII, self).initialize()
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
     
     def iterate(self):
         offspring = []
@@ -627,6 +657,8 @@ class NSGAIII(GeneticAlgorithm):
         self.population = self._reference_point_truncate(offspring, self.population_size)
 
 class ParticleSwarm(Algorithm):
+    
+    __metaclass__ = ABCMeta
     
     def __init__(self, problem,
                  swarm_size = 100,
@@ -816,6 +848,12 @@ class SMPSO(ParticleSwarm):
         self.max_iterations = max_iterations
         self.maximum_velocity = [(t.max_value - t.min_value)/2.0 for t in problem.types]
         self.minimum_velocity = [-(t.max_value - t.min_value)/2.0 for t in problem.types]
+        
+    def initialize(self):
+        super(SMPSO, self).initialize()
+        
+        if self.mutate is None:
+            self.mutate = default_mutator(self.problem)
     
     def _update_velocities(self):
         for i in range(self.swarm_size):
@@ -1143,6 +1181,9 @@ class IBEA(GeneticAlgorithm):
     def initialize(self):
         super(IBEA, self).initialize()
         self.fitness_evaluator.evaluate(self.population)
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
         
     def iterate(self):
         offspring = []

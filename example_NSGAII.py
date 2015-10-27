@@ -1,30 +1,43 @@
 from platypus.algorithms import NSGAII
-from platypus.operators import TournamentSelector, PM, SBX, GAOperator
-from platypus.problems import UF1
-from platypus.core import Solution
-from platypus.indicators import generational_distance
+from platypus.core import Problem, evaluator, Archive, nondominated
+from platypus.types import Real
+
+class Belegundu(Problem):
+
+    def __init__(self):
+        super(Belegundu, self).__init__(2, 2, 2)
+        self.types[:] = [Real(0, 5), Real(0, 3)]
+        self.constraints[:] = "<=0"
+    
+    @evaluator
+    def evaluate(self, solution):
+        x = solution.variables[0]
+        y = solution.variables[1]
+        solution.objectives[:] = [-2*x + y, 2*x + y]
+        solution.constraints[:] = [-x + y - 1, x + y - 7]
+
+algorithm = NSGAII(Belegundu())
+algorithm.run(20000)
+
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+plt.scatter([s.objectives[0] for s in algorithm.result],
+            [s.objectives[1] for s in algorithm.result])
+plt.xlabel("$f_1(x)$")
+plt.ylabel("$f_2(x)$")
+plt.show()
 
-problem = UF1()
+algorithm.result = nondominated(algorithm.result)
 
-algorithm = NSGAII(problem,
-                   population_size = 100,
-                   selector = TournamentSelector(2),
-                   variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
+import matplotlib.pyplot as plt
+plt.scatter([s.objectives[0] for s in algorithm.result],
+            [s.objectives[1] for s in algorithm.result])
+plt.xlabel("$f_1(x)$")
+plt.ylabel("$f_2(x)$")
+plt.show()
 
-sets = []
-
-for _ in range(100):
-    algorithm.run(100)
-    sets.append(algorithm.result)
-    
-pf = []
-with open("E:/Git/MOEAFramework/pf/UF1.dat", "r") as f:
-    for line in f:
-        solution = Solution(problem)
-        solution.objectives[:] = map(float, line.split())
-        pf.append(solution)
-    
-gd = generational_distance(pf)
-print gd(sets)
+import matplotlib.pyplot as plt
+plt.scatter([s.objectives[0] for s in algorithm.result if s.feasible],
+            [s.objectives[1] for s in algorithm.result if s.feasible])
+plt.xlabel("$f_1(x)$")
+plt.ylabel("$f_2(x)$")
+plt.show()
