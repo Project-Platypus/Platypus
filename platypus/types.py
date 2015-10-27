@@ -33,16 +33,6 @@ class Real(Type):
     def __str__(self):
         return "Real(%f, %f)" % (self.min_value, self.max_value)
         
-class Int(Type):
-    
-    def __init__(self, min_value, max_value):
-        super(Int, self).__init__()
-        self.min_value = int(min_value)
-        self.max_value = int(max_value)
-        
-    def __str__(self):
-        return "Int(%d, %d)" % (self.min_value, self.max_value)
-    
 class Binary(Type):
     
     def __init__(self, nbits):
@@ -51,4 +41,13 @@ class Binary(Type):
         
     def __str__(self):
         return "Binary(%d)" % self.nbits
+    
+class Permutation(Type):
+    
+    def __init__(self, elements):
+        super(Permutation, self).__init__()
+        self.elements = list(elements)
+        
+    def __str__(self):
+        return "Permutation"
         

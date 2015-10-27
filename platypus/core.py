@@ -37,6 +37,8 @@ def evaluator(func):
     @functools.wraps(func)
     def inner(self, solution):
         func(self, solution)
+        solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(solution.problem.constraints, solution.constraints)])
+        solution.feasible = solution.constraint_violation == 0.0
         solution.evaluated = True
     return inner
 
@@ -90,6 +92,9 @@ class Problem(object):
         
     @evaluator
     def evaluate(self, solution):
+        if self.function is None:
+            raise PlatypusError("function not defined")
+        
         if self.nconstrs > 0:
             (objs, constrs) = self.function(solution.variables)
         else:
@@ -102,9 +107,8 @@ class Problem(object):
         if len(constrs) != self.nconstrs:
             raise PlatypusError("incorrect number of constraints: expected %d, received %d" % (self.nconstrs, len(constrs)))
         
-        solution.objectives = objs
-        solution.constraints = constrs
-        solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(self.constraints, constrs)])
+        solution.objectives[:] = objs
+        solution.constraints[:] = constrs
 
 class Generator(object):
     
@@ -278,10 +282,10 @@ class ParetoDominance(Dominance):
         
         # first check constraint violation
         if problem.nconstrs > 0 and solution1.constraint_violation != solution2.constraint_violation:
-            if solution1.constraint_violation == 0:
+            if solution1.constraint_violation == 0.0:
                 return -1
-            elif solution2.constraint_violation == 0:
-                return -1
+            elif solution2.constraint_violation == 0.0:
+                return 1
             elif solution1.constraint_violation < solution2.constraint_violation:
                 return -1
             elif solution2.constraint_violation < solution1.constraint_violation:

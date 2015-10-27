@@ -129,9 +129,10 @@ def spacing():
     
     return calc
 
-def hypervolume(reference_set):
-    reference_set = [s for s in reference_set if s.constraint_violation==0.0]
-    minimum, maximum = normalize(reference_set)
+def hypervolume(reference_set = None, minimum = None, maximum = None):
+    if reference_set is not None:
+        reference_set = [s for s in reference_set if s.constraint_violation==0.0]
+        minimum, maximum = normalize(reference_set)
     
     def invert(solution):
         for i in range(solution.problem.nobjs):

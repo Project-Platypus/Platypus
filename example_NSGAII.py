@@ -1,30 +1,26 @@
 from platypus.algorithms import NSGAII
-from platypus.operators import TournamentSelector, PM, SBX, GAOperator
-from platypus.problems import UF1
-from platypus.core import Solution
-from platypus.indicators import generational_distance
+from platypus.problems import DTLZ2
+
+# define the problem definition
+problem = DTLZ2()
+
+# instantiate the optimization algorithm
+algorithm = NSGAII(problem)
+
+# optimize the problem using 10,000 function evaluations
+algorithm.run(10000)
+
+# display the results
+for solution in algorithm.result:
+   print solution.objectives
+   
+   
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-problem = UF1()
-
-algorithm = NSGAII(problem,
-                   population_size = 100,
-                   selector = TournamentSelector(2),
-                   variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
-
-sets = []
-
-for _ in range(100):
-    algorithm.run(100)
-    sets.append(algorithm.result)
-    
-pf = []
-with open("E:/Git/MOEAFramework/pf/UF1.dat", "r") as f:
-    for line in f:
-        solution = Solution(problem)
-        solution.objectives[:] = map(float, line.split())
-        pf.append(solution)
-    
-gd = generational_distance(pf)
-print gd(sets)
+plt.scatter([s.objectives[0] for s in algorithm.result],
+            [s.objectives[1] for s in algorithm.result])
+plt.xlim([0, 1.1])
+plt.ylim([0, 1.1])
+plt.xlabel("$f_1(x)$")
+plt.ylabel("$f_2(x)$")
+plt.show()
