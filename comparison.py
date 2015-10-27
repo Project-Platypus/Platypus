@@ -1,5 +1,6 @@
 from platypus.algorithms import *
 from platypus.problems import DTLZ2
+from platypus.indicators import hypervolume
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
 
@@ -24,11 +25,16 @@ map(operator.methodcaller("run", 10000), algorithms)
 def to_points(solutions):
     return [s.objectives[0] for s in solutions], [s.objectives[1] for s in solutions]
 
+hyp = hypervolume(minimum=[0,0], maximum=[1,1])
 fig, axarr = plt.subplots(2, 5)
 
 for i in range(len(algorithms)):
     axarr[i/5, i%5].scatter(*to_points(algorithms[i].result))
     axarr[i/5, i%5].set_title(algorithms[i].__class__.__name__)
-
+    axarr[i/5, i%5].annotate("Hyp: " + str(round(hyp(algorithms[i].result), 3)),
+                             xy=(0.9, 0.9),
+                             xycoords='axes fraction',
+                             horizontalalignment='right',
+                             verticalalignment='bottom')
 
 plt.show()
