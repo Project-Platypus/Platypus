@@ -52,7 +52,8 @@ The output shows on each line the objectives for a Pareto optimal solution:
     [0.729124908607, 0.688608373855]
     ...
       
-If Matplotlib is available, we can also plot the results.
+If *matplotlib* is available, we can also plot the results.  Note that
+*matplotlib* must be installed separately.  Running the following code
 
 .. code:: python
 
@@ -66,13 +67,17 @@ If Matplotlib is available, we can also plot the results.
     plt.ylabel("$f_2(x)$")
     plt.show()
     
+produce a plot similar to:
+    
 .. image:: images/figure_1.png
+   :scale: 50 %
+   :alt: Pareto front for the DTLZ2 problem
     
 Note that we did not need to specify many settings when constructing NSGA-II.
 For any options not specified by the user, Platypus supplies the appropriate
 settings using best practices.  In this example, Platypus inspected the
 problem definition to determine that the DTLZ2 problem consists of real-valued
-decision variables and selects the Simulated Binary Crossover (SBX) and
+decision variables and selected the Simulated Binary Crossover (SBX) and
 Polynomial Mutation (PM) operators.  One can easily switch to using a different
 operators, such as Parent-Centric Crossover (PCX):
 
@@ -84,9 +89,7 @@ operators, such as Parent-Centric Crossover (PCX):
 
     problem = DTLZ2()
 
-    algorithm = NSGAII(problem,
-                       population_size = 200,
-                       variator = PCX())
+    algorithm = NSGAII(problem, variator = PCX())
     algorithm.run(10000)
     
 Defining Unconstrained Problems
@@ -118,13 +121,19 @@ can be programmed as follows:
     problem.function = schaffer
 
 When creating the ``Problem`` class, we provide two arguments: the number
-if decision variables (1) and the number of objectives (2).  Next, we specify
-the types of the decision variables.  In this case, we use a real-valued
+if decision variables, ``1``, and the number of objectives, ``2``.  Next, we
+specify the types of the decision variables.  In this case, we use a real-valued
 variable bounded between -10 and 10.  Finally, we define the function for
 evaluating the problem.
 
+**Tip:** The notation ``problem.types[:]`` is a shorthand way to assign all
+decision variables to the same type.  This is using Python's slice.  You can
+also assign a single type, such as ``problem.types[0]``, or a subset of the
+types, such as ``problem.types[1:]``.
+
 An equivalent but more reusable way to define this problem is extending the
-``Problem`` class:
+``Problem`` class.  The types are defined in the ``__init__` method, and the
+actual evaluation is performed in the ``evaluate`` method.
 
 .. code:: python
 
@@ -162,19 +171,25 @@ To demonstrate this, we will use the Belegundu problem, defined by:
 
     \text{minimize } (-2x+y, 2x+y) \text{ subject to } y-x \leq 1 \text{ and } x+y \leq 7
     
-Within Platypus, this is programmed as:
+This problem has two inequality constraints.  We first simplify the constraints
+by moving the constant to the left of the inequality.  The resulting formulation
+is:
+
+.. math::
+
+    \text{minimize } (-2x+y, 2x+y) \text{ subject to } y-x-1 \leq 0 \text{ and } x+y-7 \leq 0
+
+Then, we program this problem within Platypus as follows:
 
 .. code:: python
 
     from platypus.core import Problem
     from platypus.types import Real
 
-    def belegundu(x):
-        f1 = -2.0*x[0] + x[1]
-        f2 = 2.0*x[0] + x[1]
-        c1 = -x[0] + x[1] - 1.0
-        c2 = x[0] + x[1] - 7.0
-        return [f1, f2], [c1 ,c2]
+    def belegundu(vars):
+        x = vars[0]
+        y = vars[1]
+        return [-2*x + y, 2*x + y], [-x + y - 1, x + y - 7]
 
     problem = Problem(2, 2, 2)
     problem.types[:] = [Real(0, 5), Real(0, 3)]
@@ -184,10 +199,12 @@ Within Platypus, this is programmed as:
 Observe how the ``belegundu`` function returns a tuple defining the objectives
 and constraints.  We also specify the feasibility criteria using the string
 ``"<=0"``, which means a solution is feasible if the constraint values are
-less than or equal to zero.
+less than or equal to zero.  Platypus is flexible in how constraints are
+defined, and can include inequality and equality constraints such as ``">=0"``,
+``"==0"``, or ``"!=5"``.
 
 Alternatively, we can develop a reusable class for this problem by extending
-the ``Problem`` classs:
+the ``Problem`` class:
 
 .. code:: python
 
