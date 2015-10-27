@@ -66,7 +66,7 @@ If Matplotlib is available, we can also plot the results.
     plt.ylabel("$f_2(x)$")
     plt.show()
     
-.. image:: figure_1.png
+.. image:: images/figure_1.png
     
 Note that we did not need to specify many settings when constructing NSGA-II.
 For any options not specified by the user, Platypus supplies the appropriate
