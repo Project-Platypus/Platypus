@@ -9,13 +9,14 @@ def run(x):
     print "Started", x.__class__.__name__
     x.run(10000)
     print "Finished", x.__class__.__name__
+    return x.result
 
 if __name__ == '__main__':
     freeze_support()
     
     # setup the comparison
     problem = DTLZ2()
-    pool = Pool(7)
+    pool = Pool(6)
     algorithms = [NSGAII(problem),
               NSGAIII(problem, divisions_outer=24),
               CMAES(problem, epsilons=[0.01]),
@@ -28,7 +29,7 @@ if __name__ == '__main__':
               EpsMOEA(problem, epsilons=[0.01])]
         
     # run the algorithms
-    pool.map(run, algorithms)
+    results = pool.map(run, algorithms)
     
     # generate the result plot
     def to_points(solutions):
@@ -38,12 +39,12 @@ if __name__ == '__main__':
     fig, axarr = plt.subplots(2, 5)
 
     for i in range(len(algorithms)):
-        axarr[i/5, i%5].scatter(*to_points(algorithms[i].result))
+        axarr[i/5, i%5].scatter(*to_points(results[i]))
         axarr[i/5, i%5].set_title(algorithms[i].__class__.__name__)
-        axarr[i/5, i%5].annotate("Hyp: " + str(round(hyp(algorithms[i].result), 3)),
+        axarr[i/5, i%5].annotate("Hyp: " + str(round(hyp(results[i]), 3)),
                              xy=(0.9, 0.9),
                              xycoords='axes fraction',
                              horizontalalignment='right',
                              verticalalignment='bottom')
 
-        plt.show()
+    plt.show()

@@ -198,7 +198,6 @@ class Algorithm(object):
         unevaluated = [s for s in solutions if not s.evaluated]
         
         if self.evaluator:
-            print "Here"
             results = self.evaluator(_call_evaluate, unevaluated)
             
             for i in range(len(unevaluated)):
