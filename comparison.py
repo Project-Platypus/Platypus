@@ -2,7 +2,6 @@ from platypus.algorithms import *
 from platypus.problems import DTLZ2
 from platypus.indicators import hypervolume
 import matplotlib.pyplot as plt
-from pathos.pools import ParallelPool as Pool
 
 # setup the comparison
 problem = DTLZ2()
@@ -15,15 +14,10 @@ algorithms = [NSGAII(problem),
               OMOPSO(problem, epsilons=[0.01]),
               SMPSO(problem),
               SPEA2(problem),
-              EpsilonMOEA(problem, epsilons=[0.01])]
+              EpsMOEA(problem, epsilons=[0.01])]
 
 # run the algorithms for 10,000 function evaluations
-def run(x):
-    x.run(10000)
-    return x.result
-
-pool = Pool(2)
-pool.map(run, algorithms)
+map(lambda x : x.run(10000), algorithms)
     
 # generate the result plot
 hyp = hypervolume(minimum=[0,0], maximum=[1,1])
