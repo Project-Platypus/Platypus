@@ -42,6 +42,12 @@ def evaluator(func):
         solution.evaluated = True
     return inner
 
+def fitness_key(x):
+    return x.fitness
+
+def crowding_distance_key(x):
+    return x.crowding_distance
+
 class FixedLengthArray(object):
 
     def __init__(self, size, default_value = None, convert = None):
@@ -74,6 +80,12 @@ class FixedLengthArray(object):
     
     def __str__(self):
         return "[" + ", ".join(map(str, self._data)) + "]"
+    
+def _convert_constraint(x):
+    if isinstance(x, Constraint):
+        return x
+    else:
+        return Constraint(x)
 
 class Problem(object):
     
@@ -88,7 +100,7 @@ class Problem(object):
         self.function = function
         self.types = FixedLengthArray(nvars)
         self.directions = FixedLengthArray(nobjs, self.MINIMIZE)
-        self.constraints = FixedLengthArray(nconstrs, "==0", lambda x : Constraint(x))
+        self.constraints = FixedLengthArray(nconstrs, "==0", _convert_constraint)
         
     @evaluator
     def evaluate(self, solution):
@@ -164,22 +176,37 @@ class Selector(object):
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
     
+def _call_evaluate(s):
+    s.evaluate()
+    return s.objectives, s.constraints
+    
 class Algorithm(object):
     
     __metaclass__ = ABCMeta
     
-    def __init__(self, problem):
+    def __init__(self, problem, evaluator = None):
         super(Algorithm, self).__init__()
         self.problem = problem
+        self.evaluator = evaluator
         self.nfe = 0
     
     @abstractmethod
     def step(self):
         raise NotImplementedError("method not implemented")
     
-    def evaluateAll(self, solutions):
+    def evaluate_all(self, solutions):
         unevaluated = [s for s in solutions if not s.evaluated]
-        map(self.problem.evaluate, unevaluated)
+        
+        if self.evaluator:
+            print "Here"
+            results = self.evaluator(_call_evaluate, unevaluated)
+            
+            for i in range(len(unevaluated)):
+                unevaluated[i].objectives[:] = results[i][0]
+                unevaluated[i].constraints[:] = results[i][1]
+        else:
+            map(self.problem.evaluate, unevaluated)
+        
         self.nfe += len(unevaluated)
     
     def run(self, NFE):
@@ -187,18 +214,34 @@ class Algorithm(object):
         
         while self.nfe - start_nfe < NFE:
             self.step()
+            
+def _constraint_eq(x, y):
+    return abs(x - y)
+
+def _constraint_leq(x, y):
+    return 0 if x <= y else abs(x - y)
+
+def _constraint_geq(x, y):
+    return 0 if x >= y else abs(x - y)
+
+def _constraint_neq(x, y):
+    return 0 if x != y else 1
+
+def _constraint_lt(x, y, delta=0.0001):
+    return 0 if x < y else abs(x - y) + delta
+
+def _constraint_gt(x, y, delta=0.0001):
+    return 0 if x > y else abs(x - y) + delta
     
 class Constraint(object):
     
-    DELTA = 0.0001
-    
     OPERATORS = {
-             "==" : lambda x, y : abs(x - y),
-             "<=" : lambda x, y : 0 if x <= y else abs(x - y),
-             ">=" : lambda x, y : 0 if x >= y else abs(x - y),
-             "!=" : lambda x, y : 0 if x != y else 1,
-             "<"  : lambda x, y : 0 if x < y else abs(x - y) + Constraint.DELTA,
-             ">"  : lambda x, y : 0 if x > y else abs(x - y) + Constraint.DELTA,
+             "==" : _constraint_eq,
+             "<=" : _constraint_leq,
+             ">=" : _constraint_geq,
+             "!=" : _constraint_neq,
+             "<"  : _constraint_lt,
+             ">"  : _constraint_gt,
              }
     
     EQUALS_ZERO = "==0"
@@ -431,8 +474,8 @@ class Archive(object):
         
     def add(self, solution):
         flags = [self._dominance.compare(solution, s) for s in self._contents]
-        dominates = map(lambda x : x > 0, flags)
-        nondominated = map(lambda x : x == 0, flags)
+        dominates = [x > 0 for x in flags]
+        nondominated = [x == 0 for x in flags]
         
         if any(dominates):
             return False
@@ -467,7 +510,7 @@ class Archive(object):
     
 class FitnessArchive(Archive):
     
-    def __init__(self, fitness, dominance = ParetoDominance(), larger_preferred=True, getter=operator.attrgetter("fitness")):
+    def __init__(self, fitness, dominance = ParetoDominance(), larger_preferred=True, getter=fitness_key):
         super(FitnessArchive, self).__init__(dominance)
         self.fitness = fitness
         self.larger_preferred = larger_preferred
@@ -621,7 +664,7 @@ def nondominated_prune(solutions, size):
     
     while len(result) + len(remaining) > size:
         crowding_distance(remaining)
-        remaining = sorted(remaining, key=operator.attrgetter("crowding_distance"))
+        remaining = sorted(remaining, key=crowding_distance_key)
         del remaining[0]
         
     return result + remaining
@@ -643,7 +686,7 @@ def nondominated_truncate(solutions, size):
     result = sorted(solutions, key=functools.cmp_to_key(nondominated_cmp)) 
     return result[:size]
         
-def truncate_fitness(solutions, size, larger_preferred=True, getter=operator.attrgetter("fitness")):
+def truncate_fitness(solutions, size, larger_preferred=True, getter=fitness_key):
     """Truncates a population based on a fitness value.
     
     Truncates a population to the given size based on fitness values.  By

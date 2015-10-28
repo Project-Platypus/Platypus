@@ -22,13 +22,14 @@ import operator
 import itertools
 import functools
 from abc import ABCMeta, abstractmethod
-from platypus.core import Algorithm, Variator, Dominance, ParetoDominance, AttributeDominance,\
-    AttributeDominance, nondominated, nondominated_sort, nondominated_prune,\
+from platypus.core import Algorithm, ParetoDominance, AttributeDominance,\
+    AttributeDominance, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
-    EPSILON, POSITIVE_INFINITY, truncate_fitness, Archive, EpsilonDominance, \
-    FitnessArchive, Solution, HypervolumeFitnessEvaluator, nondominated_cmp
-from platypus.operators import TournamentSelector, RandomGenerator, DifferentialEvolution,\
-    clip, UniformMutation, NonUniformMutation
+    EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
+    Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
+    crowding_distance_key
+from platypus.operators import TournamentSelector, RandomGenerator,\
+    DifferentialEvolution, clip, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem
 from platypus.weights import random_weights, chebyshev, normal_boundary_weights
@@ -45,8 +46,9 @@ class GeneticAlgorithm(Algorithm):
     
     def __init__(self, problem,
                  population_size = 100,
-                 generator = RandomGenerator()):
-        super(GeneticAlgorithm, self).__init__(problem)
+                 generator = RandomGenerator(),
+                 **kwargs):
+        super(GeneticAlgorithm, self).__init__(problem, **kwargs)
         self.population_size = population_size
         self.generator = generator
         self.result = []
@@ -61,7 +63,7 @@ class GeneticAlgorithm(Algorithm):
             
     def initialize(self):
         self.population = [self.generator.generate(self.problem) for _ in range(self.population_size)]
-        self.evaluateAll(self.population)
+        self.evaluate_all(self.population)
     
     @abstractmethod
     def iterate(self):
@@ -73,9 +75,9 @@ class NSGAII(GeneticAlgorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
-                 variator = None):
-        super(NSGAII, self).__init__(problem, generator)
-        self.population_size = population_size
+                 variator = None,
+                 **kwargs):
+        super(NSGAII, self).__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
         
@@ -92,7 +94,7 @@ class NSGAII(GeneticAlgorithm):
             parents = self.selector.select(self.variator.arity, self.population)
             offspring.extend(self.variator.evolve(parents))
             
-        self.evaluateAll(offspring)
+        self.evaluate_all(offspring)
         
         offspring.extend(self.population)
         nondominated_sort(offspring)
@@ -105,9 +107,9 @@ class EpsMOEA(GeneticAlgorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
-                 variator = None):
-        super(EpsMOEA, self).__init__(problem, generator)
-        self.population_size = population_size
+                 variator = None,
+                 **kwargs):
+        super(EpsMOEA, self).__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
         self.dominance = ParetoDominance()
@@ -137,7 +139,7 @@ class EpsMOEA(GeneticAlgorithm):
         random.shuffle(parents)
         
         children = self.variator.evolve(parents)
-        self.evaluateAll(children)
+        self.evaluate_all(children)
         
         for child in children:
             self._add_to_population(child)
@@ -167,9 +169,9 @@ class GDE3(GeneticAlgorithm):
     def __init__(self, problem,
                  population_size = 100,
                  generator = RandomGenerator(),
-                 variator = DifferentialEvolution()):
-        super(GDE3, self).__init__(problem, generator)
-        self.population_size = population_size
+                 variator = DifferentialEvolution(),
+                 **kwargs):
+        super(GDE3, self).__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = ParetoDominance()
         
@@ -208,7 +210,7 @@ class GDE3(GeneticAlgorithm):
             parents = self.select(i, self.variator.arity)
             offspring.extend(self.variator.evolve(parents))
             
-        self.evaluateAll(offspring)
+        self.evaluate_all(offspring)
         self.population = self.survival(offspring)
         
 class SPEA2(GeneticAlgorithm):
@@ -218,12 +220,13 @@ class SPEA2(GeneticAlgorithm):
                  generator = RandomGenerator(),
                  variator = None,
                  dominance = ParetoDominance(),
-                 k = 1):
-        super(SPEA2, self).__init__(problem, population_size, generator)
+                 k = 1,
+                 **kwargs):
+        super(SPEA2, self).__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = dominance
         self.k = k
-        self.selection = TournamentSelector(2, dominance=AttributeDominance("fitness"))
+        self.selection = TournamentSelector(2, dominance=AttributeDominance(fitness_key))
          
     def _distance(self, solution1, solution2):
         return math.sqrt(sum([math.pow(solution2.objectives[i]-solution1.objectives[i], 2.0) for i in range(self.problem.nobjs)]))
@@ -267,7 +270,7 @@ class SPEA2(GeneticAlgorithm):
         
         if len(survivors) < size:
             remaining = [s for s in solutions if s.fitness >= 1.0]
-            remaining = sorted(remaining, key=operator.attrgetter("fitness"))
+            remaining = sorted(remaining, key=fitness_key)
             survivors.extend(remaining[:(size-len(survivors))])
         else:
             distanceMatrix = DistanceMatrix(survivors)
@@ -293,7 +296,7 @@ class SPEA2(GeneticAlgorithm):
             parents = self.selection.select(self.variator.arity, self.population)
             offspring.extend(self.variator.evolve(parents))
              
-        self.evaluateAll(offspring)
+        self.evaluate_all(offspring)
          
         offspring.extend(self.population)
         self._assign_fitness(offspring)
@@ -310,11 +313,10 @@ class MOEAD(GeneticAlgorithm):
                  eta = 1,
                  update_utility = None,
                  weight_generator = random_weights,
-                 scalarizing_function = chebyshev):
-        super(MOEAD, self).__init__(problem)
-        self.population_size = population_size
+                 scalarizing_function = chebyshev,
+                 **kwargs):
+        super(MOEAD, self).__init__(problem, population_size, generator, **kwargs)
         self.neighborhood_size = neighborhood_size
-        self.generator = generator
         self.variator = variator
         self.delta = delta
         self.eta = eta
@@ -396,7 +398,7 @@ class MOEAD(GeneticAlgorithm):
         
         # generate and evaluate the initial population
         self.population = [self.generator.generate(self.problem) for _ in range(self.population_size)]
-        self.evaluateAll(self.population)
+        self.evaluate_all(self.population)
         
         # update the ideal point
         for i in range(self.population_size):
@@ -472,7 +474,7 @@ class MOEAD(GeneticAlgorithm):
             parents = [self.population[index]] + [self.population[i] for i in mating_indices[:(self.variator.arity-1)]]
             offspring = self.variator.evolve(parents)
             
-            self.evaluateAll(offspring)
+            self.evaluate_all(offspring)
             
             for child in offspring:
                 self._update_ideal(child)
@@ -490,8 +492,9 @@ class NSGAIII(GeneticAlgorithm):
                  divisions_inner = 0,
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
-                 variator = None):
-        super(NSGAIII, self).__init__(problem, generator)
+                 variator = None,
+                 **kwargs):
+        super(NSGAIII, self).__init__(problem, generator = generator, **kwargs)
         self.selector = selector
         self.variator = variator
         
@@ -653,7 +656,7 @@ class NSGAIII(GeneticAlgorithm):
             parents = self.selector.select(self.variator.arity, self.population)
             offspring.extend(self.variator.evolve(parents))
             
-        self.evaluateAll(offspring)
+        self.evaluate_all(offspring)
         
         offspring.extend(self.population)
         nondominated_sort(offspring)
@@ -668,12 +671,13 @@ class ParticleSwarm(Algorithm):
                  leader_size = 100,
                  generator = RandomGenerator(),
                  mutate = None,
-                 leader_comparator = AttributeDominance("fitness"),
+                 leader_comparator = AttributeDominance(fitness_key),
                  dominance = ParetoDominance(),
                  fitness = None,
                  larger_preferred = True,
-                 fitness_getter = operator.attrgetter("fitness")):
-        super(ParticleSwarm, self).__init__(problem)
+                 fitness_getter = fitness_key,
+                 **kwargs):
+        super(ParticleSwarm, self).__init__(problem, **kwargs)
         self.swarm_size = swarm_size
         self.leader_size = leader_size
         self.generator = generator
@@ -694,7 +698,7 @@ class ParticleSwarm(Algorithm):
             
     def initialize(self):
         self.particles = [self.generator.generate(self.problem) for _ in range(self.swarm_size)]
-        self.evaluateAll(self.particles)
+        self.evaluate_all(self.particles)
         
         self.local_best = self.particles[:]
         
@@ -710,7 +714,7 @@ class ParticleSwarm(Algorithm):
         self._update_velocities()
         self._update_positions()
         self._mutate()
-        self.evaluateAll(self.particles)
+        self.evaluate_all(self.particles)
         self._update_local_best()
         
         self.leaders += self.particles
@@ -788,15 +792,17 @@ class OMOPSO(ParticleSwarm):
                  generator = RandomGenerator(),
                  mutation_probability = 0.1,
                  mutation_perturbation = 0.5,
-                 max_iterations = 100):
+                 max_iterations = 100,
+                 **kwargs):
         super(OMOPSO, self).__init__(problem,
                                      swarm_size=swarm_size,
                                      leader_size=leader_size,
                                      generator = generator,
-                                     leader_comparator = AttributeDominance("crowding_distance"),
+                                     leader_comparator = AttributeDominance(crowding_distance_key),
                                      dominance = ParetoDominance(),
                                      fitness = crowding_distance,
-                                     fitness_getter = operator.attrgetter("crowding_distance"))
+                                     fitness_getter = crowding_distance_key,
+                                     **kwargs)
         self.max_iterations = max_iterations
         self.archive = Archive(EpsilonDominance(epsilons))
         self.uniform_mutation = UniformMutation(mutation_probability,
@@ -838,16 +844,18 @@ class SMPSO(ParticleSwarm):
                  mutation_probability = 0.1,
                  mutation_perturbation = 0.5,
                  max_iterations = 100,
-                 mutate = None):
+                 mutate = None,
+                 **kwargs):
         super(SMPSO, self).__init__(problem,
                                     swarm_size=swarm_size,
                                     leader_size=leader_size,
                                     generator = generator,
-                                    leader_comparator = AttributeDominance("crowding_distance"),
+                                    leader_comparator = AttributeDominance(crowding_distance_key),
                                     dominance = ParetoDominance(),
                                     fitness = crowding_distance,
-                                    fitness_getter = operator.attrgetter("crowding_distance"),
-                                    mutate = mutate)
+                                    fitness_getter = crowding_distance_key,
+                                    mutate = mutate,
+                                    **kwargs)
         self.max_iterations = max_iterations
         self.maximum_velocity = [(t.max_value - t.min_value)/2.0 for t in problem.types]
         self.minimum_velocity = [-(t.max_value - t.min_value)/2.0 for t in problem.types]
@@ -907,8 +915,9 @@ class CMAES(Algorithm):
                  indicator = "crowding",
                  initial_search_point = None,
                  check_consistency = False,
-                 epsilons = None):
-        super(CMAES, self).__init__(problem)
+                 epsilons = None,
+                 **kwargs):
+        super(CMAES, self).__init__(problem, **kwargs)
         self.offspring_size = offspring_size
         self.cc = cc
         self.cs = cs
@@ -1162,7 +1171,7 @@ class CMAES(Algorithm):
         
     def iterate(self):
         self.population = self.sample()
-        self.evaluateAll(self.population)
+        self.evaluate_all(self.population)
         
         if self.problem.nobjs > 1:
             nondominated_sort(self.population)
@@ -1177,11 +1186,12 @@ class IBEA(GeneticAlgorithm):
     
     def __init__(self, problem,
                  population_size = 100,
+                 generator = RandomGenerator(),
                  fitness_evaluator = HypervolumeFitnessEvaluator(),
-                 fitness_comparator = AttributeDominance("fitness", False),
-                 variator = None):
-        super(IBEA, self).__init__(problem)
-        self.population_size = population_size
+                 fitness_comparator = AttributeDominance(fitness_key, False),
+                 variator = None,
+                 **kwargs):
+        super(IBEA, self).__init__(problem, population_size, generator, **kwargs)
         self.fitness_evaluator = fitness_evaluator
         self.fitness_comparator = fitness_comparator
         self.selector = TournamentSelector(2, fitness_comparator)
@@ -1201,7 +1211,7 @@ class IBEA(GeneticAlgorithm):
             parents = self.selector.select(self.variator.arity, self.population)
             offspring.extend(self.variator.evolve(parents))
             
-        self.evaluateAll(offspring)
+        self.evaluate_all(offspring)
         
         self.population.extend(offspring)
         self.fitness_evaluator.evaluate(self.population)
