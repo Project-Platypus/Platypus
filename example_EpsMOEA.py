@@ -1,4 +1,4 @@
-from platypus.algorithms import EpsilonMOEA
+from platypus.algorithms import EpsMOEA
 from platypus.operators import TournamentSelector, PM, SBX, GAOperator
 from platypus.problems import DTLZ2
 import matplotlib.pyplot as plt
@@ -6,11 +6,11 @@ from mpl_toolkits.mplot3d import Axes3D
 
 problem = DTLZ2(3)
  
-algorithm = EpsilonMOEA(problem,
-                        epsilons=[0.1],
-                        population_size = 100,
-                        selector = TournamentSelector(2),
-                        variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
+algorithm = EpsMOEA(problem,
+                    epsilons=[0.1],
+                    population_size = 100,
+                    selector = TournamentSelector(2),
+                    variator = GAOperator(SBX(1.0), PM(1.0 / problem.nvars)))
  
 algorithm.run(10000)
  
