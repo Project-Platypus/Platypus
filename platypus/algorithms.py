@@ -950,7 +950,6 @@ class CMAES(Algorithm):
             
         if self.diagonal_iterations is None:
             self.diagonal_iterations = 150 * self.problem.nvars / self.offspring_size
-            print self.diagonal_iterations
             
         self.diag_D = [1.0]*self.problem.nvars
         self.pc = [0.0]*self.problem.nvars
