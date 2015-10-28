@@ -13,19 +13,10 @@ Platypus is a framework for evolutionary computing in Python with a focus on
 multiobjective evolutionary algorithms (MOEAs).  It differs from existing
 optimization libraries, including PyGMO, Inspyred, DEAP, and Scipy, by providing
 optimization algorithms and analysis tools for multiobjective optimization.
-It currently supports the following algorithms:
-
-| Algorithm    | Original Authors               
-| -------------|----------------------------------------------------------------- |
-| NSGA-II      | K. Deb, A. Pratap, S. Agarwal, T. Meyarivan                      |
-| NSGA-III     | K. Deb, H. Jain                                                  |
-| MOEA/D       | H. Li, Q. Zhang                                                  |
-| IBEA         | E. Zitzler, S. Kunzli                                            |
-| Epsilon MOEA | K. Deb, M. Mohan, S. Mishra                                      |
-| SPEA2        | E. Zitzler, M. Laumanns, L. Thiele                               |
-| GDE3         | S. Kukkonen, J. Lampinen                                         |
-| OMOPSO       | M. R. Sierra, C. A. Coello Coello                                |
-| SMPSO        | A. J. Nebro, J. J. Durillo, J. Garcia-Nieto, C. A. Coello Coello |
+It currently supports NSGA-II, NSGA-III, MOEA/D, IBEA, EpsMOEA, SPEA2, GDE3,
+OMOPSO and SMPSO.  For more information, see our
+[IPython demo](http://nbviewer.ipython.org/gist/dhadka/ba6d3c570400bdb411c3)
+or our [online documentation](http://platypus.readthedocs.org/en/latest/index.html).
 
 ### Design Goals
 
@@ -61,15 +52,16 @@ For example, optimizing a simple biobjective problem with a single real-valued
 decision variables is accomplished in Platypus with:
 
 ```python
+
     from platypus.core import Problem
     from platypus.types import Real
     from platypus.algorithms import NSGAII
-    
+
     def schaffer(x):
-    	return [x**2, (x-2)**2]
+        return [x[0]**2, (x[0]-2)**2]
 
     problem = Problem(1, 2)
-    problem.types[:] = Real(0, 1)
+    problem.types[:] = Real(-10, 10)
     problem.function = schaffer
 
     algorithm = NSGAII(problem)
