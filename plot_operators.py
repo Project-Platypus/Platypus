@@ -35,18 +35,23 @@ parent_options = {"s":25, "color":"b"}
 axarr[0, 0].scatter(*generate(GAOperator(SBX(1.0, 20.0), PM(0.5, 250.0)), [solution1, solution3]), **options)
 axarr[0, 0].scatter(*to_points([solution1, solution3]), **parent_options)
 axarr[0, 0].set_title("SBX")
+
 axarr[0, 1].scatter(*generate(GAOperator(DifferentialEvolution(1.0, 1.0), PM(0.5, 100.0)), [solution3, solution2, solution1, solution3]), **options)
 axarr[0, 1].scatter(*to_points([solution3, solution2, solution1, solution3]), **parent_options)
 axarr[0, 1].set_title("DE")
+
 axarr[0, 2].scatter(*generate(UM(0.5), [solution1]), **options)
 axarr[0, 2].scatter(*to_points([solution1]), **parent_options)
 axarr[0, 2].set_title("UM")
+
 axarr[1, 0].scatter(*generate(PCX(3, 2), [solution1, solution2, solution3]), **options)
 axarr[1, 0].scatter(*to_points([solution1, solution2, solution3]), **parent_options)
 axarr[1, 0].set_title("PCX")
+
 axarr[1, 1].scatter(*generate(UNDX(3, 2), [solution1, solution2, solution3]), **options)
 axarr[1, 1].scatter(*to_points([solution1, solution2, solution3]), **parent_options)
 axarr[1, 1].set_title("UNDX")
+
 axarr[1, 2].scatter(*generate(SPX(3, 2), [solution1, solution2, solution3]), **options)
 axarr[1, 2].scatter(*to_points([solution1, solution2, solution3]), **parent_options)
 axarr[1, 2].set_title("SPX")
@@ -65,23 +70,11 @@ axarr[0, 1].annotate("",
                                      connectionstyle="arc3",
                                      color="0.75"))
 
-axarr[0, 0].set_xticklabels([])
-axarr[0, 0].set_yticklabels([])
-axarr[0, 1].set_xticklabels([])
-axarr[0, 1].set_yticklabels([])
-axarr[0, 2].set_xticklabels([])
-axarr[0, 2].set_yticklabels([])
-axarr[1, 0].set_xticklabels([])
-axarr[1, 0].set_yticklabels([])
-axarr[1, 1].set_xticklabels([])
-axarr[1, 1].set_yticklabels([])
-axarr[1, 2].set_xticklabels([])
-axarr[1, 2].set_yticklabels([])
-axarr[0, 0].autoscale(tight=True)
-axarr[0, 1].autoscale(tight=True)
-axarr[0, 2].autoscale(tight=True)
-axarr[1, 0].autoscale(tight=True)
-axarr[1, 1].autoscale(tight=True)
-axarr[1, 2].autoscale(tight=True)
+
+for i in range(1):
+    for j in range(3):
+        axarr[i, j].set_xticklabels([])
+        axarr[i, j].set_yticklabels([])
+        axarr[i, j].autoscale(tight=True)
 
 plt.show()

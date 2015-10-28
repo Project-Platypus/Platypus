@@ -398,8 +398,9 @@ class EpsilonDominance(Dominance):
         
 class AttributeDominance(Dominance):
     
-    def __init__(self, getter):
+    def __init__(self, getter, larger_preferred=True):
         super(AttributeDominance, self).__init__()
+        self.larger_preferred = larger_preferred
         
         if hasattr(getter, "__call__"):
             self.getter = getter
@@ -409,6 +410,10 @@ class AttributeDominance(Dominance):
     def compare(self, solution1, solution2):
         a = self.getter(solution1)
         b = self.getter(solution2)
+        
+        if self.larger_preferred:
+            a = -a
+            b = -b
         
         if a < b:
             return -1
@@ -762,10 +767,12 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
         self.dominance = dominance
     
     def calculate_indicator(self, solution1, solution2):
+        problem = solution1.problem
+        
         if self.dominance.compare(solution1, solution2) < 0:
-            return -self.hypervolume(solution1, solution2, solution1.problem.nobjs)
+            return -self.hypervolume(solution1, solution2, problem.nobjs)
         else:
-            return self.hypervolume(solution2, solution2, solution1.problem.nobjs)
+            return self.hypervolume(solution2, solution1, problem.nobjs)
     
     def hypervolume(self, solution1, solution2, d):
         a = solution1.normalized_objectives[d-1]

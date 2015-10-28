@@ -98,7 +98,7 @@ class NSGAII(GeneticAlgorithm):
         nondominated_sort(offspring)
         self.population = nondominated_truncate(offspring, self.population_size)
 
-class EpsilonMOEA(GeneticAlgorithm):
+class EpsMOEA(GeneticAlgorithm):
     
     def __init__(self, problem,
                  epsilons,
@@ -106,7 +106,7 @@ class EpsilonMOEA(GeneticAlgorithm):
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
                  variator = None):
-        super(EpsilonMOEA, self).__init__(problem, generator)
+        super(EpsMOEA, self).__init__(problem, generator)
         self.population_size = population_size
         self.selector = selector
         self.variator = variator
@@ -122,7 +122,7 @@ class EpsilonMOEA(GeneticAlgorithm):
             self.result = self.archive
         
     def initialize(self):
-        super(EpsilonMOEA, self).initialize()
+        super(EpsMOEA, self).initialize()
         self.archive += self.population
         
         if self.variator is None:
@@ -903,12 +903,11 @@ class CMAES(Algorithm):
                  ccov = None,
                  ccovsep = None,
                  sigma = None,
-                 diagonal_iterations = None,
+                 diagonal_iterations = 0,
                  indicator = "crowding",
                  initial_search_point = None,
                  check_consistency = False,
-                 epsilons = None,
-                 fitness = None):
+                 epsilons = None):
         super(CMAES, self).__init__(problem)
         self.offspring_size = offspring_size
         self.cc = cc
@@ -921,7 +920,6 @@ class CMAES(Algorithm):
         self.indicator = indicator
         self.initial_search_point = initial_search_point
         self.check_consistency = check_consistency
-        self.fitness = fitness
         self.population = []
         self.iteration = 0
         self.last_eigenupdate = 0
@@ -930,11 +928,17 @@ class CMAES(Algorithm):
             self.archive = Archive()
         else:
             self.archive = Archive(EpsilonDominance(epsilons))
+            
+        if indicator is "hypervolume":
+            self.fitness_evaluator = HypervolumeFitnessEvaluator()
+            self.fitness_comparator = AttributeDominance(False)
+        else:
+            self.fitness_evaluator = None
+            self.fitness_comparator = None
         
     def step(self):
         if self.nfe == 0:
             self.initialize()
-            self.iterate()
             self.result = self.archive
         else:
             self.iterate()
@@ -993,6 +997,8 @@ class CMAES(Algorithm):
             
         if self.ccovsep is None:
             self.ccovsep = min(1.0, self.ccov * (self.problem.nvars + 1.5) / 3.0)
+            
+        self.iterate()
             
     def eigendecomposition(self):
         self.last_eigenupdate = self.iteration
@@ -1113,10 +1119,10 @@ class CMAES(Algorithm):
         if self.problem.nobjs == 1:
             self.population = sorted(self.population, key=lambda x : x.objectives[0])
         else:
-            if self.fitness is None:
+            if self.fitness_evaluator is None:
                 self.population = sorted(self.population, key=functools.cmp_to_key(nondominated_cmp)) 
             else:
-                self.population = sorted(self.population, key=functools.cmp_to_key(AttributeDominance().compare))
+                self.population = sorted(self.population, key=functools.cmp_to_key(self.fitness_comparator.compare))
             
         for i in range(self.problem.nvars):
             self.xmean[i] = 0.0
@@ -1161,8 +1167,8 @@ class CMAES(Algorithm):
         if self.problem.nobjs > 1:
             nondominated_sort(self.population)
             
-            if self.fitness is not None:
-                self.fitness(self.population)
+            if self.fitness_evaluator is not None:
+                self.fitness_evaluator(self.population)
 
         self.archive += self.population
         self.update_distribution()
@@ -1172,7 +1178,7 @@ class IBEA(GeneticAlgorithm):
     def __init__(self, problem,
                  population_size = 100,
                  fitness_evaluator = HypervolumeFitnessEvaluator(),
-                 fitness_comparator = AttributeDominance("fitness"),
+                 fitness_comparator = AttributeDominance("fitness", False),
                  variator = None):
         super(IBEA, self).__init__(problem)
         self.population_size = population_size

@@ -1,5 +1,9 @@
+.project
+.pydevproject
 *.pyc
 .settings/
 .eggs/
 Platypus.egg-info/
 build/
+dist/
+.ipynb_checkpoints/
