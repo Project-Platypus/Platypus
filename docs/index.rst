@@ -13,5 +13,6 @@ optimization.
    
    getting-started
    experimenter
+   algorithms
 
 

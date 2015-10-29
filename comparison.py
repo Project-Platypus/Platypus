@@ -40,8 +40,8 @@ if __name__ == '__main__':
         ax.set_ylim([0, 1.1])
         ax.set_zlim([0, 1.1])
         ax.view_init(elev=30.0, azim=15.0)
+        ax.locator_params(nbins=4)
     
-    plt.locator_params(nbins=4)
     plt.show()
     
     pool.close()
