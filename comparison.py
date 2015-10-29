@@ -1,6 +1,6 @@
 from platypus.algorithms import *
 from platypus.problems import DTLZ2
-from platypus.indicators import hypervolume
+from platypus.indicators import Hypervolume
 from multiprocessing import Pool, freeze_support
 import matplotlib.pyplot as plt
 import pickle
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     def to_points(solutions):
         return [s.objectives[0] for s in solutions], [s.objectives[1] for s in solutions]
 
-    hyp = hypervolume(minimum=[0,0], maximum=[1,1])
+    hyp = Hypervolume(minimum=[0,0], maximum=[1,1])
     fig, axarr = plt.subplots(2, 5)
 
     for i in range(len(algorithms)):

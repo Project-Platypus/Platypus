@@ -19,8 +19,7 @@ import random
 import unittest
 from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
-        POSITIVE_INFINITY
-from platypus.core import nondominated_split, truncate_fitness, normalize
+        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize
 
 def createSolution(*args):
     problem = Problem(0, len(args))

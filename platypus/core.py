@@ -48,6 +48,9 @@ def fitness_key(x):
 def crowding_distance_key(x):
     return x.crowding_distance
 
+def objective_key(x, index=0):
+    return x.objectives[index]
+
 class FixedLengthArray(object):
 
     def __init__(self, size, default_value = None, convert = None):
@@ -597,7 +600,7 @@ def crowding_distance(solutions):
             solution.crowding_distance = 0.0
             
         for i in range(nobjs):
-            sorted_solutions = sorted(solutions, key=lambda x : x.objectives[i])
+            sorted_solutions = sorted(solutions, key=functools.partial(objective_key, index=i))
             min_value = sorted_solutions[0].objectives[i]
             max_value = sorted_solutions[-1].objectives[i]
             
@@ -704,7 +707,11 @@ def truncate_fitness(solutions, size, larger_preferred=True, getter=fitness_key)
     getter : callable (default :code:`attrgetter("fitness")`)
         Retrieves the fitness value from a solution
     """
-    result = sorted(solutions, key=lambda x : -getter(x) if larger_preferred else getter(x))
+    result = sorted(solutions, key=getter)
+    
+    if larger_preferred:
+        result.reverse()
+    
     return result[:size]
 
 def normalize(solutions, minimum=None, maximum=None):
