@@ -27,7 +27,8 @@ JSON-like dictionary.
 
 Afterwards, we can use the ``calculate`` function to calculate one or more
 performance indicators for the results.  The result is another JSON-like
-dictionary storing the numeric indicator values.
+dictionary storing the numeric indicator values.  We finish by pretty printing
+the results using ``display``.
 
 .. code:: python
 
@@ -38,15 +39,15 @@ dictionary storing the numeric indicator values.
 
     if __name__ == "__main__":
         algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]
-        problems = [DTLZ2]
+        problems = [DTLZ2(3)]
     
         # run the experiment
         results = experiment(algorithms, problems, nfe=10000)
     
         # calculate the hypervolume indicator
-        hyp = Hypervolume(minimum=[0, 0], maximum=[1, 1])
+        hyp = Hypervolume(minimum=[0, 0, 0], maximum=[1, 1, 1])
         hyp_result = calculate(results, hyp)
-        display(hyp_result)
+        display(hyp_result, ndigits=3)
         
 The output of which appears similar to:
 
@@ -54,10 +55,11 @@ The output of which appears similar to:
 
     NSGAII
         DTLZ2
-           Hypervolume : [0.208, 0.202, 0.200, 0.202, 0.200, ...]
+            Hypervolume : [0.361, 0.369, 0.372, 0.376, 0.376, 0.388, 0.378, 0.371, 0.363, 0.364]
     NSGAIII
         DTLZ2
-           Hypervolume : [0.104, 0.143, 0.141, 0.137, 0.134, ...]
+            Hypervolume : [0.407, 0.41, 0.407, 0.405, 0.405, 0.398, 0.404, 0.406, 0.408, 0.401]
+
 
 Once this data is collected, we can then use statistical tests to determine if
 there is any statistical difference between the results.  In this case, we
@@ -93,13 +95,13 @@ as demonstrated below:
         pool = Pool(6)
     
         algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]
-        problems = [DTLZ2]
+        problems = [DTLZ2(3)]
 
         results = experiment(algorithms, problems, nfe=10000, map=pool.map)
 
-        hyp = Hypervolume(minimum=[0, 0], maximum=[1, 1])
+        hyp = Hypervolume(minimum=[0, 0, 0], maximum=[1, 1, 1])
         hyp_result = calculate(results, hyp, map=pool.map)
-        display(hyp_result)
+        display(hyp_result, ndigits=3)
         
         pool.close()
         pool.join()
@@ -117,14 +119,14 @@ module:
 
     if __name__ == "__main__":
         algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]
-        problems = [DTLZ2]
+        problems = [DTLZ2(3)]
         
         with ProcessPoolExecutor(6) as pool:
             results = experiment(algorithms, problems, nfe=10000, submit=pool.submit)
 
-            hyp = Hypervolume(minimum=[0, 0], maximum=[1, 1])
+            hyp = Hypervolume(minimum=[0, 0, 0], maximum=[1, 1, 1])
             hyp_result = calculate(results, hyp, submit=pool.submit)
-            display(hyp_result)
+            display(hyp_result, ndigits=3)
             
 Observe that we use the ``map=pool.map`` if the parallelization library provides
 a "map-like" function and ``submit=pool.submit`` if the library provides

@@ -16,6 +16,7 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import time
 import datetime
+import functools
 from abc import ABCMeta, abstractmethod
 from .core import PlatypusError
 
@@ -253,14 +254,17 @@ def calculate(results,
 
     return results
     
-def display(results):
+def display(results, ndigits=None):
     for algorithm in results.iterkeys():
         print algorithm
         for problem in results[algorithm].iterkeys():
             if isinstance(results[algorithm][problem], dict):
                 print "   ", problem
                 for indicator in results[algorithm][problem].iterkeys():
-                    print "      ", indicator, ":", results[algorithm][problem][indicator]
+                    if ndigits:
+                        print "       ", indicator, ":", map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator])
+                    else:
+                        print "       ", indicator, ":", results[algorithm][problem][indicator]
             else:
                 print "   ", problem, ":", results[algorithm][problem]
             

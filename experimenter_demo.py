@@ -9,13 +9,13 @@ if __name__ == "__main__":
     pool = Pool(6)
     
     algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]
-    problems = [DTLZ2]
+    problems = [DTLZ2(3)]
     
     results = experiment(algorithms, problems, nfe=10000, map=pool.map)
 
-    hyp = Hypervolume(minimum=[0, 0], maximum=[1, 1])
+    hyp = Hypervolume(minimum=[0, 0, 0], maximum=[1, 1, 1])
     hyp_result = calculate(results, hyp, map=pool.map)
-    display(hyp_result)
+    display(hyp_result, ndigits=3)
     
     pool.close()
     pool.join()
