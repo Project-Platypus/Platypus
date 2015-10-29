@@ -1,43 +1,48 @@
 from platypus.algorithms import *
 from platypus.problems import DTLZ2
-from platypus.indicators import hypervolume
+from platypus.experimenter import experiment
+from multiprocessing import Pool, freeze_support
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-# setup the comparison
-problem = DTLZ2()
-algorithms = [NSGAII(problem),
-              NSGAIII(problem, divisions_outer=24),
-              CMAES(problem, epsilons=[0.01]),
-              GDE3(problem),
-              IBEA(problem),
-              MOEAD(problem),
-              OMOPSO(problem, epsilons=[0.01]),
-              SMPSO(problem),
-              SPEA2(problem),
-              EpsMOEA(problem, epsilons=[0.01])]
-
-# run the algorithms for 10,000 function evaluations
-map(lambda x : x.run(10000), algorithms)
+if __name__ == '__main__':
+    freeze_support() # required on Windows
+    pool = Pool(6)
     
-# generate the result plot
-hyp = hypervolume(minimum=[0,0], maximum=[1,1])
-fig, axarr = plt.subplots(2, 5, sharex=True, sharey=True)
+    # setup the experiment
+    problem = DTLZ2(3)
+    algorithms = [NSGAII,
+                  (NSGAIII, {"divisions_outer":12}),
+                  (CMAES, {"epsilons":[0.05]}),
+                  GDE3,
+                  IBEA,
+                  MOEAD,
+                  (OMOPSO, {"epsilons":[0.05]}),
+                  SMPSO,
+                  SPEA2,
+                  (EpsMOEA, {"epsilons":[0.05]})]
 
-for i in range(len(algorithms)):
-    ax = axarr[i/5, i%5]
-    ax.scatter([s.objectives[0] for s in algorithms[i].result],
-               [s.objectives[1] for s in algorithms[i].result])
-    ax.set_title(algorithms[i].__class__.__name__)
-    ax.set_xlim([0, 1.1])
-    ax.set_ylim([0, 1.1])
-    ax.annotate("Hyp: " + str(round(hyp(algorithms[i].result), 3)),
-                xy=(0.9, 0.9),
-                xycoords='axes fraction',
-                horizontalalignment='right',
-                verticalalignment='bottom')
+    # run the experiment
+    results = experiment(algorithms, problem, seeds=1, nfe=10000, map=pool.map)
 
-fig.text(0.5, 0.04, '$f_1(x)$', ha='center', va='center')
-fig.text(0.04, 0.5, '$f_2(x)$', ha='center', va='center', rotation='vertical')
-
-plt.locator_params(nbins=4)
-plt.show()
+    # display the results
+    fig = plt.figure()
+    
+    for i, algorithm in enumerate(results.iterkeys()):
+        result = results[algorithm]["DTLZ2"][0]
+        
+        ax = fig.add_subplot(2, 5, i+1, projection='3d')
+        ax.scatter([s.objectives[0] for s in result],
+                   [s.objectives[1] for s in result],
+                   [s.objectives[2] for s in result])
+        ax.set_title(algorithm)
+        ax.set_xlim([0, 1.1])
+        ax.set_ylim([0, 1.1])
+        ax.set_zlim([0, 1.1])
+        ax.view_init(elev=30.0, azim=15.0)
+    
+    plt.locator_params(nbins=4)
+    plt.show()
+    
+    pool.close()
+    pool.join()

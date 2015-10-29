@@ -8,4 +8,5 @@ python:
   - "3.5"
   - "nightly"
 
-script: nosetests
+script:
+  - python setup.py test

@@ -66,7 +66,7 @@ class DTLZ2(Problem):
         k = self.nvars - self.nobjs + 1
         g = sum([math.pow(x - 0.5, 2.0) for x in solution.variables[self.nvars-k:]])
         f = [1.0+g]*self.nobjs
-        
+
         for i in range(self.nobjs):
             f[i] *= reduce(operator.mul,
                            [math.cos(0.5 * math.pi * x) for x in solution.variables[:self.nobjs-i-1]],
