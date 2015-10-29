@@ -28,6 +28,10 @@ class PlatypusSettings(object):
                        Binary : BitFlip(),
                        Permutation : CompoundMutation(Insertion(), Swap())}
     
+    default_map = map
+    default_apply = None
+    default_submit = None
+    
 def default_variator(problem):
     base_type = problem.types[0].__class__
     

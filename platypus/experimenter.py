@@ -1,0 +1,250 @@
+import time
+import datetime
+from abc import ABCMeta, abstractmethod
+from .core import PlatypusError
+
+try:
+    set
+except NameError:
+    from sets import Set as set
+    
+class Job(object):
+    
+    __metaclass__ = ABCMeta
+    
+    def __init__(self):
+        super(Job, self).__init__()
+        
+    @abstractmethod
+    def run(self):
+        raise NotImplementedError("method not implemented")
+        
+class EvaluateJob(Job):
+
+    def __init__(self, instance, nfe, algorithm_name, problem_name, seed, display_stats):
+        super(EvaluateJob, self).__init__()
+        self.instance = instance
+        self.nfe = nfe
+        self.algorithm_name = algorithm_name
+        self.problem_name = problem_name
+        self.seed = seed
+        self.display_stats = display_stats
+        
+    def run(self):
+        if self.display_stats:
+            start_time = time.time()
+            print "Running seed", self.seed, "of", self.algorithm_name, "on",\
+                    self.problem_name
+        
+        self.instance.run(self.nfe)
+    
+        if self.display_stats:
+            end_time = time.time()
+            print "Finished seed", self.seed, "of", self.algorithm_name, "on",\
+                    self.problem_name, ":",\
+                    datetime.timedelta(seconds=round(end_time-start_time))
+                    
+class IndicatorJob(Job):
+    
+    def __init__(self, algorithm_name, problem_name, result_set, indicators):
+        super(IndicatorJob, self).__init__()
+        self.algorithm_name = algorithm_name
+        self.problem_name = problem_name
+        self.result_set = result_set
+        self.indicators = indicators
+        
+    def run(self):
+        self.results = [indicator(self.result_set) for indicator in self.indicators]
+
+def run_job(job):
+    job.run()
+    return job
+
+def evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats):
+    existing_algorithms = set()
+    existing_problems = set()
+    
+    for i in range(len(algorithms)):
+        if isinstance(algorithms[i], tuple):
+            algorithm = algorithms[i][0]
+            
+            if len(algorithms[i]) >= 2:
+                kwargs = algorithms[i][1]
+            else:
+                kwargs = {}
+                
+            if len(algorithms[i]) >= 3:
+                algorithm_name = algorithms[i][2]
+            else:
+                algorithm_name = algorithm.__name__
+                
+        else:
+            algorithm = algorithms[i]
+            algorithm_name = algorithm.__name__
+            kwargs = {}
+                
+        if algorithm_name in existing_algorithms:
+            raise PlatypusError("only one algorithm with name " + algorithm_name + " can be run")
+        else:
+            existing_algorithms.add(algorithm_name)
+
+        for j in range(len(problems)):
+            if isinstance(problems[j], tuple):
+                problem = problems[j][0]
+                
+                if isinstance(problem, type):
+                    problem = problem()
+                
+                if len(problems[j]) >= 2:
+                    problem_name = problems[j][1]
+                else:
+                    problem_name = problem.__class__.__name__
+            else:
+                problem = problems[j]
+                
+                if isinstance(problem, type):
+                    problem = problem()
+                
+                problem_name = problem.__class__.__name__
+                    
+            if i == 0:
+                if problem_name in existing_problems:
+                    raise PlatypusError("only one problem with name " + problem_name + " can be run")
+                else:
+                    existing_problems.add(problem_name)
+
+            for k in range(seeds):
+                yield EvaluateJob(algorithm(problem, **kwargs),
+                                  nfe,
+                                  algorithm_name,
+                                  problem_name,
+                                  k,
+                                  display_stats)
+                
+def submit_jobs(generator, map = map, submit = None, apply = None):
+    if submit:
+        futures = [submit(run_job, job) for job in generator]
+        return [f.result() for f in futures]
+    elif apply:
+        futures = [apply(run_job, [job]) for job in generator]
+        return [f.get() for f in futures]
+    else:
+        return map(run_job, generator)
+                
+def experiment(algorithms = [],
+               problems = [],
+               seeds = 10,
+               nfe=10000,
+               map = map,
+               submit = None,
+               apply = None,
+               display_stats = False):
+    """Run experiments.
+    
+    Used to run experiments where one or more algorithms are tested on one or
+    more problems.  Returns a dict containing the results.  The dict is of
+    the form:
+        pareto_set = result["algorithm"]["problem"][seed_index]
+    
+    Parameters
+    ----------
+    algorithms : list
+        List of algorithms to run.  Can either be a type of Algorithm or a
+        tuple defining ``(type, kwargs, name)``, where type is the Algorithm's
+        type, kwargs is a dict defining any optional parameters for the
+        algorithm, and name is a human-readable name for the algorithm.  All
+        algorithms must have unique names.  If a name is not provided, the
+        type name is used.
+    problems : list
+        List of problems to run.  Can either be a type of Problem, an instance
+        of a Problem, or a tuple defining ``(type, name)``, where type is the
+        Problem's type and name is a human-readable name for the problem.  All
+        problems must have unique names.  If a name is not provided, the type
+        name is used. 
+    seeds : int
+        The number of replicates of each experiment to run
+    nfe : int
+        The number of function evaluations allotted to each experiment
+    submit : submit or apply-like function
+        A submit of apply-like function, that either returns an ApplyResult or
+        a Future
+    map: map-like function
+        A synchronous map like function used to parallelize evaluations
+    display_stats : bool
+        If True, the progress of the experiments is output to the screen
+    """
+    if not isinstance(algorithms, list):
+        algorithms = [algorithms]
+    
+    if not isinstance(problems, list):
+        problems = [problems]
+    
+    # construct the jobs to run
+    generator = evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats)
+         
+    # process the jobs  
+    job_results = submit_jobs(generator, map, submit, apply)     
+    
+    # convert results to structured format
+    results = {}
+    count = 0
+    
+    for job in job_results:
+        if not job.algorithm_name in results:
+            results[job.algorithm_name] = {}
+            
+        if not job.problem_name in results[job.algorithm_name]:
+            results[job.algorithm_name][job.problem_name] = []
+            
+        results[job.algorithm_name][job.problem_name].append(job.instance.result)
+        count += 1
+                
+    return results
+
+def calculate_job_generator(results, indicators):
+    for algorithm in results.iterkeys():
+        for problem in results[algorithm].iterkeys():
+            for result_set in results[algorithm][problem]:
+                yield IndicatorJob(algorithm, problem, result_set, indicators)
+
+def calculate(results,
+              indicators = [],
+              map = map,
+              submit = None,
+              apply = None):
+    if not isinstance(indicators, list):
+        indicators = [indicators]
+    
+    generator = calculate_job_generator(results, indicators)
+    indicator_results = submit_jobs(generator, map, submit, apply)
+    
+    results = {}
+    
+    for job in indicator_results:
+        if not job.algorithm_name in results:
+            results[job.algorithm_name] = {}
+            
+        if not job.problem_name in results[job.algorithm_name]:
+            results[job.algorithm_name][job.problem_name] = {}
+            
+        for i in range(len(indicators)):
+            indicator_name = indicators[i].__class__.__name__
+            
+            if not indicator_name in results[job.algorithm_name][job.problem_name]:
+                results[job.algorithm_name][job.problem_name][indicator_name] = []
+            
+            results[job.algorithm_name][job.problem_name][indicator_name].append(job.results[i])
+
+    return results
+    
+def display(results):
+    for algorithm in results.iterkeys():
+        print algorithm
+        for problem in results[algorithm].iterkeys():
+            if isinstance(results[algorithm][problem], dict):
+                print "   ", problem
+                for indicator in results[algorithm][problem].iterkeys():
+                    print "      ", indicator, ":", results[algorithm][problem][indicator]
+            else:
+                print "   ", problem, ":", results[algorithm][problem]
+            

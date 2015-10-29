@@ -17,15 +17,15 @@
 import math
 import unittest
 from .test_core import createSolution
-from ..indicators import generational_distance, inverted_generational_distance, \
-    epsilon_indicator, spacing, hypervolume
+from ..indicators import GenerationalDistance, InvertedGenerationalDistance, \
+    EpsilonIndicator, Spacing, Hypervolume
 from ..core import Solution, Problem, POSITIVE_INFINITY
 
 class TestGenerationalDistance(unittest.TestCase):
     
     def test(self):
         reference_set = [createSolution(0, 1), createSolution(1, 0)]
-        gd = generational_distance(reference_set)
+        gd = GenerationalDistance(reference_set)
         
         set = []
         self.assertEqual(POSITIVE_INFINITY, gd(set))
@@ -46,7 +46,7 @@ class TestInvertedGenerationalDistance(unittest.TestCase):
     
     def test(self):
         reference_set = [createSolution(0, 1), createSolution(1, 0)]
-        igd = inverted_generational_distance(reference_set)
+        igd = InvertedGenerationalDistance(reference_set)
         
         set = []
         self.assertEqual(POSITIVE_INFINITY, igd(set))
@@ -64,7 +64,7 @@ class TestEpsilonIndicator(unittest.TestCase):
     
     def test(self):
         reference_set = [createSolution(0, 1), createSolution(1, 0)]
-        ei = epsilon_indicator(reference_set)
+        ei = EpsilonIndicator(reference_set)
         
         set = []
         self.assertEqual(POSITIVE_INFINITY, ei(set))
@@ -81,7 +81,7 @@ class TestEpsilonIndicator(unittest.TestCase):
 class TestSpacing(unittest.TestCase):
     
     def test(self):
-        sp = spacing()
+        sp = Spacing()
         
         set = []
         self.assertEqual(0.0, sp(set))
@@ -102,7 +102,7 @@ class TestHypervolume(unittest.TestCase):
     
     def test(self):
         reference_set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
-        hyp = hypervolume(reference_set)
+        hyp = Hypervolume(reference_set)
         
         set = []
         self.assertEqual(0.0, hyp(set))
@@ -121,7 +121,7 @@ class TestHypervolume(unittest.TestCase):
         
     def test_maximize(self):
         reference_set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
-        hyp = hypervolume(reference_set)
+        hyp = Hypervolume(reference_set)
         
         problem = Problem(0, 2)
         problem.directions[:] = Problem.MAXIMIZE

@@ -840,3 +840,15 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
             else:
                 return self.hypervolume(solution1, solution2, d-1)*(self.rho-a)/self.rho
 
+class Indicator(object):
+    
+    __metaclass = ABCMeta
+    
+    def __init__(self):
+        super(Indicator, self).__init__()
+        
+    def __call__(self, set):
+        return self.calculate(set)
+        
+    def calculate(self, set):
+        raise NotImplementedError("method not implemented")
