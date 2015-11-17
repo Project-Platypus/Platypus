@@ -38,9 +38,10 @@ def distance_to_nearest(solution, set):
 
 class GenerationalDistance(Indicator):
     
-    def __init__(self, reference_set = None):
+    def __init__(self, reference_set = None, d = 2.0):
         super(GenerationalDistance, self).__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
+        self.d = d
         self.minimum, self.maximum = normalize(reference_set)
 
     def calculate(self, set):
@@ -50,19 +51,20 @@ class GenerationalDistance(Indicator):
             return POSITIVE_INFINITY
         
         normalize(feasible, self.minimum, self.maximum)
-        return math.sqrt(sum([math.pow(distance_to_nearest(s, self.reference_set), 2.0) for s in feasible])) / len(feasible)
+        return math.pow(sum([math.pow(distance_to_nearest(s, self.reference_set), self.d) for s in feasible]), 1.0 / self.d) / len(feasible)
 
 class InvertedGenerationalDistance(Indicator):
     
-    def __init__(self, reference_set = None):
+    def __init__(self, reference_set = None, d = 1.0):
         super(InvertedGenerationalDistance, self).__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
+        self.d = d
         self.minimum, self.maximum = normalize(reference_set)
 
     def calculate(self, set):
         feasible = [s for s in set if s.constraint_violation==0.0]
         normalize(feasible, self.minimum, self.maximum)
-        return math.sqrt(sum([math.pow(distance_to_nearest(s, feasible), 2.0) for s in self.reference_set])) / len(self.reference_set)
+        return math.pow(sum([math.pow(distance_to_nearest(s, feasible), self.d) for s in self.reference_set]), 1.0 / self.d) / len(self.reference_set)
 
 class EpsilonIndicator(Indicator):
     

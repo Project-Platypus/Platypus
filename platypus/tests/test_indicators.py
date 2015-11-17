@@ -58,7 +58,7 @@ class TestInvertedGenerationalDistance(unittest.TestCase):
         self.assertEqual(0.0, igd(set))
         
         set = [createSolution(2.0, 2.0)]
-        self.assertEqual(math.sqrt(10.0)/2.0, igd(set))
+        self.assertEqual(2.0*math.sqrt(5.0)/2.0, igd(set))
 
 class TestEpsilonIndicator(unittest.TestCase):
     
