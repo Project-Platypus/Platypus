@@ -474,7 +474,7 @@ class AttributeDominance(Dominance):
 
 class Archive(object):
     
-    def __init__(self, dominance = ParetoDominance(), allow_duplicates=False):
+    def __init__(self, dominance = ParetoDominance()):
         super(Archive, self).__init__()
         self._dominance = dominance
         self._contents = []
