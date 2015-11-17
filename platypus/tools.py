@@ -457,3 +457,32 @@ def check_eigensystem(n, C, diag, Q):
                 res += 1
                 
     return res
+
+# Modified from RosettaCode.org (http://rosettacode.org/wiki/Gray_code#Python)
+def int2bin(n, nbits):
+    bits = []
+    
+    while n:
+        n, remainder = divmod(n, 2)
+        bits.insert(0, bool(remainder))
+        
+    while len(bits) < nbits:
+        bits.insert(0, False)
+ 
+    return bits
+ 
+def bin2int(bits):
+    i = 0
+    
+    for bit in bits:
+        i = i * 2 + bit
+        
+    return i
+
+def bin2gray(bits):
+    return bits[:1] + [i ^ ishift for i, ishift in zip(bits[:-1], bits[1:])]
+ 
+def gray2bin(bits):
+    b = [bits[0]]
+    for nextb in bits[1:]: b.append(b[-1] ^ nextb)
+    return b

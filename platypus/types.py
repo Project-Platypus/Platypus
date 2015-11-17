@@ -14,7 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from abc import ABCMeta
+import copy
+import math
+import random
+from abc import ABCMeta, abstractmethod
+from platypus.tools import bin2gray, bin2int, int2bin, gray2bin
 
 class Type(object):
     
@@ -23,12 +27,25 @@ class Type(object):
     def __init__(self):
         super(Type, self).__init__()
         
+    @abstractmethod
+    def rand(self):
+        raise NotImplementedError("method not implemented")
+    
+    def encode(self, value):
+        return value
+    
+    def decode(self, value):
+        return value
+        
 class Real(Type):
     
     def __init__(self, min_value, max_value):
         super(Real, self).__init__()
         self.min_value = float(min_value)
         self.max_value = float(max_value)
+        
+    def rand(self):
+        return random.uniform(self.min_value, self.max_value)
         
     def __str__(self):
         return "Real(%f, %f)" % (self.min_value, self.max_value)
@@ -39,14 +56,43 @@ class Binary(Type):
         super(Binary, self).__init__()
         self.nbits = nbits
         
+    def rand(self):
+        return [random.choice([False, True]) for _ in range(self.nbits)]
+        
     def __str__(self):
         return "Binary(%d)" % self.nbits
+    
+class Integer(Binary):
+    
+    def __init__(self, min_value, max_value):
+        super(Integer, self).__init__(int(math.log(int(max_value)-int(min_value), 2)) + 1)
+        self.min_value = int(min_value)
+        self.max_value = int(max_value)
+        
+    def rand(self):
+        return self.encode(random.randint(self.min_value, self.max_value))
+        
+    def encode(self, value):
+        return bin2gray(int2bin(value-self.min_value, self.nbits))
+    
+    def decode(self, value):
+        value = bin2int(gray2bin(value))
+        
+        if value > self.max_value-self.min_value:
+            value -= self.max_value-self.min_value
+            
+        return self.min_value + value
     
 class Permutation(Type):
     
     def __init__(self, elements):
         super(Permutation, self).__init__()
         self.elements = list(elements)
+        
+    def rand(self):
+        elements = copy.deepcopy(self.elements)
+        random.shuffle(elements)
+        return elements
         
     def __str__(self):
         return "Permutation"

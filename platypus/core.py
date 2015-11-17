@@ -36,7 +36,12 @@ def evaluator(func):
     """
     @functools.wraps(func)
     def inner(self, solution):
+        problem = solution.problem
+        solution.variables[:] = [problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)]
+        
         func(self, solution)
+        
+        solution.variables[:] = [problem.types[i].encode(solution.variables[i]) for i in range(problem.nvars)]
         solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(solution.problem.constraints, solution.constraints)])
         solution.feasible = solution.constraint_violation == 0.0
         solution.evaluated = True
@@ -469,7 +474,7 @@ class AttributeDominance(Dominance):
 
 class Archive(object):
     
-    def __init__(self, dominance = ParetoDominance()):
+    def __init__(self, dominance = ParetoDominance(), allow_duplicates=False):
         super(Archive, self).__init__()
         self._dominance = dominance
         self._contents = []
@@ -524,7 +529,22 @@ class FitnessArchive(Archive):
                                           size,
                                           larger_preferred=self.larger_preferred,
                                           getter=self.getter)
+
+def unique(solutions):
+    """Returns the unique solutions."""
+    unique_variables = set()
+    result = []
     
+    for solution in solutions:
+        problem = solution.problem   
+        variables = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
+        
+        if not variables in unique_variables:
+            unique_variables.add(variables)
+            result.append(solution)
+            
+    return result
+
 def nondominated(solutions):
     """Returns the non-dominated solutions."""
     archive = Archive()

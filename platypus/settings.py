@@ -39,6 +39,10 @@ def default_variator(problem):
         if base_type in PlatypusSettings.default_variator:
             return PlatypusSettings.default_variator[base_type]
         else:
+            for default_type in PlatypusSettings.default_variator.iterkeys():
+                if issubclass(base_type, default_type):
+                    return PlatypusSettings.default_variator[default_type]
+                
             raise PlatypusError("no default variator for %s" % base_type)
     else:
         raise PlatypusError("must define variator for mixed types")
@@ -50,6 +54,10 @@ def default_mutator(problem):
         if base_type in PlatypusSettings.default_mutator:
             return PlatypusSettings.default_mutator[base_type]
         else:
+            for default_type in PlatypusSettings.default_mutator.iterkeys():
+                if issubclass(base_type, default_type):
+                    return PlatypusSettings.default_mutator[default_type]
+                
             raise PlatypusError("no default mutator for %s" % base_type)
     else:
         raise PlatypusError("must define mutator for mixed types") 

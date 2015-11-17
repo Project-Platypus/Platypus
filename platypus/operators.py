@@ -17,7 +17,6 @@
 import copy
 import math
 import random
-import itertools
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real, Binary, Permutation
 from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros
@@ -32,20 +31,8 @@ class RandomGenerator(Generator):
     
     def generate(self, problem):
         solution = Solution(problem)
-        solution.variables = [self.create_type(x) for x in problem.types]
+        solution.variables = [x.rand() for x in problem.types]
         return solution
-        
-    def create_type(self, variable_type):
-        if isinstance(variable_type, Real):
-            return random.uniform(variable_type.min_value, variable_type.max_value)
-        elif isinstance(variable_type, Binary):
-            return [random.choice([False, True]) for _ in range(variable_type.nbits)]
-        elif isinstance(variable_type, Permutation):
-            elements = copy.deepcopy(variable_type.elements)
-            random.shuffle(elements)
-            return elements
-        else:
-            raise PlatypusError("Type %s not supported" % type(variable_type))
 
 class TournamentSelector(Selector):
     
