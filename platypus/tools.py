@@ -486,3 +486,15 @@ def gray2bin(bits):
     b = [bits[0]]
     for nextb in bits[1:]: b.append(b[-1] ^ nextb)
     return b
+
+def roulette(probabilities):
+    rand = random.uniform(0.0, sum(probabilities))
+    value = 0.0
+        
+    for i in range(len(probabilities)):
+        value += probabilities[i]
+            
+        if value > rand:
+            return i
+        
+    raise PlatypusError("roulette wheel failed")

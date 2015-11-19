@@ -19,7 +19,7 @@ import math
 import random
 from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from platypus.types import Real, Binary, Permutation
-from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros
+from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -690,3 +690,41 @@ class Insertion(Mutation):
                 result.evaluated = False
                 
         return result
+    
+class Multimethod(Variator):
+    
+    def __init__(self, population, variators, update_frequency=100):
+        super(Multimethod, self).__init__(max([v.arity for v in variators]))
+        self.population = population
+        self.variators = variators
+        self.update_frequency = update_frequency
+        self.last_update = 0
+        self.probabilities = [1.0 / len(variators) for _ in range(len(variators))]
+        
+        self.select()
+        
+    def select(self):
+        self.last_update += 1
+        
+        if self.last_update >= self.update_frequency:
+            self.last_update = 0
+            counts = [0 for _ in range(len(self.variators))]
+            
+            for solution in self.population:
+                if hasattr(solution, "operator"):
+                    counts[solution.operator] += 1
+                    
+            self.probabilities = [counts[i] / sum(counts) for i in range(len(self.variators))]
+        
+        self.next_variator = roulette(self.probabilities)
+        self.arity = self.variators[self.next_variator].arity
+        
+    def evolve(self, parents):
+        variator = self.variators[self.next_variator]
+        result = variator.evolve(parents)
+        
+        for solution in result:
+            solution.operator = self.next_variator
+        
+        self.select()
+        
