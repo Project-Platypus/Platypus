@@ -530,17 +530,21 @@ class FitnessArchive(Archive):
                                           larger_preferred=self.larger_preferred,
                                           getter=self.getter)
 
-def unique(solutions):
+def unique(solutions, objectives=True):
     """Returns the unique solutions."""
-    unique_variables = set()
+    unique_ids = set()
     result = []
     
     for solution in solutions:
-        problem = solution.problem   
-        variables = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
+        problem = solution.problem
         
-        if not variables in unique_variables:
-            unique_variables.add(variables)
+        if objectives:
+            id = tuple(solution.objectives[:])
+        else:
+            id = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
+        
+        if not id in unique_ids:
+            unique_ids.add(id)
             result.append(solution)
             
     return result
@@ -610,14 +614,16 @@ def crowding_distance(solutions):
     solutions : iterable
         The collection of solutions
     """
+    for solution in solutions:
+        solution.crowding_distance = 0.0
+        
+    solutions = unique(solutions)
+    
     if len(solutions) < 3:
         for solution in solutions:
             solution.crowding_distance = POSITIVE_INFINITY
     else:
         nobjs = solutions[0].problem.nobjs
-        
-        for solution in solutions:
-            solution.crowding_distance = 0.0
             
         for i in range(nobjs):
             sorted_solutions = sorted(solutions, key=functools.partial(objective_key, index=i))
