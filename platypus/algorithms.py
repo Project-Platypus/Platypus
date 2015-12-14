@@ -27,7 +27,7 @@ from platypus.core import Algorithm, ParetoDominance, AttributeDominance,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
     Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
-    crowding_distance_key
+    crowding_distance_key, AdaptiveGridArchive, Selector
 from platypus.operators import TournamentSelector, RandomGenerator,\
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation
 from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
@@ -80,9 +80,13 @@ class NSGAII(GeneticAlgorithm):
         super(NSGAII, self).__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
+        self.archive = None
         
     def initialize(self):
         super(NSGAII, self).initialize()
+        
+        if self.archive:
+            self.archive += self.population
         
         if self.variator is None:
             self.variator = default_variator(self.problem)
@@ -99,6 +103,9 @@ class NSGAII(GeneticAlgorithm):
         offspring.extend(self.population)
         nondominated_sort(offspring)
         self.population = nondominated_truncate(offspring, self.population_size)
+        
+        if self.archive:
+            self.archive += self.population
 
 class EpsMOEA(GeneticAlgorithm):
     
@@ -1227,4 +1234,153 @@ class IBEA(GeneticAlgorithm):
                 index = i
                 
         return index
+
+class PAES(GeneticAlgorithm):
+    
+    def __init__(self,
+                 problem,
+                 divisions = 8,
+                 capacity = 100,
+                 generator = RandomGenerator(),
+                 variator = None,
+                 **kwargs):
+        super(PAES, self).__init__(problem, 1, generator, **kwargs)
+        self.variator = variator
+        self.dominance = ParetoDominance()
+        self.archive = AdaptiveGridArchive(capacity, problem.nobjs, divisions)
         
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+            self.result = self.archive
+        else:
+            self.iterate()
+            self.result = self.archive
+        
+    def initialize(self):
+        super(PAES, self).initialize()
+        self.archive += self.population
+        
+        if self.variator is None:
+            self.variator = default_mutator(self.problem)
+           
+    def iterate(self):
+        parent = self.population[0]
+        offspring = self.variator.evolve([parent])[0]
+        
+        self.evaluate_all([offspring])
+        
+        flag = self.dominance.compare(parent, offspring)
+        
+        if flag == 1:
+            self.population = [offspring]
+            self.archive.add(offspring)
+        elif flag == 0:
+            if self.archive.add(offspring):
+                self.population = [self.test(parent, offspring)]
+
+    def test(self, parent, offspring):
+        parent_index = self.archive.find_index(parent)
+        offspring_index = self.archive.find_index(offspring)
+        
+        if parent_index == -1:
+            return offspring
+        elif offspring_index == -1:
+            return parent
+        elif self.archive.density[parent_index] > self.archive.density[offspring_index]:
+            return offspring
+        else:
+            return parent
+        
+class RegionBasedSelector(Selector):
+
+    def __init__(self, archive, grid):
+        super(RegionBasedSelector, self).__init__()
+        self.archive = archive
+        self.grid = grid
+        
+    def draw(self):
+        index = random.randrange(len(self.grid.keys()))
+        key = self.grid.keys()[index]
+        return (key, self.grid[key])
+        
+    def select_one(self, population):
+        entry1 = self.draw()
+        entry2 = self.draw()
+        selection = entry1
+        
+        if entry1[0] != entry2[0]:
+            if (self.archive.density[entry2[0]] < self.archive.density[entry1[0]] or
+                (self.archive.density[entry2[0]] == self.archive.density[entry1[0]] and random.getrandbits(1))):
+                selection = entry2
+                
+        return selection[1][random.randrange(len(selection[1]))]
+        
+class PESA2(GeneticAlgorithm):
+    
+    def __init__(self,
+                 problem,
+                 population_size = 100,
+                 divisions = 8,
+                 capacity = 100,
+                 generator = RandomGenerator(),
+                 variator = None,
+                 **kwargs):
+        super(PESA2, self).__init__(problem, population_size, generator, **kwargs)
+        self.variator = variator
+        self.dominance = ParetoDominance()
+        self.archive = AdaptiveGridArchive(capacity, problem.nobjs, divisions)
+        
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+            self.result = self.archive
+        else:
+            self.iterate()
+            self.result = self.archive
+        
+    def initialize(self):
+        super(PESA2, self).initialize()
+        self.archive += self.population
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
+           
+    def iterate(self):
+        self.population = []
+        
+        selector = RegionBasedSelector(self.archive, self.map_grid())
+        
+        while len(self.population) < self.population_size:
+            parents = selector.select(self.variator.arity, self.archive)
+            offspring = self.variator.evolve(parents)
+            self.population.extend(offspring)
+            
+        self.evaluate_all(self.population)
+        self.archive.extend(self.population)
+                
+    def map_grid(self):
+        result = {}
+        
+        for solution in self.archive:
+            index = self.archive.find_index(solution)
+            
+            if index not in result:
+                result[index] = []
+            
+            result[index].append(solution)
+            
+        return result
+
+    def test(self, parent, offspring):
+        parent_index = self.archive.find_index(parent)
+        offspring_index = self.archive.find_index(offspring)
+        
+        if parent_index == -1:
+            return offspring
+        elif offspring_index == -1:
+            return parent
+        elif self.archive.density[parent_index] > self.archive.density[offspring_index]:
+            return offspring
+        else:
+            return parent

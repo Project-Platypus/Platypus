@@ -66,14 +66,15 @@ class PM(Mutation):
         probability = self.probability
         
         if isinstance(probability, int):
-            probability /= len([t for t in problem.types if isinstance(t, Real)])
-        
+            probability /= float(len([t for t in problem.types if isinstance(t, Real)]))
+            
         for i in range(len(child.variables)):
             if isinstance(problem.types[i], Real):
                 if random.uniform(0.0, 1.0) <= probability:
                     child.variables[i] = self.pm_mutation(float(child.variables[i]),
                                                           problem.types[i].min_value,
                                                           problem.types[i].max_value)
+
                     child.evaluated = False
         
         return child

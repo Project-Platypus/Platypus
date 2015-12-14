@@ -496,6 +496,13 @@ class Archive(object):
     def extend(self, solutions):
         for solution in solutions:
             self.append(solution)
+            
+    def remove(self, solution):
+        try:
+            self._contents.remove(solution)
+            return True
+        except ValueError:
+            return False
     
     def __len__(self):
         return len(self._contents)
@@ -514,6 +521,131 @@ class Archive(object):
     
     def __iter__(self):
         return iter(self._contents)
+    
+class AdaptiveGridArchive(Archive):
+    
+    def __init__(self, capacity, nobjs, divisions, dominance = ParetoDominance()):
+        super(AdaptiveGridArchive, self).__init__(dominance)
+        self.capacity = capacity
+        self.nobjs = nobjs
+        self.divisions = divisions
+        
+        self.adapt_grid()
+        
+    def add(self, solution):
+        # check if the candidate solution dominates or is dominated
+        flags = [self._dominance.compare(solution, s) for s in self._contents]
+        dominates = [x > 0 for x in flags]
+        nondominated = [x == 0 for x in flags]
+        
+        if any(dominates):
+            return False
+
+        self._contents = list(itertools.compress(self._contents, nondominated))
+
+        # archive is empty, add the candidate
+        if len(self) == 0:
+            self._contents.append(solution)
+            self.adapt_grid()
+            return True
+        
+        # temporarily add the candidate solution
+        self._contents.append(solution)
+        index = self.find_index(solution)
+        
+        if index < 0:
+            self.adapt_grid()
+            index = self.find_index(solution)
+        else:
+            self.density[index] += 1
+            
+        if len(self) <= self.capacity:
+            # keep the candidate if size is less than capacity
+            return True
+        elif self.density[index] == self.density[self.find_densest()]:
+            # reject candidate if in most dense cell
+            self.remove(solution)
+            return False
+        else:
+            # keep candidate and remove one from densest cell
+            self.remove(self.pick_from_densest())
+            return True
+        
+    def remove(self, solution):
+        removed = super(AdaptiveGridArchive, self).remove(solution)
+        
+        if removed:
+            index = self.find_index(solution)
+            
+            if self.density[index] > 1:
+                self.density[index] -= 1
+            else:
+                self.adapt_grid()
+                
+        return removed
+        
+    def adapt_grid(self):
+        self.minimum = [POSITIVE_INFINITY]*self.nobjs
+        self.maximum = [-POSITIVE_INFINITY]*self.nobjs
+        self.density = [0.0]*(self.divisions**self.nobjs)
+        
+        for solution in self:
+            for i in range(self.nobjs):
+                self.minimum[i] = min(self.minimum[i], solution.objectives[i])
+                self.maximum[i] = max(self.maximum[i], solution.objectives[i])
+                
+        for solution in self:
+            self.density[self.find_index(solution)] += 1
+            
+    def find_index(self, solution):
+        index = 0
+        
+        for i in range(self.nobjs):
+            value = solution.objectives[i]
+            
+            if value < self.minimum[i] or value > self.maximum[i]:
+                return -1
+            
+            if self.maximum[i] > self.minimum[i]:
+                value = (value - self.minimum[i]) / (self.maximum[i] - self.minimum[i])
+            else:
+                value = 0
+            
+            temp_index = int(self.divisions * value)
+            
+            if temp_index == self.divisions:
+                temp_index -= 1
+                
+            index += temp_index * pow(self.divisions, i)
+            
+        return index
+    
+    def find_densest(self):
+        index = -1
+        value = -1
+        
+        for i in range(len(self)):
+            temp_index = self.find_index(self[i])
+            temp_value = self.density[temp_index]
+            
+            if temp_value > value:
+                value = temp_value
+                index = temp_index
+                
+        return index
+    
+    def pick_from_densest(self):
+        solution = None
+        value = -1
+        
+        for i in range(len(self)):
+            temp_value = self.density[self.find_index(self[i])]
+            
+            if temp_value > value:
+                solution = self[i]
+                value = temp_value
+                
+        return solution
     
 class FitnessArchive(Archive):
     
