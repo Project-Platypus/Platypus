@@ -18,8 +18,8 @@ import math
 import random
 import operator
 import functools
-from platypus.core import Problem, Solution, EPSILON, evaluator
-from platypus.types import Real, Binary
+from .core import Problem, Solution, EPSILON, evaluator
+from .types import Real, Binary
 from abc import ABCMeta
 
 ################################################################################
@@ -44,7 +44,7 @@ class DTLZ1(Problem):
                            1)
             
             if i > 0:
-                f[i] *= 1 - x[self.nobjs-i-1]
+                f[i] *= 1 - solution.variables[self.nobjs-i-1]
                 
         solution.objectives[:] = f
         

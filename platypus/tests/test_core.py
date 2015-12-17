@@ -19,7 +19,9 @@ import random
 import unittest
 from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
-        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize
+        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
+        EpsilonBoxArchive
+from platypus.core import EpsilonBoxArchive
 
 def createSolution(*args):
     problem = Problem(0, len(args))
@@ -274,3 +276,17 @@ class TestNormalize(unittest.TestCase):
         self.assertEqual([1.0, 1.0], s2.normalized_objectives)
         self.assertEqual([0.5, 0.0], s3.normalized_objectives)
         
+class TestEpsilonBoxArchive(unittest.TestCase):
+    
+    def test_improvements(self):
+        s1 = createSolution(0.25, 0.25)
+        s2 = createSolution(0.1, 0.1)
+        s3 = createSolution(0.245, 0.245)
+        s4 = createSolution(0.1, 0.5)
+        s5 = createSolution(0.5, 0.5)
+        s6 = createSolution(0.0, 0.0)
+        
+        archive = EpsilonBoxArchive([0.1])
+        
+        archive.extend([s1, s2, s3, s4, s5, s6])
+        self.assertEqual(2, archive.improvements)

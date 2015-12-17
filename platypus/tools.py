@@ -20,7 +20,7 @@ import random
 import operator
 import functools
 from functools import reduce
-from platypus.core import Solution, POSITIVE_INFINITY, EPSILON, PlatypusError
+from .core import Solution, POSITIVE_INFINITY, EPSILON, PlatypusError
 
 def point_line_dist(point, line):
     return magnitude(subtract(multiply(float(dot(line, point))/float(dot(line, line)), line), point))
@@ -490,11 +490,11 @@ def gray2bin(bits):
 def roulette(probabilities):
     rand = random.uniform(0.0, sum(probabilities))
     value = 0.0
-        
+    
     for i in range(len(probabilities)):
         value += probabilities[i]
             
         if value > rand:
             return i
         
-    raise PlatypusError("roulette wheel failed")
+    return 0

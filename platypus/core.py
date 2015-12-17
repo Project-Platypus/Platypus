@@ -376,6 +376,52 @@ class EpsilonDominance(Dominance):
     def __init__(self, epsilons):
         super(EpsilonDominance, self).__init__()
         self.epsilons = epsilons
+        
+    def same_box(self, solution1, solution2):
+        problem = solution1.problem
+        
+        # first check constraint violation
+        if problem.nconstrs > 0 and solution1.constraint_violation != solution2.constraint_violation:
+            if solution1.constraint_violation == 0:
+                return False
+            elif solution2.constraint_violation == 0:
+                return False
+            elif solution1.constraint_violation < solution2.constraint_violation:
+                return False
+            elif solution2.constraint_violation < solution1.constraint_violation:
+                return False
+        
+        # then use epsilon dominance on the objectives
+        dominate1 = False
+        dominate2 = False
+        
+        for i in range(problem.nobjs):
+            o1 = solution1.objectives[i]
+            o2 = solution2.objectives[i]
+            
+            if problem.directions[i] == Problem.MAXIMIZE:
+                o1 = -o1
+                o2 = -o2
+                
+            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            i1 = math.floor(o1 / epsilon)
+            i2 = math.floor(o2 / epsilon)
+
+            if i1 < i2:
+                dominate1 = True
+                    
+                if dominate2:
+                    return False
+            elif i1 > i2:
+                dominate2 = True
+                
+                if dominate1:
+                    return False
+        
+        if not dominate1 and not dominate2:
+            return True
+        else:
+            return False
     
     def compare(self, solution1, solution2):
         problem = solution1.problem
@@ -661,6 +707,27 @@ class FitnessArchive(Archive):
                                           size,
                                           larger_preferred=self.larger_preferred,
                                           getter=self.getter)
+        
+class EpsilonBoxArchive(Archive):
+    
+    def __init__(self, epsilons):
+        super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
+        self.improvements = 0
+
+    def add(self, solution):
+        flags = [self._dominance.compare(solution, s) for s in self._contents]
+        dominates = [x > 0 for x in flags]
+        nondominated = [x == 0 for x in flags]
+        dominated = [x < 0 for x in flags]
+        not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
+        
+        if any(dominates):
+            return False
+        else:
+            self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
+            
+            if dominated and not_same_box:
+                self.improvements += 1
 
 def unique(solutions, objectives=True):
     """Returns the unique solutions."""

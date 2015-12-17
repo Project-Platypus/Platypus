@@ -22,18 +22,19 @@ import operator
 import itertools
 import functools
 from abc import ABCMeta, abstractmethod
-from platypus.core import Algorithm, ParetoDominance, AttributeDominance,\
+from .core import Algorithm, ParetoDominance, AttributeDominance,\
     AttributeDominance, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
     Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
-    crowding_distance_key, AdaptiveGridArchive, Selector
-from platypus.operators import TournamentSelector, RandomGenerator,\
-    DifferentialEvolution, clip, UniformMutation, NonUniformMutation
-from platypus.tools import DistanceMatrix, choose, point_line_dist, lsolve,\
+    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive
+from .operators import TournamentSelector, RandomGenerator,\
+    DifferentialEvolution, clip, UniformMutation, NonUniformMutation,\
+    GAOperator, SBX, PM, UM, PCX, UNDX, SPX, Multimethod
+from .tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem
-from platypus.weights import random_weights, chebyshev, normal_boundary_weights
-from platypus.settings import default_variator, default_mutator
+from .weights import random_weights, chebyshev, normal_boundary_weights
+from .settings import default_variator, default_mutator
 
 try:
     set
@@ -76,11 +77,23 @@ class NSGAII(GeneticAlgorithm):
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
                  variator = None,
+                 archive = None,
                  **kwargs):
         super(NSGAII, self).__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
-        self.archive = None
+        self.archive = archive
+        
+    def step(self):
+        if self.nfe == 0:
+            self.initialize()
+        else:
+            self.iterate()
+            
+        if self.archive is not None:
+            self.result = self.archive
+        else:
+            self.result = self.population
         
     def initialize(self):
         super(NSGAII, self).initialize()
@@ -104,8 +117,8 @@ class NSGAII(GeneticAlgorithm):
         nondominated_sort(offspring)
         self.population = nondominated_truncate(offspring, self.population_size)
         
-        if self.archive:
-            self.archive += self.population
+        if self.archive is not None:
+            self.archive.extend(self.population)
 
 class EpsMOEA(GeneticAlgorithm):
     
@@ -120,15 +133,15 @@ class EpsMOEA(GeneticAlgorithm):
         self.selector = selector
         self.variator = variator
         self.dominance = ParetoDominance()
-        self.archive = Archive(EpsilonDominance(epsilons))
+        self.archive = EpsilonBoxArchive(epsilons)
         
     def step(self):
         if self.nfe == 0:
             self.initialize()
-            self.result = self.archive
         else:
             self.iterate()
-            self.result = self.archive
+            
+        self.result = self.archive
         
     def initialize(self):
         super(EpsMOEA, self).initialize()
@@ -1384,3 +1397,4 @@ class PESA2(GeneticAlgorithm):
             return offspring
         else:
             return parent
+        

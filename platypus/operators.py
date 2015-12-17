@@ -17,9 +17,9 @@
 import copy
 import math
 import random
-from platypus.core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
-from platypus.types import Real, Binary, Permutation
-from platypus.tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
+from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
+from .types import Real, Binary, Permutation
+from .tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -305,13 +305,17 @@ class NonUniformMutation(Mutation):
 class UM(Mutation):
     """Uniform mutation."""
     
-    def __init__(self, probability):
+    def __init__(self, probability = 1):
         super(UM, self).__init__()
         self.probability = probability
         
     def mutate(self, parent):
         child = copy.deepcopy(parent)
         problem = child.problem
+        probability = self.probability
+        
+        if isinstance(probability, int):
+            probability /= float(len([t for t in problem.types if isinstance(t, Real)]))
         
         for i in range(len(child.variables)):
             if isinstance(problem.types[i], Real):
@@ -443,7 +447,7 @@ class UNDX(Variator):
                 e = orthogonalize(d, e_eta)
                 
                 if not is_zero(e):
-                    e_eta.append(multiply(d, normalize(e)))
+                    e_eta.append(multiply(D, normalize(e)))
         
         # construct the offspring
         variables = g
@@ -694,9 +698,9 @@ class Insertion(Mutation):
     
 class Multimethod(Variator):
     
-    def __init__(self, population, variators, update_frequency=100):
+    def __init__(self, algorithm, variators, update_frequency=100):
         super(Multimethod, self).__init__(max([v.arity for v in variators]))
-        self.population = population
+        self.algorithm = algorithm
         self.variators = variators
         self.update_frequency = update_frequency
         self.last_update = 0
@@ -709,13 +713,19 @@ class Multimethod(Variator):
         
         if self.last_update >= self.update_frequency:
             self.last_update = 0
-            counts = [0 for _ in range(len(self.variators))]
+            counts = [1 for _ in range(len(self.variators))]
             
-            for solution in self.population:
-                if hasattr(solution, "operator"):
-                    counts[solution.operator] += 1
+            if hasattr(self.algorithm, "archive"):
+                for solution in self.algorithm.archive:
+                    if hasattr(solution, "operator"):
+                        counts[solution.operator] += 1
                     
-            self.probabilities = [counts[i] / sum(counts) for i in range(len(self.variators))]
+            if hasattr(self.algorithm, "recency_list"):
+                for solution in self.algorithm.recency_list:
+                    if hasattr(solution, "operator"):
+                        counts[solution.operator] += 1
+                    
+            self.probabilities = [counts[i] / float(sum(counts)) for i in range(len(self.variators))]
         
         self.next_variator = roulette(self.probabilities)
         self.arity = self.variators[self.next_variator].arity
@@ -728,4 +738,5 @@ class Multimethod(Variator):
             solution.operator = self.next_variator
         
         self.select()
+        return result
         

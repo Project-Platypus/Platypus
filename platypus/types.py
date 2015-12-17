@@ -18,7 +18,7 @@ import copy
 import math
 import random
 from abc import ABCMeta, abstractmethod
-from platypus.tools import bin2gray, bin2int, int2bin, gray2bin
+from .tools import bin2gray, bin2int, int2bin, gray2bin
 
 class Type(object):
     
