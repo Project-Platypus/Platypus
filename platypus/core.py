@@ -17,6 +17,7 @@
 import sys
 import copy
 import math
+import time
 import operator
 import functools
 import itertools
@@ -184,6 +185,49 @@ class Selector(object):
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
     
+class TerminationCondition(object):
+    
+    __metaclass__ = ABCMeta
+    
+    def __init__(self):
+        super(TerminationCondition, self).__init__()
+        
+    def __call__(self, algorithm):
+        return self.shouldTerminate(algorithm)
+    
+    def initialize(self, algorithm):
+        pass
+        
+    @abstractmethod
+    def shouldTerminate(self, algorithm):
+        raise NotImplementedError("method not implemented")
+    
+class MaxEvaluations(TerminationCondition):
+    
+    def __init__(self, nfe):
+        super(MaxEvaluations, self).__init__()
+        self.nfe = nfe
+        self.starting_nfe = 0
+        
+    def initialize(self, algorithm):
+        self.starting_nfe = algorithm.nfe
+        
+    def shouldTerminate(self, algorithm):
+        return algorithm.nfe - self.starting_nfe >= self.nfe
+    
+class MaxTime(TerminationCondition):
+    
+    def __init__(self, max_time):
+        super(MaxTime, self).__init__()
+        self.max_time = max_time
+        self.start_time = time.time()
+        
+    def initialize(self, algorithm):
+        self.start_time = time.time()
+        
+    def shouldTerminate(self, algorithm):
+        return time.time() - self.start_time >= self.max_time
+    
 def _call_evaluate(s):
     s.evaluate()
     return s.objectives, s.constraints
@@ -216,10 +260,14 @@ class Algorithm(object):
         
         self.nfe += len(unevaluated)
     
-    def run(self, NFE):
-        start_nfe = self.nfe
+    def run(self, condition):
+        if isinstance(condition, int):
+            condition = MaxEvaluations(condition)
+            
+        if isinstance(condition, TerminationCondition):
+            condition.initialize(self)
         
-        while self.nfe - start_nfe < NFE:
+        while not condition(self):
             self.step()
             
 def _constraint_eq(x, y):
@@ -299,7 +347,7 @@ class Solution(object):
         return self.__str__()
         
     def __str__(self):
-        return "Solution[" + ",".join(map(str, self.objectives)) + "]"
+        return "Solution[" + ",".join(map(str, self.variables)) + "|" +  ",".join(map(str, self.objectives)) + "]"
     
     def __deepcopy__(self, memo):
         """Override to avoid cloning problem definition."""
@@ -318,6 +366,9 @@ class Dominance(object):
     
     def __init__(self):
         super(Dominance, self).__init__()
+        
+    def __call__(self, solution1, solution2):
+        return self.compare(solution1, solution2)
     
     def compare(self, solution1, solution2):
         raise NotImplementedError("method not implemented")

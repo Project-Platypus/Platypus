@@ -27,7 +27,8 @@ from .core import Algorithm, ParetoDominance, AttributeDominance,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
     Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
-    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive
+    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive,\
+    PlatypusError
 from .operators import TournamentSelector, RandomGenerator,\
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation,\
     GAOperator, SBX, PM, UM, PCX, UNDX, SPX, Multimethod
@@ -41,7 +42,7 @@ try:
 except NameError:
     from sets import Set as set
             
-class GeneticAlgorithm(Algorithm):
+class AbstractGeneticAlgorithm(Algorithm):
     
     __metaclass__ = ABCMeta
     
@@ -49,7 +50,7 @@ class GeneticAlgorithm(Algorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  **kwargs):
-        super(GeneticAlgorithm, self).__init__(problem, **kwargs)
+        super(AbstractGeneticAlgorithm, self).__init__(problem, **kwargs)
         self.population_size = population_size
         self.generator = generator
         self.result = []
@@ -70,7 +71,86 @@ class GeneticAlgorithm(Algorithm):
     def iterate(self):
         raise NotImplementedError("method not implemented")
     
-class NSGAII(GeneticAlgorithm):
+class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm):
+    
+    __metaclass__ = ABCMeta
+    
+    def __init__(self, problem,
+                 population_size = 100,
+                 generator = RandomGenerator(),
+                 **kwargs):
+        super(SingleObjectiveAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
+
+        if problem.nobjs != 1:
+            raise PlatypusError("can not instantiate single objective algorithm "
+                                "on problem with %d objectives" % problem.nobjs)
+    
+class GeneticAlgorithm(SingleObjectiveAlgorithm):
+    
+    def __init__(self, problem,
+                 population_size = 100,
+                 offspring_size = 100,
+                 generator = RandomGenerator(),
+                 selector = TournamentSelector(2),
+                 comparator = ParetoDominance(),
+                 variator = None,
+                 **kwargs):
+        super(GeneticAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
+        self.offspring_size = offspring_size
+        self.selector = selector
+        self.comparator = comparator
+        self.variator = variator
+        
+    def initialize(self):
+        super(GeneticAlgorithm, self).initialize()
+        
+        if self.variator is None:
+            self.variator = default_variator(self.problem)
+        
+    def iterate(self):
+        offspring = []
+        
+        while len(offspring) < self.offspring_size:
+            parents = self.selector.select(self.variator.arity, self.population)
+            offspring.extend(self.variator.evolve(parents))
+            
+        self.evaluate_all(offspring)
+        self.population = offspring[:self.population_size]
+    
+class EvolutionaryStrategy(SingleObjectiveAlgorithm):
+    
+    def __init__(self, problem,
+                 population_size = 100,
+                 offspring_size = 100,
+                 generator = RandomGenerator(),
+                 comparator = ParetoDominance(),
+                 variator = None,
+                 **kwargs):
+        super(EvolutionaryStrategy, self).__init__(problem, population_size, generator, **kwargs)
+        self.offspring_size = offspring_size
+        self.comparator = comparator
+        self.variator = variator
+        
+    def initialize(self):
+        super(EvolutionaryStrategy, self).initialize()
+        
+        if self.variator is None:
+            self.variator = default_mutator(self.problem)
+        
+    def iterate(self):
+        offspring = []
+        offspring.extend(self.population)
+        
+        for i in range(self.offspring_size):
+            parents = [self.population[i % len(self.population)]]
+            offspring.extend(self.variator.evolve(parents))
+            
+        self.evaluate_all(offspring)
+            
+        offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
+        self.population = offspring[:self.population_size]
+    
+class NSGAII(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
                  population_size = 100,
@@ -120,7 +200,7 @@ class NSGAII(GeneticAlgorithm):
         if self.archive is not None:
             self.archive.extend(self.population)
 
-class EpsMOEA(GeneticAlgorithm):
+class EpsMOEA(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
                  epsilons,
@@ -184,7 +264,7 @@ class EpsMOEA(GeneticAlgorithm):
             self.population.remove(random.choice(self.population))
             self.population.append(solution)
 
-class GDE3(GeneticAlgorithm):
+class GDE3(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
                  population_size = 100,
@@ -233,7 +313,7 @@ class GDE3(GeneticAlgorithm):
         self.evaluate_all(offspring)
         self.population = self.survival(offspring)
         
-class SPEA2(GeneticAlgorithm):
+class SPEA2(AbstractGeneticAlgorithm):
      
     def __init__(self, problem,
                  population_size = 100,
@@ -322,7 +402,7 @@ class SPEA2(GeneticAlgorithm):
         self._assign_fitness(offspring)
         self.population = self._truncate(offspring, self.population_size)
         
-class MOEAD(GeneticAlgorithm):
+class MOEAD(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
                  population_size = 100,
@@ -505,7 +585,7 @@ class MOEAD(GeneticAlgorithm):
         if self.update_utility >= 0 and self.generation % self.update_utility == 0:
             self._update_utility()
 
-class NSGAIII(GeneticAlgorithm):
+class NSGAIII(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
                  divisions_outer,
@@ -1202,7 +1282,7 @@ class CMAES(Algorithm):
         self.archive += self.population
         self.update_distribution()
         
-class IBEA(GeneticAlgorithm):
+class IBEA(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
                  population_size = 100,
@@ -1248,7 +1328,7 @@ class IBEA(GeneticAlgorithm):
                 
         return index
 
-class PAES(GeneticAlgorithm):
+class PAES(AbstractGeneticAlgorithm):
     
     def __init__(self,
                  problem,
@@ -1329,7 +1409,7 @@ class RegionBasedSelector(Selector):
                 
         return selection[1][random.randrange(len(selection[1]))]
         
-class PESA2(GeneticAlgorithm):
+class PESA2(AbstractGeneticAlgorithm):
     
     def __init__(self,
                  problem,
