@@ -15,7 +15,7 @@ optimization libraries, including PyGMO, Inspyred, DEAP, and Scipy, by providing
 optimization algorithms and analysis tools for multiobjective optimization.
 It currently supports NSGA-II, NSGA-III, MOEA/D, IBEA, EpsMOEA, SPEA2, GDE3,
 OMOPSO and SMPSO.  For more information, see our
-[IPython demo](http://nbviewer.ipython.org/gist/dhadka/ba6d3c570400bdb411c3)
+[IPython Notebook](https://gist.github.com/dhadka/ba6d3c570400bdb411c3)
 or our [online documentation](http://platypus.readthedocs.org/en/latest/index.html).
 
 ### Design Goals

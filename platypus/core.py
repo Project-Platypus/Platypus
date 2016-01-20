@@ -1,4 +1,4 @@
-# Copyright 2015 David Hadka
+# Copyright 2015-2016 David Hadka
 #
 # This file is part of Platypus.
 #
@@ -121,6 +121,12 @@ class Problem(object):
         else:
             objs = self.function(solution.variables)
             constrs = []
+            
+        if not hasattr(objs, "__getitem__"):
+            objs = [objs]
+            
+        if not hasattr(constrs, "__getitem__"):
+            constrs = [constrs]
             
         if len(objs) != self.nobjs:
             raise PlatypusError("incorrect number of objectives: expected %d, received %d" % (self.nobjs, len(objs)))
