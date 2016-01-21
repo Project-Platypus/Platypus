@@ -14,6 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import, division, print_function
+
 import time
 import datetime
 import functools
@@ -51,16 +53,16 @@ class EvaluateJob(Job):
     def run(self):
         if self.display_stats:
             start_time = time.time()
-            print "Running seed", self.seed, "of", self.algorithm_name, "on",\
-                    self.problem_name
+            print("Running seed", self.seed, "of", self.algorithm_name, "on",
+                    self.problem_name)
         
         self.instance.run(self.nfe)
     
         if self.display_stats:
             end_time = time.time()
-            print "Finished seed", self.seed, "of", self.algorithm_name, "on",\
-                    self.problem_name, ":",\
-                    datetime.timedelta(seconds=round(end_time-start_time))
+            print("Finished seed", self.seed, "of", self.algorithm_name, "on",
+                    self.problem_name, ":",
+                    datetime.timedelta(seconds=round(end_time-start_time)))
                     
 class IndicatorJob(Job):
     
@@ -257,15 +259,15 @@ def calculate(results,
     
 def display(results, ndigits=None):
     for algorithm in results.iterkeys():
-        print algorithm
+        print(algorithm)
         for problem in results[algorithm].iterkeys():
             if isinstance(results[algorithm][problem], dict):
-                print "   ", problem
+                print("   ", problem)
                 for indicator in results[algorithm][problem].iterkeys():
                     if ndigits:
-                        print "       ", indicator, ":", map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator])
+                        print("       ", indicator, ":", map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator]))
                     else:
-                        print "       ", indicator, ":", results[algorithm][problem][indicator]
+                        print("       ", indicator, ":", results[algorithm][problem][indicator])
             else:
-                print "   ", problem, ":", results[algorithm][problem]
+                print("   ", problem, ":", results[algorithm][problem])
             

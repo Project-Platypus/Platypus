@@ -14,6 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import, division, print_function
+
 from .types import Real, Binary, Permutation
 from .operators import GAOperator, CompoundOperator, CompoundMutation, SBX, PM, HUX, BitFlip, PMX, Insertion, Swap
 from .core import PlatypusError
