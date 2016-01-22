@@ -434,7 +434,11 @@ class EpsilonDominance(Dominance):
     
     def __init__(self, epsilons):
         super(EpsilonDominance, self).__init__()
-        self.epsilons = epsilons
+        
+        if hasattr(epsilons, "__getitem__"):
+            self.epsilons = epsilons
+        else:
+            self.epsilons = [epsilons]
         
     def same_box(self, solution1, solution2):
         problem = solution1.problem
