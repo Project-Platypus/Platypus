@@ -355,7 +355,7 @@ class Solution(object):
         return self.__str__()
         
     def __str__(self):
-        return "Solution[" + ",".join(map(str, self.variables)) + "|" +  ",".join(map(str, self.objectives)) + "]"
+        return "Solution[" + ",".join(map(str, self.variables)) + "|" + ",".join(map(str, self.objectives)) + "|" + str(self.constraint_violation) + "]"
     
     def __deepcopy__(self, memo):
         """Override to avoid cloning problem definition."""
@@ -494,7 +494,7 @@ class EpsilonDominance(Dominance):
             if solution1.constraint_violation == 0:
                 return -1
             elif solution2.constraint_violation == 0:
-                return -1
+                return 1
             elif solution1.constraint_violation < solution2.constraint_violation:
                 return -1
             elif solution2.constraint_violation < solution1.constraint_violation:

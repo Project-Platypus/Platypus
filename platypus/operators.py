@@ -515,6 +515,7 @@ class SPX(Variator):
                 type = child.problem.types[j]
                 child.variables[j] = clip(x[n-1][j] + C[n-1][j], type.min_value, type.max_value)
             
+            child.evaluated = False
             result.append(child)
             
         return result
