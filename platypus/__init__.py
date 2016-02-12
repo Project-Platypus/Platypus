@@ -28,4 +28,8 @@ from .problems import *
 from .tools import *
 from .types import *
 from .weights import *
-from .wrappers import *
+
+try:
+    from .wrappers import *
+except ImportError:
+    pass
