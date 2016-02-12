@@ -1,6 +1,8 @@
 # Copyright 2015-2016 David Hadka
 #
-# This file is part of Platypus.
+# This file is part of Platypus, a Python module for designing and using
+# evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
+# (MOEAs).
 #
 # Platypus is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +22,7 @@ import math
 import random
 import operator
 import functools
-from .core import Problem, Solution, EPSILON, evaluator
+from .core import Problem, Solution, EPSILON
 from .types import Real, Binary
 from abc import ABCMeta
 
@@ -34,7 +36,6 @@ class DTLZ1(Problem):
         super(DTLZ1, self).__init__(nobjs+4, nobjs)
         self.types[:] = Real(0, 1)
         
-    @evaluator
     def evaluate(self, solution):
         k = self.nvars - self.nobjs + 1
         g = 100.0 * (k + sum([math.pow(x - 0.5, 2.0) - math.cos(20.0 * math.pi * (x - 0.5)) for x in solution.variables[self.nvars-k:]]))
@@ -63,7 +64,6 @@ class DTLZ2(Problem):
         super(DTLZ2, self).__init__(nobjs+9 if nvars is None else nvars, nobjs)
         self.types[:] = Real(0, 1)
         
-    @evaluator
     def evaluate(self, solution):
         k = self.nvars - self.nobjs + 1
         g = sum([math.pow(x - 0.5, 2.0) for x in solution.variables[self.nvars-k:]])
@@ -92,7 +92,6 @@ class DTLZ3(Problem):
         super(DTLZ3, self).__init__(nobjs+9, nobjs)
         self.types[:] = Real(0, 1)
         
-    @evaluator
     def evaluate(self, solution):
         k = self.nvars - self.nobjs + 1
         g = 100.0 * (k + sum([math.pow(x - 0.5, 2.0) - math.cos(20.0 * math.pi * (x - 0.5)) for x in solution.variables[self.nvars-k:]]))
@@ -122,7 +121,6 @@ class DTLZ4(Problem):
         self.types[:] = Real(0, 1)
         self.alpha = alpha
         
-    @evaluator
     def evaluate(self, solution):
         k = self.nvars - self.nobjs + 1
         g = sum([math.pow(x - 0.5, 2.0) for x in solution.variables[self.nvars-k:]])
@@ -152,7 +150,6 @@ class DTLZ7(Problem):
         super(DTLZ7, self).__init__(nobjs+19, nobjs)
         self.types[:] = Real(0, 1)
         
-    @evaluator
     def evaluate(self, solution):
         k = self.nvars - self.nobjs + 1
         g = 1.0 + (9.0 * sum(solution.variables[self.nvars-k:])) / k
@@ -431,7 +428,6 @@ class WFG1(WFG):
     def __init__(self, nobjs = 2):
         super(WFG1, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG1_t1(y, self.k)
@@ -454,7 +450,6 @@ class WFG2(WFG):
     def __init__(self, nobjs = 2):
         super(WFG2, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG1_t1(y, self.k)
@@ -476,7 +471,6 @@ class WFG3(WFG):
     def __init__(self, nobjs = 2):
         super(WFG3, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG1_t1(y, self.k)
@@ -498,7 +492,6 @@ class WFG4(WFG):
     def __init__(self, nobjs = 2):
         super(WFG4, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG4_t1(y)
@@ -519,7 +512,6 @@ class WFG5(WFG):
     def __init__(self, nobjs = 2):
         super(WFG5, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG5_t1(y)
@@ -539,8 +531,7 @@ class WFG6(WFG):
     
     def __init__(self, nobjs = 2):
         super(WFG6, self).__init__(nobjs-1, 10, nobjs)
-        
-    @evaluator
+
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG1_t1(y, self.k)
@@ -561,7 +552,6 @@ class WFG7(WFG):
     def __init__(self, nobjs = 2):
         super(WFG7, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG7_t1(y, self.k)
@@ -583,7 +573,6 @@ class WFG8(WFG):
     def __init__(self, nobjs = 2):
         super(WFG8, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG8_t1(y, self.k)
@@ -614,7 +603,6 @@ class WFG9(WFG):
     def __init__(self, nobjs = 2):
         super(WFG9, self).__init__(nobjs-1, 10, nobjs)
         
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG9_t1(y)
@@ -682,7 +670,6 @@ class UF1(Problem):
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -711,7 +698,6 @@ class UF2(Problem):
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -739,7 +725,6 @@ class UF3(Problem):
         super(UF3, self).__init__(nvars, 2)
         self.types[:] = Real(0, 1)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -773,7 +758,6 @@ class UF4(Problem):
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -803,7 +787,6 @@ class UF5(Problem):
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -836,7 +819,6 @@ class UF6(Problem):
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -875,7 +857,6 @@ class UF7(Problem):
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -905,7 +886,6 @@ class UF8(Problem):
         self.types[0:1] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -940,7 +920,6 @@ class UF9(Problem):
         self.types[0:1] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -978,7 +957,6 @@ class UF10(Problem):
         self.types[0:1] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
     
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1120,7 +1098,6 @@ class UF11(Problem):
         self.types[:] = [Real(UF11.LB[i], UF11.UB[i]) for i in range(self.nvars)]
         self.internal_problem = DTLZ2(self.nobjs, self.nvars)
         
-    @evaluator
     def evaluate(self, solution):
         zz, psum = _transform(solution.variables[:], UF11.M, UF11.LAM, self.nvars, self.nobjs)
         
@@ -1244,7 +1221,6 @@ class UF12(Problem):
         self.types[:] = [Real(UF11.LB[i], UF11.UB[i]) for i in range(self.nvars)]
         self.internal_problem = DTLZ3(self.nobjs, self.nvars)
         
-    @evaluator
     def evaluate(self, solution):
         zz, psum = _transform(solution.variables[:], UF11.M, UF11.LAM, self.nvars, self.nobjs)
         
@@ -1260,7 +1236,6 @@ class UF13(WFG):
     def __init__(self):
         super(UF13, self).__init__(8, 22, 5)
        
-    @evaluator
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
         y = _WFG1_t1(y, self.k)
@@ -1284,8 +1259,7 @@ class CF1(Problem):
         super(CF1, self).__init__(nvars, 2, 1)
         self.types[:] = Real(0, 1)
         self.constraints[:] = ">=0"
-
-    @evaluator        
+     
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1318,7 +1292,6 @@ class CF2(Problem):
         self.types[1:] = Real(-1, 1)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1352,7 +1325,6 @@ class CF3(Problem):
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1390,7 +1362,6 @@ class CF4(Problem):
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         sum1 = 0.0
@@ -1421,7 +1392,6 @@ class CF5(Problem):
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         sum1 = 0.0
@@ -1452,7 +1422,6 @@ class CF6(Problem):
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         sum1 = 0.0
@@ -1483,7 +1452,6 @@ class CF7(Problem):
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         sum1 = 0.0
@@ -1518,7 +1486,6 @@ class CF8(Problem):
         self.types[2:] = Real(-4, 4)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1558,7 +1525,6 @@ class CF9(Problem):
         self.types[2:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1598,7 +1564,6 @@ class CF10(Problem):
         self.types[2:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         count1 = 0
@@ -1648,7 +1613,6 @@ class ZDT1(ZDT):
     def __init__(self):
         super(ZDT1, self).__init__(30)
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         g = (9.0 / (self.nvars - 1.0))*sum(x[1:]) + 1.0
@@ -1660,7 +1624,6 @@ class ZDT2(ZDT):
     def __init__(self):
         super(ZDT2, self).__init__(30)
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         g = (9.0 / (self.nvars - 1.0))*sum(x[1:]) + 1.0
@@ -1672,7 +1635,6 @@ class ZDT3(ZDT):
     def __init__(self):
         super(ZDT3, self).__init__(30)
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         g = (9.0 / (self.nvars - 1.0))*sum(x[1:]) + 1.0
@@ -1684,7 +1646,6 @@ class ZDT4(ZDT):
     def __init__(self):
         super(ZDT4, self).__init__(10)
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         g = 1.0 + 10.0*(self.nvars-1) + sum([math.pow(x[i], 2.0) - 10.0*math.cos(4.0*math.pi*x[i]) for i in range(1, self.nvars)])
@@ -1698,7 +1659,6 @@ class ZDT5(ZDT):
         self.types[0] = Binary(30)
         self.types[1:] = Binary(5)
         
-    @evaluator
     def evaluate(self, solution):
         f = 1.0 + sum(solution.variables[0])
         g = sum([2+sum(v) if sum(v) < 5 else 1 for v in solution.variables[1:]])
@@ -1710,7 +1670,6 @@ class ZDT6(ZDT):
     def __init__(self):
         super(ZDT6, self).__init__(10)
         
-    @evaluator
     def evaluate(self, solution):
         x = solution.variables[:]
         f = 1.0 - math.exp(-4.0*x[0])*math.pow(math.sin(6.0*math.pi*x[0]), 6.0)

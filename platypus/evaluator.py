@@ -18,14 +18,3 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import, division, print_function
 
-from .core import *
-from .algorithms import *
-from .experimenter import *
-from .indicators import *
-from .operators import *
-from .problems import *
-from .settings import *
-from .tools import *
-from .types import *
-from .weights import *
-from .wrappers import *

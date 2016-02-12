@@ -1,6 +1,8 @@
-# Copyright 2015 David Hadka
+# Copyright 2015-2016 David Hadka
 #
-# This file is part of Platypus.
+# This file is part of Platypus, a Python module for designing and using
+# evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
+# (MOEAs).
 #
 # Platypus is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

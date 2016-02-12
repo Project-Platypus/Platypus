@@ -1,6 +1,8 @@
 # Copyright 2015-2016 David Hadka
 #
-# This file is part of Platypus.
+# This file is part of Platypus, a Python module for designing and using
+# evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
+# (MOEAs).
 #
 # Platypus is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,25 +32,6 @@ POSITIVE_INFINITY = float("inf")
 
 class PlatypusError(Exception):
     pass
-
-def evaluator(func):
-    """Decorates for a problem's evaluate method.
-    
-    Ensures the evaluated solution's ``evaluated`` attribute is set to True
-    by the evaluate method.
-    """
-    @functools.wraps(func)
-    def inner(self, solution):
-        problem = solution.problem
-        solution.variables[:] = [problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)]
-        
-        func(self, solution)
-        
-        solution.variables[:] = [problem.types[i].encode(solution.variables[i]) for i in range(problem.nvars)]
-        solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(solution.problem.constraints, solution.constraints)])
-        solution.feasible = solution.constraint_violation == 0.0
-        solution.evaluated = True
-    return inner
 
 def fitness_key(x):
     return x.fitness
@@ -113,7 +96,17 @@ class Problem(object):
         self.directions = FixedLengthArray(nobjs, self.MINIMIZE)
         self.constraints = FixedLengthArray(nconstrs, "==0", _convert_constraint)
         
-    @evaluator
+    def __call__(self, solution):
+        problem = solution.problem
+        solution.variables[:] = [problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)]
+        
+        self.evaluate(solution)
+        
+        solution.variables[:] = [problem.types[i].encode(solution.variables[i]) for i in range(problem.nvars)]
+        solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(solution.problem.constraints, solution.constraints)])
+        solution.feasible = solution.constraint_violation == 0.0
+        solution.evaluated = True
+        
     def evaluate(self, solution):
         if self.function is None:
             raise PlatypusError("function not defined")
@@ -264,7 +257,7 @@ class Algorithm(object):
                 unevaluated[i].objectives[:] = results[i][0]
                 unevaluated[i].constraints[:] = results[i][1]
         else:
-            map(self.problem.evaluate, unevaluated)
+            map(self.problem, unevaluated)
         
         self.nfe += len(unevaluated)
     
@@ -349,7 +342,7 @@ class Solution(object):
         self.evaluated = False
         
     def evaluate(self):
-        self.problem.evaluate(self)
+        self.problem(self)
         
     def __repr__(self):
         return self.__str__()
