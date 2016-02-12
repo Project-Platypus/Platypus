@@ -1,5 +1,4 @@
-from platypus.algorithms import NSGAIII
-from platypus.problems import DTLZ2
+from platypus import NSGAIII, DTLZ2
 
 # define the problem definition
 problem = DTLZ2(3)

@@ -26,6 +26,7 @@ import operator
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
+from .evaluator import Job
 
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
@@ -229,19 +230,28 @@ class MaxTime(TerminationCondition):
     def shouldTerminate(self, algorithm):
         return time.time() - self.start_time >= self.max_time
     
-def _call_evaluate(s):
-    s.evaluate()
-    return s.objectives, s.constraints
+class _EvaluateJob(Job):
+
+    def __init__(self, solution):
+        super(_EvaluateJob, self).__init__()
+        self.solution = solution
+        
+    def run(self):
+        self.solution.evaluate()
     
 class Algorithm(object):
     
     __metaclass__ = ABCMeta
     
-    def __init__(self, problem, evaluator = None):
+    def __init__(self, problem, evaluator=None):
         super(Algorithm, self).__init__()
         self.problem = problem
         self.evaluator = evaluator
         self.nfe = 0
+        
+        if self.evaluator is None:
+            from .config import PlatypusConfig
+            self.evaluator = PlatypusConfig.default_evaluator
     
     @abstractmethod
     def step(self):
@@ -250,14 +260,14 @@ class Algorithm(object):
     def evaluate_all(self, solutions):
         unevaluated = [s for s in solutions if not s.evaluated]
         
-        if self.evaluator:
-            results = self.evaluator(_call_evaluate, unevaluated)
+        jobs = [_EvaluateJob(s) for s in unevaluated]
+        results = self.evaluator.evaluate_all(jobs)
             
-            for i in range(len(unevaluated)):
-                unevaluated[i].objectives[:] = results[i][0]
-                unevaluated[i].constraints[:] = results[i][1]
-        else:
-            map(self.problem, unevaluated)
+        # if needed, update the original solution with the results
+        for i, result in enumerate(results):
+            if unevaluated[i] != result.solution:
+                unevaluated[i].objectives[:] = result.solution.objectives[:]
+                unevaluated[i].constraints[:] = result.solution.constraints[:]
         
         self.nfe += len(unevaluated)
     

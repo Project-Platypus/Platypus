@@ -39,7 +39,7 @@ from .operators import TournamentSelector, RandomGenerator,\
 from .tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem
 from .weights import random_weights, chebyshev, normal_boundary_weights
-from .settings import default_variator, default_mutator
+from .config import default_variator, default_mutator
 
 try:
     set

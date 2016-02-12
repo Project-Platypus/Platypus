@@ -21,31 +21,35 @@ from __future__ import absolute_import, division, print_function
 from .types import Real, Binary, Permutation
 from .operators import GAOperator, CompoundOperator, CompoundMutation, SBX, PM, HUX, BitFlip, PMX, Insertion, Swap
 from .core import PlatypusError
+from .evaluator import MapEvaluator
 
-class PlatypusSettings(object):
+class _PlatypusConfig(object):
     
-    default_variator = {Real : GAOperator(SBX(), PM()),
-                        Binary : GAOperator(HUX(), BitFlip()),
-                        Permutation : CompoundOperator(PMX(), Insertion(), Swap())}
+    def __init__(self):
+        super(_PlatypusConfig, self).__init__()
     
-    default_mutator = {Real : PM(),
-                       Binary : BitFlip(),
-                       Permutation : CompoundMutation(Insertion(), Swap())}
-    
-    default_map = map
-    default_apply = None
-    default_submit = None
+        self.default_variator = {Real : GAOperator(SBX(), PM()),
+                                 Binary : GAOperator(HUX(), BitFlip()),
+                                 Permutation : CompoundOperator(PMX(), Insertion(), Swap())}
+        
+        self.default_mutator = {Real : PM(),
+                                Binary : BitFlip(),
+                                Permutation : CompoundMutation(Insertion(), Swap())}
+        
+        self.default_evaluator = MapEvaluator()
+        
+PlatypusConfig = _PlatypusConfig()
     
 def default_variator(problem):
     base_type = problem.types[0].__class__
     
     if all([isinstance(t, base_type)] for t in problem.types):
-        if base_type in PlatypusSettings.default_variator:
-            return PlatypusSettings.default_variator[base_type]
+        if base_type in PlatypusConfig.default_variator:
+            return PlatypusConfig.default_variator[base_type]
         else:
-            for default_type in PlatypusSettings.default_variator.iterkeys():
+            for default_type in PlatypusConfig.default_variator.iterkeys():
                 if issubclass(base_type, default_type):
-                    return PlatypusSettings.default_variator[default_type]
+                    return PlatypusConfig.default_variator[default_type]
                 
             raise PlatypusError("no default variator for %s" % base_type)
     else:
@@ -55,13 +59,14 @@ def default_mutator(problem):
     base_type = problem.types[0].__class__
     
     if all([isinstance(t, base_type)] for t in problem.types):
-        if base_type in PlatypusSettings.default_mutator:
-            return PlatypusSettings.default_mutator[base_type]
+        if base_type in PlatypusConfig.default_mutator:
+            return PlatypusConfig.default_mutator[base_type]
         else:
-            for default_type in PlatypusSettings.default_mutator.iterkeys():
+            for default_type in PlatypusConfig.default_mutator.iterkeys():
                 if issubclass(base_type, default_type):
-                    return PlatypusSettings.default_mutator[default_type]
+                    return PlatypusConfig.default_mutator[default_type]
                 
             raise PlatypusError("no default mutator for %s" % base_type)
     else:
-        raise PlatypusError("must define mutator for mixed types") 
+        raise PlatypusError("must define mutator for mixed types")
+    

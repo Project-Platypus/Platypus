@@ -21,30 +21,19 @@ from __future__ import absolute_import, division, print_function
 import time
 import datetime
 import functools
-from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from .core import PlatypusError
+from .evaluator import Job, MapEvaluator
 
 try:
     set
 except NameError:
     from sets import Set as set
-    
-class Job(object):
-    
-    __metaclass__ = ABCMeta
-    
-    def __init__(self):
-        super(Job, self).__init__()
         
-    @abstractmethod
-    def run(self):
-        raise NotImplementedError("method not implemented")
-        
-class EvaluateJob(Job):
+class ExperimentJob(Job):
 
     def __init__(self, instance, nfe, algorithm_name, problem_name, seed, display_stats):
-        super(EvaluateJob, self).__init__()
+        super(ExperimentJob, self).__init__()
         self.instance = instance
         self.nfe = nfe
         self.algorithm_name = algorithm_name
@@ -77,10 +66,6 @@ class IndicatorJob(Job):
         
     def run(self):
         self.results = [indicator(self.result_set) for indicator in self.indicators]
-
-def run_job(job):
-    job.run()
-    return job
 
 def evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats):
     existing_algorithms = set()
@@ -136,30 +121,18 @@ def evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats):
                     existing_problems.add(problem_name)
 
             for k in range(seeds):
-                yield EvaluateJob(algorithm(problem, **kwargs),
+                yield ExperimentJob(algorithm(problem, **kwargs),
                                   nfe,
                                   algorithm_name,
                                   problem_name,
                                   k,
                                   display_stats)
                 
-def submit_jobs(generator, map = map, submit = None, apply = None):
-    if submit:
-        futures = [submit(run_job, job) for job in generator]
-        return [f.result() for f in futures]
-    elif apply:
-        futures = [apply(run_job, [job]) for job in generator]
-        return [f.get() for f in futures]
-    else:
-        return map(run_job, generator)
-                
 def experiment(algorithms = [],
                problems = [],
                seeds = 10,
                nfe=10000,
-               map = map,
-               submit = None,
-               apply = None,
+               evaluator = None,
                display_stats = False):
     """Run experiments.
     
@@ -187,11 +160,6 @@ def experiment(algorithms = [],
         The number of replicates of each experiment to run
     nfe : int
         The number of function evaluations allotted to each experiment
-    submit : submit or apply-like function
-        A submit of apply-like function, that either returns an ApplyResult or
-        a Future
-    map: map-like function
-        A synchronous map like function used to parallelize evaluations
     display_stats : bool
         If True, the progress of the experiments is output to the screen
     """
@@ -204,8 +172,12 @@ def experiment(algorithms = [],
     # construct the jobs to run
     generator = evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats)
          
-    # process the jobs  
-    job_results = submit_jobs(generator, map, submit, apply)     
+    # process the jobs
+    if evaluator is None:
+        from .config import PlatypusConfig
+        evaluator = PlatypusConfig.default_evaluator
+    
+    job_results = evaluator.evaluate_all(generator)    
     
     # convert results to structured format
     results = OrderedDict()
@@ -231,14 +203,16 @@ def calculate_job_generator(results, indicators):
 
 def calculate(results,
               indicators = [],
-              map = map,
-              submit = None,
-              apply = None):
+              evaluator = None):
     if not isinstance(indicators, list):
         indicators = [indicators]
+        
+    if evaluator is None:
+        from .config import PlatypusConfig
+        evaluator = PlatypusConfig.default_evaluator
     
     generator = calculate_job_generator(results, indicators)
-    indicator_results = submit_jobs(generator, map, submit, apply)
+    indicator_results = evaluator.evaluate_all(generator)
     
     results = OrderedDict()
     
