@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 
 from abc import ABCMeta, abstractmethod
-from multiprocessing import Pool
 
 class Job(object):
     
@@ -98,5 +97,20 @@ class PoolEvaluator(MapEvaluator):
 class MultiprocessingEvaluator(PoolEvaluator):
     
     def __init__(self, processes=None):
+        from multiprocessing import Pool
         super(MultiprocessingEvaluator, self).__init__(Pool(processes))
+
+class ProcessPoolEvaluator(SubmitEvaluator):
+    
+    def __init__(self, processes=None):
+        try:
+            from concurrent.futures import ProcessPoolExecutor
+            self.executor = ProcessPoolExecutor(processes)
+            super(ProcessPoolEvaluator, self).__init__(self.executor.submit)
+        except ImportError:
+            # prevent error from showing in Eclipse
+            raise
         
+    def close(self):
+        self.executor.close()
+   
