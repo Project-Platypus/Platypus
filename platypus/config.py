@@ -38,9 +38,14 @@ class _PlatypusConfig(object):
         
         self.default_evaluator = MapEvaluator()
         
+        self.default_log_frequency = None
+        
 PlatypusConfig = _PlatypusConfig()
     
 def default_variator(problem):
+    if len(problem.types) == 0:
+        raise PlatypusError("problem has no decision variables")
+    
     base_type = problem.types[0].__class__
     
     if all([isinstance(t, base_type)] for t in problem.types):
@@ -56,6 +61,9 @@ def default_variator(problem):
         raise PlatypusError("must define variator for mixed types")
     
 def default_mutator(problem):
+    if len(problem.types) == 0:
+        raise PlatypusError("problem has no decision variables")
+    
     base_type = problem.types[0].__class__
     
     if all([isinstance(t, base_type)] for t in problem.types):

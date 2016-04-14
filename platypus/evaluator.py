@@ -18,7 +18,27 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import, division, print_function
 
+import time
+import logging
+import datetime
 from abc import ABCMeta, abstractmethod
+
+LOGGER = logging.getLogger("Platypus")
+
+def _chunks(items, n):
+    result = []
+    iterator = iter(items)
+    
+    try:
+        while True:
+            result.append(next(iterator))
+            
+            if len(result) == n:
+                yield result
+                result = []
+    except StopIteration:
+        if len(result) > 0:
+            yield result
 
 class Job(object):
     
@@ -43,7 +63,7 @@ class Evaluator(object):
         super(Evaluator, self).__init__()
     
     @abstractmethod
-    def evaluate_all(self, jobs):
+    def evaluate_all(self, jobs, **kwargs):
         raise NotImplementedError("method not implemented")
     
     def close(self):
@@ -52,7 +72,7 @@ class Evaluator(object):
     def __enter__(self):
         return self
     
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
     
 class MapEvaluator(Evaluator):
@@ -61,8 +81,25 @@ class MapEvaluator(Evaluator):
         super(MapEvaluator, self).__init__()
         self.map_func = map_func
     
-    def evaluate_all(self, jobs):
-        return self.map_func(run_job, jobs)
+    def evaluate_all(self, jobs, **kwargs):
+        log_frequency = kwargs.get("log_frequency", None)
+        
+        if log_frequency is None:
+            return self.map_func(run_job, jobs)
+        else:
+            result = []
+            job_name = kwargs.get("job_name", "Batch Jobs")
+            start_time = time.time()
+            
+            for chunk in _chunks(jobs, log_frequency):
+                result.extend(self.map_func(run_job, chunk))
+                LOGGER.log(logging.INFO,
+                           "%s running; Jobs Complete: %d, Elapsed Time: %s",
+                           job_name,
+                           len(result),
+                           datetime.timedelta(seconds=time.time()-start_time))
+                
+            return result
     
 class SubmitEvaluator(Evaluator):
     
@@ -70,9 +107,26 @@ class SubmitEvaluator(Evaluator):
         super(SubmitEvaluator, self).__init__()
         self.submit_func = submit_func
         
-    def evaluate_all(self, jobs):
+    def evaluate_all(self, jobs, **kwargs):
         futures = [self.submit_func(run_job, job) for job in jobs]
-        return [f.result() for f in futures]
+        log_frequency = kwargs.get("log_frequency", None)
+        
+        if log_frequency is None:
+            return [f.result() for f in futures]
+        else:
+            result = []
+            job_name = kwargs.get("job_name", "Batch Jobs")
+            start_time = time.time()
+            
+            for chunk in _chunks(futures, log_frequency):
+                result.extend([f.result() for f in chunk])
+                LOGGER.log(logging.INFO,
+                           "%s running; Jobs Complete: %d, Elapsed Time: %s",
+                           job_name,
+                           len(result),
+                           datetime.timedelta(seconds=time.time()-start_time))
+                
+            return result
 
 class ApplyEvaluator(Evaluator):
     
@@ -80,19 +134,39 @@ class ApplyEvaluator(Evaluator):
         super(ApplyEvaluator, self).__init__()
         self.apply_func = apply_func
         
-    def evaluate_all(self, jobs):
+    def evaluate_all(self, jobs, **kwargs):
         futures = [self.apply_func(run_job, [job]) for job in jobs]
-        return [f.get() for f in futures]
+        log_frequency = kwargs.get("log_frequency", None)
+        
+        if log_frequency is None:
+            return [f.get() for f in futures]
+        else:
+            result = []
+            job_name = kwargs.get("job_name", "Batch Jobs")
+            start_time = time.time()
+            
+            for chunk in _chunks(futures, log_frequency):
+                result.extend([f.get() for f in chunk])
+                LOGGER.log(logging.INFO,
+                           "%s running; Jobs Complete: %d, Elapsed Time: %s",
+                           job_name,
+                           len(result),
+                           datetime.timedelta(seconds=time.time()-start_time))
+                
+            return result
     
 class PoolEvaluator(MapEvaluator):
     
     def __init__(self, pool):
         super(PoolEvaluator, self).__init__(pool.map)
         self.pool = pool
+        LOGGER.log(logging.INFO, "Started pool evaluator with %d processes", pool._processes)
         
     def close(self):
+        LOGGER.log(logging.DEBUG, "Closing pool evaluator")
         self.pool.close()
         self.pool.join()
+        LOGGER.log(logging.INFO, "Closed pool evaluator")
         
 class MultiprocessingEvaluator(PoolEvaluator):
     
@@ -107,10 +181,13 @@ class ProcessPoolEvaluator(SubmitEvaluator):
             from concurrent.futures import ProcessPoolExecutor
             self.executor = ProcessPoolExecutor(processes)
             super(ProcessPoolEvaluator, self).__init__(self.executor.submit)
+            LOGGER.log(logging.INFO, "Started process pool evaluator with %d processes", processes)
         except ImportError:
             # prevent error from showing in Eclipse
             raise
         
     def close(self):
+        LOGGER.log(logging.DEBUG, "Closing process pool evaluator")
         self.executor.close()
+        LOGGER.log(logging.INFO, "Closed process pool evaluator")
    

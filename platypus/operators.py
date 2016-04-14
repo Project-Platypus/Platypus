@@ -137,50 +137,43 @@ class SBX(Variator):
         dx = x2 - x1
         
         if dx > EPSILON:
-            if x1 < x2:
-                bl = 1.0 + 2.0*(x1 - lb) / dx
-                bu = 1.0 + 2.0*(ub - x2) / dx
+            if x2 > x1:
+                y2 = x2
+                y1 = x1
             else:
-                bl = 1.0 + 2.0*(x2 - lb) / dx
-                bu = 1.0 + 2.0*(ub - x1) / dx
-                
-            # use symmetric distributions
-            if bl < bu:
-                bu = bl
+                y2 = x1
+                y1 = x2
+
+            beta = 1.0 / (1.0 + (2.0 * (y1 - lb) / (y2 - y1)))
+            alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
+            rand = random.uniform(0.0, 1.0)
+
+            if rand <= 1.0 / alpha:
+                alpha = alpha * rand
+                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
             else:
-                bl = bu
-                
-            p_bl = 1.0 - 1.0 / (2.0 * pow(bl, self.distribution_index + 1.0))
-            p_bu = 1.0 - 1.0 / (2.0 * pow(bu, self.distribution_index + 1.0))
-            u = random.uniform(0.0, 1.0)
+                alpha = alpha * rand;
+                alpha = 1.0 / (2.0 - alpha)
+                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
             
-            if (u == 1.0):
-                u -= EPSILON
-                
-            u1 = u * p_bl
-            u2 = u * p_bu
+            x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
+            beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)));
+            alpha = 2.0 - pow(beta, self.distribution_index + 1.0);
             
-            if u1 <= 0.5:
-                b1 = pow(2.0 * u1, 1.0 / (self.distribution_index + 1.0))
+            if rand <= 1.0 / alpha:
+                alpha = alpha * rand;
+                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0));
             else:
-                b1 = pow(0.5 / (1.0 - u1), 1.0 / (self.distribution_index + 1.0))
-                
-            if u2 <= 0.5:
-                b2 = pow(2.0 * u2, 1.0 / (self.distribution_index + 1.0))
-            else:
-                b2 = pow(0.5 / (1.0 - u2), 1.0 / (self.distribution_index + 1.0))
-                
-            if x1 < x2:
-                x1 = 0.5 * (x1 + x2 + b1*(x1 - x2))
-                x2 = 0.5 * (x1 + x2 + b2*(x2 - x1))
-            else:
-                x1 = 0.5 * (x1 + x2 + b2*(x1 - x2))
-                x2 = 0.5 * (x1 + x2 + b1*(x2 - x1))
-                
+                alpha = alpha * rand;
+                alpha = 1.0 / (2.0 - alpha);
+                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0));
+            
+            x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1));
+            
             # randomly swap the values
             if bool(random.getrandbits(1)):
                 x1, x2 = x2, x1
-        
+            
             x1 = clip(x1, lb, ub)
             x2 = clip(x2, lb, ub)
             

@@ -22,12 +22,15 @@ import sys
 import copy
 import math
 import time
+import logging
+import datetime
 import operator
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
 from .evaluator import Job
 
+LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
 
@@ -243,15 +246,23 @@ class Algorithm(object):
     
     __metaclass__ = ABCMeta
     
-    def __init__(self, problem, evaluator=None):
+    def __init__(self,
+                 problem,
+                 evaluator=None,
+                 log_frequency=None):
         super(Algorithm, self).__init__()
         self.problem = problem
         self.evaluator = evaluator
+        self.log_frequency = log_frequency
         self.nfe = 0
         
         if self.evaluator is None:
             from .config import PlatypusConfig
             self.evaluator = PlatypusConfig.default_evaluator
+            
+        if self.log_frequency is None:
+            from .config import PlatypusConfig
+            self.log_frequency = PlatypusConfig.default_log_frequency
     
     @abstractmethod
     def step(self):
@@ -266,8 +277,12 @@ class Algorithm(object):
         # if needed, update the original solution with the results
         for i, result in enumerate(results):
             if unevaluated[i] != result.solution:
+                unevaluated[i].variables[:] = result.solution.variables[:]
                 unevaluated[i].objectives[:] = result.solution.objectives[:]
                 unevaluated[i].constraints[:] = result.solution.constraints[:]
+                unevaluated[i].constraint_violation = result.solution.constraint_violation
+                unevaluated[i].feasible = result.solution.feasible
+                unevaluated[i].evaluated = result.solution.evaluated
         
         self.nfe += len(unevaluated)
     
@@ -277,9 +292,27 @@ class Algorithm(object):
             
         if isinstance(condition, TerminationCondition):
             condition.initialize(self)
+            
+        last_log = self.nfe
+        start_time = time.time()
         
+        LOGGER.log(logging.INFO, "%s starting", type(self).__name__)
+
         while not condition(self):
             self.step()
+            
+            if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
+                LOGGER.log(logging.INFO,
+                           "%s running; NFE Complete: %d, Elapsed Time: %s",
+                           type(self).__name__,
+                           self.nfe,
+                           datetime.timedelta(seconds=time.time()-start_time))
+                
+        LOGGER.log(logging.INFO,
+                   "%s finished; Total NFE: %d, Elapsed Time: %s",
+                   type(self).__name__,
+                   self.nfe,
+                   datetime.timedelta(seconds=time.time()-start_time))
             
 def _constraint_eq(x, y):
     return abs(x - y)
