@@ -55,3 +55,42 @@ class TestPickling(unittest.TestCase):
         
     def test_EpsMOEA(self):
         pickle.dumps(EpsMOEA(self.problem, epsilons=[0.01]))
+
+
+class TestRunning(unittest.TestCase):
+    
+    def setUp(self):
+        self.problem = DTLZ2()
+    
+    def test_NSGAII(self):
+        self.algorithm = NSGAII(self.problem)
+    
+    def test_NSGAIII(self):
+        self.algorithm = NSGAIII(self.problem, divisions_outer=24)
+        
+    def test_CMAES(self):
+        self.algorithm = CMAES(self.problem)
+        
+    def test_GDE3(self):
+        self.algorithm = GDE3(self.problem)
+        
+    def test_IBEA(self):
+        self.algorithm = IBEA(self.problem)
+        
+    def test_MOEAD(self):
+        self.algorithm = MOEAD(self.problem)
+        
+    def test_OMOPSO(self):
+        self.algorithm = OMOPSO(self.problem, epsilons=[0.01])
+        
+    def test_SMPSO(self):
+        self.algorithm = SMPSO(self.problem)
+        
+    def test_SPEA2(self):
+        self.algorithm = SPEA2(self.problem)
+        
+    def test_EpsMOEA(self):
+        self.algorithm = EpsMOEA(self.problem, epsilons=[0.01])
+
+    def tearDown(self):
+        self.algorithm.run(100)
