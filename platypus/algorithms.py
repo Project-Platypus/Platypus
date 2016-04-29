@@ -713,7 +713,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
             while len(result) < size:
                 # identify reference point with the fewest associated members
                 min_indices = []
-                min_count = sys.maxint
+                min_count = sys.maxsize
                 
                 for i in range(len(members)):
                     if i not in excluded and len(members[i]) <= min_count:
