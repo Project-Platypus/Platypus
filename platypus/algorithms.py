@@ -282,7 +282,7 @@ class GDE3(AbstractGeneticAlgorithm):
     def select(self, i, arity):
         indices = []
         indices.append(i)
-        indices.extend(random.sample(range(0, i) + range(i+1, len(self.population)),
+        indices.extend(random.sample(list(range(0, i)) + list(range(i+1, len(self.population))),
                                      arity-1))
         return operator.itemgetter(*indices)(self.population)
     
@@ -526,12 +526,12 @@ class MOEAD(AbstractGeneticAlgorithm):
         indices = []
         
         if self.update_utility is None:
-            indices.extend(range(self.population_size))
+            indices.extend(list(range(self.population_size)))
         else:
             indices = []
             
             if self.weight_generator == random_weights:
-                indices.extend(range(self.problem.nobjs))
+                indices.extend(list(range(self.problem.nobjs)))
             
             while len(indices) < self.population_size:
                 index = random.randrange(self.population_size)
@@ -557,7 +557,7 @@ class MOEAD(AbstractGeneticAlgorithm):
         if random.uniform(0.0, 1.0) <= self.delta:
             return self.neighborhoods[index]
         else:
-            return range(self.population_size)
+            return list(range(self.population_size))
         
     def _update_utility(self):
         for i in range(self.population_size):
