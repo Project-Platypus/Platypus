@@ -586,7 +586,7 @@ class MOEAD(AbstractGeneticAlgorithm):
                 
         self.generation += 1
         
-        if self.update_utility >= 0 and self.generation % self.update_utility == 0:
+        if self.update_utility is not None and self.update_utility >= 0 and self.generation % self.update_utility == 0:
             self._update_utility()
 
 class NSGAIII(AbstractGeneticAlgorithm):
