@@ -77,7 +77,7 @@ class FixedLengthArray(object):
         return self._data[index]
     
     def __str__(self):
-        return "[" + ", ".join(map(str, self._data)) + "]"
+        return "[" + ", ".join(list(map(str, self._data))) + "]"
     
 def _convert_constraint(x):
     if isinstance(x, Constraint):
@@ -168,7 +168,7 @@ class Mutation(Variator):
         
     def evolve(self, parents):
         if hasattr(parents, "__iter__"):
-            return map(self.mutate, parents)
+            return list(map(self.mutate, parents))
         else:
             return self.mutate(parents)
         
@@ -184,7 +184,7 @@ class Selector(object):
         super(Selector, self).__init__()
         
     def select(self, n, population):
-        return map(self.select_one, itertools.repeat(population, n))
+        return list(map(self.select_one, itertools.repeat(population, n)))
         
     @abstractmethod
     def select_one(self, population):
@@ -391,7 +391,7 @@ class Solution(object):
         return self.__str__()
         
     def __str__(self):
-        return "Solution[" + ",".join(map(str, self.variables)) + "|" + ",".join(map(str, self.objectives)) + "|" + str(self.constraint_violation) + "]"
+        return "Solution[" + ",".join(list(map(str, self.variables))) + "|" + ",".join(list(map(str, self.objectives))) + "|" + str(self.constraint_violation) + "]"
     
     def __deepcopy__(self, memo):
         """Override to avoid cloning problem definition."""

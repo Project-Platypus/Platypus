@@ -187,7 +187,7 @@ class GAOperator(Variator):
         self.mutation = mutation
         
     def evolve(self, parents):
-        return map(self.mutation.evolve, self.variation.evolve(parents))
+        return list(map(self.mutation.evolve, self.variation.evolve(parents)))
     
 class CompoundMutation(Mutation):
     
@@ -216,7 +216,7 @@ class CompoundOperator(Variator):
             if variator.arity == len(offspring):
                 offspring = variator.evolve(offspring)
             elif variator.arity == 1 and len(offspring) >= 1:
-                offspring = map(variator.evolve, offspring)
+                offspring = list(map(variator.evolve, offspring))
             else:
                 raise PlatypusError("unexpected number of offspring, expected %d, received %d" % (variator.arity, len(offspring)))
     

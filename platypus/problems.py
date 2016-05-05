@@ -42,7 +42,7 @@ class DTLZ1(Problem):
         f = [0.5 * (1.0 + g)]*self.nobjs
         
         for i in range(self.nobjs):
-            f[i] *= reduce(operator.mul,
+            f[i] *= functools.reduce(operator.mul,
                            [x for x in solution.variables[:self.nobjs-i-1]],
                            1)
             
@@ -70,7 +70,7 @@ class DTLZ2(Problem):
         f = [1.0+g]*self.nobjs
 
         for i in range(self.nobjs):
-            f[i] *= reduce(operator.mul,
+            f[i] *= functools.reduce(operator.mul,
                            [math.cos(0.5 * math.pi * x) for x in solution.variables[:self.nobjs-i-1]],
                            1)
             
@@ -98,7 +98,7 @@ class DTLZ3(Problem):
         f = [1.0+g]*self.nobjs
         
         for i in range(self.nobjs):
-            f[i] *= reduce(operator.mul,
+            f[i] *= functools.reduce(operator.mul,
                            [math.cos(0.5 * math.pi * x) for x in solution.variables[:self.nobjs-i-1]],
                            1)
             
@@ -127,7 +127,7 @@ class DTLZ4(Problem):
         f = [1.0+g]*self.nobjs
         
         for i in range(self.nobjs):
-            f[i] *= reduce(operator.mul,
+            f[i] *= functools.reduce(operator.mul,
                            [math.cos(0.5 * math.pi * math.pow(x, self.alpha)) for x in solution.variables[:self.nobjs-i-1]],
                            1)
             
@@ -346,7 +346,7 @@ def _calculate_x(t_p, A):
     return [max(t_p[-1], A[i]) * (t_p[i] - 0.5) + 0.5 for i in range(len(t_p)-1)] + [t_p[-1]]
 
 def _convex(x, m):
-    result = reduce(operator.mul,
+    result = functools.reduce(operator.mul,
                     [1.0 - math.cos(x[i-1] * math.pi / 2.0) for i in range(1, len(x)-m+1)],
                     1.0)
     
@@ -356,7 +356,7 @@ def _convex(x, m):
     return _correct_to_01(result)
 
 def _concave(x, m):
-    result = reduce(operator.mul,
+    result = functools.reduce(operator.mul,
                     [math.sin(x[i-1] * math.pi / 2.0) for i in range(1, len(x)-m+1)],
                     1.0)
     
@@ -366,7 +366,7 @@ def _concave(x, m):
     return _correct_to_01(result)
 
 def _linear(x, m):
-    result = reduce(operator.mul, x[:len(x)-m], 1.0)
+    result = functools.reduce(operator.mul, x[:len(x)-m], 1.0)
     
     if m != 1:
         result *= 1.0 - x[len(x)-m]
