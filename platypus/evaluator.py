@@ -85,7 +85,7 @@ class MapEvaluator(Evaluator):
         log_frequency = kwargs.get("log_frequency", None)
         
         if log_frequency is None:
-            return self.map_func(run_job, jobs)
+            return list(self.map_func(run_job, jobs))
         else:
             result = []
             job_name = kwargs.get("job_name", "Batch Jobs")
