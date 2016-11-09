@@ -22,6 +22,7 @@ setup(name='Platypus',
       license="GNU GPL version 3",
       url='https://github.com/Project-Platypus/Platypus',
       packages=['platypus'],
+      install_requires=['six'],
       tests_require=['nose', 'mock'],
       cmdclass={'test': NoseTestCommand},
       classifiers=[

@@ -1,10 +1,8 @@
 from platypus import *
-from multiprocessing import  freeze_support
 
 if __name__ == "__main__":
-    freeze_support() # required on Windows
-    
-    with MultiprocessingEvaluator() as evaluator:
+    # this uses Python 3's new concurrent futures to parallelize evaluations
+    with ProcessPoolEvaluator() as evaluator:
         algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]
         problems = [DTLZ2(3)]
         

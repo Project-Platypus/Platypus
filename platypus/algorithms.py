@@ -1139,7 +1139,7 @@ class CMAES(Algorithm):
                 self.diag_D[i] = math.sqrt(self.diag_D[i])
             
     def test_and_correct_numerics(self):
-        # flat fitness, testRModel if function values are identical
+        # flat fitness, test if function values are identical
         if len(self.population) > 0:
             self.population = sorted(self.population, key=lambda x : x.objectives[0])
             
