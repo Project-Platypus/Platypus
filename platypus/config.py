@@ -18,6 +18,7 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import, division, print_function
 
+import six
 from .types import Real, Binary, Permutation
 from .operators import GAOperator, CompoundOperator, CompoundMutation, SBX, PM, HUX, BitFlip, PMX, Insertion, Swap
 from .core import PlatypusError
@@ -52,7 +53,7 @@ def default_variator(problem):
         if base_type in PlatypusConfig.default_variator:
             return PlatypusConfig.default_variator[base_type]
         else:
-            for default_type in PlatypusConfig.default_variator.iterkeys():
+            for default_type in six.iterkeys(PlatypusConfig.default_variator):
                 if issubclass(base_type, default_type):
                     return PlatypusConfig.default_variator[default_type]
                 
@@ -70,7 +71,7 @@ def default_mutator(problem):
         if base_type in PlatypusConfig.default_mutator:
             return PlatypusConfig.default_mutator[base_type]
         else:
-            for default_type in PlatypusConfig.default_mutator.iterkeys():
+            for default_type in six.iterkeys(PlatypusConfig.default_mutator):
                 if issubclass(base_type, default_type):
                     return PlatypusConfig.default_mutator[default_type]
                 

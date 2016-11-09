@@ -18,6 +18,7 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import, division, print_function
 
+import six
 import time
 import datetime
 import functools
@@ -196,8 +197,8 @@ def experiment(algorithms = [],
     return results
 
 def calculate_job_generator(results, indicators):
-    for algorithm in results.iterkeys():
-        for problem in results[algorithm].iterkeys():
+    for algorithm in six.iterkeys(results):
+        for problem in six.iterkeys(results[algorithm]):
             for result_set in results[algorithm][problem]:
                 yield IndicatorJob(algorithm, problem, result_set, indicators)
 
@@ -234,14 +235,14 @@ def calculate(results,
     return results
     
 def display(results, ndigits=None):
-    for algorithm in results.iterkeys():
+    for algorithm in six.iterkeys(results):
         print(algorithm)
-        for problem in results[algorithm].iterkeys():
+        for problem in six.iterkeys(results[algorithm]):
             if isinstance(results[algorithm][problem], dict):
                 print("   ", problem)
-                for indicator in results[algorithm][problem].iterkeys():
+                for indicator in six.iterkeys(results[algorithm][problem]):
                     if ndigits:
-                        print("       ", indicator, ":", map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator]))
+                        print("       ", indicator, ":", list(map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator])))
                     else:
                         print("       ", indicator, ":", results[algorithm][problem][indicator])
             else:

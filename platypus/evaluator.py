@@ -171,8 +171,12 @@ class PoolEvaluator(MapEvaluator):
 class MultiprocessingEvaluator(PoolEvaluator):
     
     def __init__(self, processes=None):
-        from multiprocessing import Pool
-        super(MultiprocessingEvaluator, self).__init__(Pool(processes))
+        try:
+            from multiprocessing import Pool
+            super(MultiprocessingEvaluator, self).__init__(Pool(processes))
+        except ImportError:
+            # prevent error from showing in Eclipse if multiprocessing not available
+            raise
 
 class ProcessPoolEvaluator(SubmitEvaluator):
     
@@ -181,13 +185,16 @@ class ProcessPoolEvaluator(SubmitEvaluator):
             from concurrent.futures import ProcessPoolExecutor
             self.executor = ProcessPoolExecutor(processes)
             super(ProcessPoolEvaluator, self).__init__(self.executor.submit)
-            LOGGER.log(logging.INFO, "Started process pool evaluator with %d processes", processes)
+            LOGGER.log(logging.INFO, "Started process pool evaluator")
+            
+            if processes:
+                LOGGER.log(logging.INFO, "Using user-defined number of processes: %d", processes)
         except ImportError:
-            # prevent error from showing in Eclipse
+            # prevent error from showing in Eclipse if concurrent.futures not available
             raise
         
     def close(self):
         LOGGER.log(logging.DEBUG, "Closing process pool evaluator")
-        self.executor.close()
+        self.executor.shutdown()
         LOGGER.log(logging.INFO, "Closed process pool evaluator")
    
