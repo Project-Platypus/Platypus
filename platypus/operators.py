@@ -22,7 +22,7 @@ import copy
 import math
 import random
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
-from .types import Real, Binary, Permutation
+from .types import Real, Binary, Permutation, Subset
 from .tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
 
 def clip(value, min_value, max_value):
@@ -693,6 +693,57 @@ class Insertion(Mutation):
                 result.evaluated = False
                 
         return result
+    
+class Replace(Mutation):
+    
+    def __init__(self, probability = 0.3):
+        super(Replace, self).__init__()
+        self.probability = probability
+        
+    def mutate(self, parent):
+        result = copy.deepcopy(parent)
+        problem = result.problem
+        
+        for i in range(problem.nvars):
+            if isinstance(problem.types[i], Subset) and random.uniform(0.0, 1.0) <= self.probability:
+                subset = result.variables[i]
+                
+                if len(subset) < len(problem.types[i].elements):
+                    index = random.randrange(len(subset))
+
+                    nonmembers = list(set(problem.types[i].elements) - set(subset))
+                    j = random.randrange(len(nonmembers))
+                    subset[index] = nonmembers[j]
+                    result.evaluated = False
+                
+        return result
+    
+class SSX(Variator):
+    
+    def __init__(self, probability = 1.0):
+        super(SSX, self).__init__(2)
+        self.probability = probability
+        
+    def evolve(self, parents):
+        result1 = copy.deepcopy(parents[0])
+        result2 = copy.deepcopy(parents[1])
+        problem = result1.problem
+        
+        for i in range(problem.nvars):
+            if isinstance(problem.types[i], Subset) and random.uniform(0.0, 1.0) <= self.probability:
+                s1 = set(result1.variables[i])
+                s2 = set(result2.variables[i])
+                
+                for j in range(problem.types[i].size):
+                    if result2.variables[i][j] not in s1 and result1.variables[i][j] not in s2 and random.uniform(0.0, 1.0) < 0.5:
+                        temp = result1.variables[i][j]
+                        result1.variables[i][j] = result2.variables[i][j]
+                        result2.variables[i][j] = temp
+
+                result1.evaluated = False
+                result2.evaluated = False       
+                
+        return [result1, result2]
     
 class Multimethod(Variator):
     

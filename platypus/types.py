@@ -87,6 +87,9 @@ class Integer(Binary):
             
         return self.min_value + value
     
+    def __str__(self):
+        return "Integer(%d, %d)" % (self.min_value, self.max_value)
+    
 class Permutation(Type):
     
     def __init__(self, elements):
@@ -99,5 +102,20 @@ class Permutation(Type):
         return elements
         
     def __str__(self):
-        return "Permutation"
+        return "Permutation(%d)" % len(self.elements)
+    
+class Subset(Type):
+    
+    def __init__(self, elements, size):
+        super(Subset, self).__init__()
+        self.elements = list(elements)
+        self.size = size
+        
+    def rand(self):
+        indices = list(range(1, len(self.elements)))
+        random.shuffle(indices)
+        return [self.elements[i] for i in indices[:self.size]]
+    
+    def __str__(self):
+        return "Subset(%d, %d)" % (len(self.elements), self.size)
         

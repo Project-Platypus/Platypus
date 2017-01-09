@@ -19,8 +19,8 @@
 from __future__ import absolute_import, division, print_function
 
 import six
-from .types import Real, Binary, Permutation
-from .operators import GAOperator, CompoundOperator, CompoundMutation, SBX, PM, HUX, BitFlip, PMX, Insertion, Swap
+from .types import Real, Binary, Permutation, Subset
+from .operators import GAOperator, CompoundOperator, CompoundMutation, SBX, PM, HUX, BitFlip, PMX, Insertion, Swap, SSX, Replace
 from .core import PlatypusError
 from .evaluator import MapEvaluator
 
@@ -31,11 +31,13 @@ class _PlatypusConfig(object):
     
         self.default_variator = {Real : GAOperator(SBX(), PM()),
                                  Binary : GAOperator(HUX(), BitFlip()),
-                                 Permutation : CompoundOperator(PMX(), Insertion(), Swap())}
+                                 Permutation : CompoundOperator(PMX(), Insertion(), Swap()),
+                                 Subset : GAOperator(SSX(), Replace())}
         
         self.default_mutator = {Real : PM(),
                                 Binary : BitFlip(),
-                                Permutation : CompoundMutation(Insertion(), Swap())}
+                                Permutation : CompoundMutation(Insertion(), Swap()),
+                                Subset : Replace()}
         
         self.default_evaluator = MapEvaluator()
         
