@@ -219,6 +219,8 @@ class CompoundOperator(Variator):
                 offspring = list(map(variator.evolve, offspring))
             else:
                 raise PlatypusError("unexpected number of offspring, expected %d, received %d" % (variator.arity, len(offspring)))
+            
+        return offspring
     
 class DifferentialEvolution(Variator):
     
@@ -582,9 +584,9 @@ class Swap(Mutation):
         result = copy.deepcopy(parent)
         problem = result.problem
         
-        for i in range(problem.nvars):
-            if isinstance(problem.types[i], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
-                permutation = result.variables[i]
+        for index in range(problem.nvars):
+            if isinstance(problem.types[index], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
+                permutation = result.variables[index]
                 i = random.randrange(len(permutation))
                 j = random.randrange(len(permutation))
                 
@@ -608,13 +610,13 @@ class PMX(Variator):
         result2 = copy.deepcopy(parents[1])
         problem = result1.problem
         
-        for i in range(problem.nvars):
-            if isinstance(problem.types[i], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
-                p1 = result1.variables[i]
-                p2 = result2.variables[i]
+        for index in range(problem.nvars):
+            if isinstance(problem.types[index], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
+                p1 = result1.variables[index]
+                p2 = result2.variables[index]
                 n = len(p1)
-                o1 = []*n
-                o2 = []*n
+                o1 = [None]*n
+                o2 = [None]*n
                 
                 # select cutting points
                 cp1 = random.randrange(n)
@@ -652,8 +654,8 @@ class PMX(Variator):
                         o1[i] = n1
                         o2[i] = n2
                         
-                result1.variables[i] = o1
-                result2.variables[i] = o2
+                result1.variables[index] = o1
+                result2.variables[index] = o2
                 result1.evaluated = False
                 result2.evaluated = False       
                 
@@ -669,9 +671,9 @@ class Insertion(Mutation):
         result = copy.deepcopy(parent)
         problem = result.problem
         
-        for i in range(problem.nvars):
-            if isinstance(problem.types[i], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
-                permutation = result.variables[i]
+        for index in range(problem.nvars):
+            if isinstance(problem.types[index], Permutation) and random.uniform(0.0, 1.0) <= self.probability:
+                permutation = result.variables[index]
                 i = random.randrange(len(permutation))
                 j = random.randrange(len(permutation))
                 
@@ -704,16 +706,16 @@ class Replace(Mutation):
         result = copy.deepcopy(parent)
         problem = result.problem
         
-        for i in range(problem.nvars):
-            if isinstance(problem.types[i], Subset) and random.uniform(0.0, 1.0) <= self.probability:
-                subset = result.variables[i]
+        for index in range(problem.nvars):
+            if isinstance(problem.types[index], Subset) and random.uniform(0.0, 1.0) <= self.probability:
+                subset = result.variables[index]
                 
-                if len(subset) < len(problem.types[i].elements):
-                    index = random.randrange(len(subset))
+                if len(subset) < len(problem.types[index].elements):
+                    i = random.randrange(len(subset))
 
-                    nonmembers = list(set(problem.types[i].elements) - set(subset))
+                    nonmembers = list(set(problem.types[index].elements) - set(subset))
                     j = random.randrange(len(nonmembers))
-                    subset[index] = nonmembers[j]
+                    subset[i] = nonmembers[j]
                     result.evaluated = False
                 
         return result
