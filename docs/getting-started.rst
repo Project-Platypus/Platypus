@@ -21,23 +21,8 @@ A Simple Example
 As an initial example, we will solve the well-known two objective DTLZ2 problem
 using the NSGA-II algorithm:
 
-.. code:: python
-
-    from platypus.algorithms import NSGAII
-    from platypus.problems import DTLZ2
-
-    # define the problem definition
-    problem = DTLZ2()
-
-    # instantiate the optimization algorithm
-    algorithm = NSGAII(problem)
-    
-    # optimize the problem using 10,000 function evaluations
-    algorithm.run(10000)
-
-    # display the results
-    for solution in algorithm.result:
-       print solution.objectives
+.. literalinclude:: ../examples/simple.py
+   :language: python
        
 The output shows on each line the objectives for a Pareto optimal solution:
 
@@ -54,17 +39,8 @@ The output shows on each line the objectives for a Pareto optimal solution:
 If *matplotlib* is available, we can also plot the results.  Note that
 *matplotlib* must be installed separately.  Running the following code
 
-.. code:: python
-
-    import matplotlib.pyplot as plt
-    
-    plt.scatter([s.objectives[0] for s in algorithm.result],
-                [s.objectives[1] for s in algorithm.result])
-    plt.xlim([0, 1.1])
-    plt.ylim([0, 1.1])
-    plt.xlabel("$f_1(x)$")
-    plt.ylabel("$f_2(x)$")
-    plt.show()
+.. literalinclude:: ../examples/simple_plot.py
+   :language: python
     
 produce a plot similar to:
     
@@ -107,18 +83,8 @@ Schaffer problem, defined by
     
 can be programmed as follows:
 
-.. code:: python
-
-    from platypus.algorithms import NSGAII
-    from platypus.core import Problem
-    from platypus.types import Real
-
-    def schaffer(x):
-       return [x[0]**2, (x[0]-2)**2]
-
-    problem = Problem(1, 2)
-    problem.types[:] = Real(-10, 10)
-    problem.function = schaffer
+.. literalinclude:: ../examples/custom_problem_1.py
+   :language: python
 
 When creating the ``Problem`` class, we provide two arguments: the number
 if decision variables, ``1``, and the number of objectives, ``2``.  Next, we
@@ -135,29 +101,8 @@ An equivalent but more reusable way to define this problem is extending the
 ``Problem`` class.  The types are defined in the ``__init__`` method, and the
 actual evaluation is performed in the ``evaluate`` method.
 
-.. code:: python
-
-    from platypus.algorithms import NSGAII
-    from platypus.core import Problem, evaluator
-    from platypus.types import Real
-
-    class Schaffer(Problem):
-    
-        def __init__(self):
-            super(Schaffer, self).__init__(1, 2)
-            self.types[:] = Real(-10, 10)
-        
-        @evaluator
-        def evaluate(self, solution):
-            x = solution.variables[:]
-            solution.objectives[:] = [x[0]**2, (x[0]-2)**2]
-
-    algorithm = NSGAII(Schaffer())
-    algorithm.run(10000)
-    
-Note that the ``evaluate`` method is decorated by ``@evaluator``.  It is
-important to use this decoration when extending the ``Problem`` class,
-otherwise certain required attributes of a solution will not be computed.
+.. literalinclude:: ../examples/custom_problem_2.py
+   :language: python
 
 Defining Constrained Problems
 -----------------------------
@@ -182,20 +127,8 @@ is:
 
 Then, we program this problem within Platypus as follows:
 
-.. code:: python
-
-    from platypus.core import Problem
-    from platypus.types import Real
-
-    def belegundu(vars):
-        x = vars[0]
-        y = vars[1]
-        return [-2*x + y, 2*x + y], [-x + y - 1, x + y - 7]
-
-    problem = Problem(2, 2, 2)
-    problem.types[:] = [Real(0, 5), Real(0, 3)]
-    problem.constraints[:] = "<=0"
-    problem.function = belegundu
+.. literalinclude:: ../examples/constrained_problem_1.py
+   :language: python
     
 First, we call ``Problem(2, 2, 2)`` to create a problem with two decision
 variables, two objectives, and two constraints, respectively.  Next, we set the
@@ -212,24 +145,8 @@ the ``Problem`` class.  Like before, we move the type and constraint
 declarations to the ``__init__`` method and assign the solution's
 ``constraints`` attribute in the ``evaluate`` method.
 
-.. code:: python
-
-    from platypus.core import Problem, evaluator
-    from platypus.types import Real
-
-    class Belegundu(Problem):
-    
-        def __init__(self):
-            super(Belegundu, self).__init__(2, 2, 2)
-            self.types[:] = [Real(0, 5), Real(0, 3)]
-            self.constraints[:] = "<=0"
-        
-        @evaluator
-        def evaluate(self, solution):
-            x = solution.variables[0]
-            y = solution.variables[1]
-            solution.objectives[:] = [-2*x + y, 2*x + y]
-            solution.constraints[:] = [-x + y - 1, x + y - 7]
+.. literalinclude:: ../examples/constrained_problem_2.py
+   :language: python
     
 In these examples, we have assumed that the objectives are being minimized.
 Platypus is flexible and allows the optimization direction to be changed per
