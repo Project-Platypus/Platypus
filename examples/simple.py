@@ -12,4 +12,4 @@ algorithm.run(10000)
 
 # display the results
 for solution in algorithm.result:
-   print(solution.objectives)
+    print(solution.objectives)
