@@ -6,4 +6,5 @@
 Platypus.egg-info/
 build/
 dist/
+private/
 .ipynb_checkpoints/
