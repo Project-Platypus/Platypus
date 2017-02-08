@@ -1,0 +1,11 @@
+#PBS -N simple_mpi
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=1:00:00
+#PBS -j oe
+#PBS -o simple_mpi.out
+
+cd $PBS_O_WORKDIR
+
+module load python-2.7.5
+mpirun python simple_mpi.py
+

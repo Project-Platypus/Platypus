@@ -154,20 +154,29 @@ class ApplyEvaluator(Evaluator):
                            datetime.timedelta(seconds=time.time()-start_time))
                 
             return result
-    
+   
+# Note: this is compatible with MPIPool and Schwimmbad 
 class PoolEvaluator(MapEvaluator):
     
     def __init__(self, pool):
         super(PoolEvaluator, self).__init__(pool.map)
         self.pool = pool
-        LOGGER.log(logging.INFO, "Started pool evaluator with %d processes", pool._processes)
+
+        if hasattr(pool, "_processes"):
+            LOGGER.log(logging.INFO, "Started pool evaluator with %d processes", pool._processes)
+        else:
+            LOGGER.log(logging.INFO, "Started pool evaluator")
         
     def close(self):
         LOGGER.log(logging.DEBUG, "Closing pool evaluator")
         self.pool.close()
-        self.pool.join()
+
+        if hasattr(self.pool, "join"):
+            LOGGER.log(logging.DEBUG, "Waiting for all processes to complete")
+            self.pool.join()
+
         LOGGER.log(logging.INFO, "Closed pool evaluator")
-        
+
 class MultiprocessingEvaluator(PoolEvaluator):
     
     def __init__(self, processes=None):
