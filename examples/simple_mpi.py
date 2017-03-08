@@ -1,6 +1,4 @@
-from platypus.algorithms import NSGAII
-from platypus.problems import DTLZ2
-from platypus.evaluator import PoolEvaluator
+from platypus import NSGAII, DTLZ2, PoolEvaluator
 from platypus.mpipool import MPIPool
 import sys
 import logging

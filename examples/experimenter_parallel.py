@@ -1,8 +1,4 @@
-from platypus.algorithms import NSGAII, NSGAIII
-from platypus.problems import DTLZ2
-from platypus.indicators import Hypervolume
-from platypus.experimenter import experiment, calculate, display
-from platypus.evaluator import ProcessPoolEvaluator
+from platypus import *
 
 if __name__ == "__main__":
     algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]

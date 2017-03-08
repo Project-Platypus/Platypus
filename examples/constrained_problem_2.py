@@ -1,6 +1,4 @@
-from platypus.algorithms import NSGAII
-from platypus.core import Problem
-from platypus.types import Real
+from platypus import NSGAII, Problem, Real
 
 class Belegundu(Problem):
 

@@ -1,6 +1,4 @@
-from platypus.algorithms import NSGAII
-from platypus.problems import DTLZ2
-from platypus.evaluator import ProcessPoolEvaluator
+from platypus import NSGAII, DTLZ2, ProcessPoolEvaluator
 
 # simulate an computationally expensive problem
 class DTLZ2_Slow(DTLZ2):

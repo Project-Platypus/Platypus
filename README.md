@@ -1,9 +1,5 @@
 # Platypus
 
-**Note: Platypus is current under development and has not been extensively
-tested.  Please refrain from using in applications until a stable release is
-available.**
-
 [![Build Status](https://travis-ci.org/Project-Platypus/Platypus.svg?branch=master)](https://travis-ci.org/Project-Platypus/Platypus)
 [![Documentation Status](https://readthedocs.org/projects/platypus/badge/?version=latest)](http://platypus.readthedocs.org/en/latest/?badge=latest)
 
@@ -13,38 +9,10 @@ Platypus is a framework for evolutionary computing in Python with a focus on
 multiobjective evolutionary algorithms (MOEAs).  It differs from existing
 optimization libraries, including PyGMO, Inspyred, DEAP, and Scipy, by providing
 optimization algorithms and analysis tools for multiobjective optimization.
-It currently supports NSGA-II, NSGA-III, MOEA/D, IBEA, EpsMOEA, SPEA2, GDE3,
-OMOPSO and SMPSO.  For more information, see our
+It currently supports NSGA-II, NSGA-III, MOEA/D, IBEA, Epsilon-MOEA, SPEA2, GDE3,
+OMOPSO, SMPSO, and Epsilon-NSGA-II.  For more information, see our
 [IPython Notebook](https://gist.github.com/dhadka/ba6d3c570400bdb411c3)
 or our [online documentation](http://platypus.readthedocs.org/en/latest/index.html).
-
-### Design Goals
-
-Platypus is currently under development and we welcome new collaborators.
-The design of Platypus is focused on the following:
-
-1. **Multiobjective** - Focus on solving multiobjective optimization problems.
-
-2. **Separation of Concerns** - There should be a clear separation between
-   the problem definition and the method of solving the problem.  Doing so
-   allows swapping in different algorithms or operators without altering the
-   problem formulation.
-   
-3. **Minimal Setup** - Minimize the amount of code needed to define and
-   optimize a problem.  Platypus automatically supplies missing options based
-   on best practices.
-   
-4. **Pure Python** - Minimize external dependencies on non-pure Python
-   libraries.  By eliminating such dependencies, Platypus can run on any system
-   where vanilla Python is installed.
-   
-5. **Cloud Computing** - Scientific computing with multiobjective evolutionary
-   algorithms is computationally expensive.  Platypus should facilitate
-   distributed computing with minimal setup.
-   
-6. **Ecosystem** - Python supports many powerful modeling, design and analysis
-   frameworks (e.g., OpenMDAO), and Platypus should facilitate collaboration
-   with these tools.
 
 ### Example
 
@@ -53,9 +21,7 @@ decision variables is accomplished in Platypus with:
 
 ```python
 
-    from platypus.core import Problem
-    from platypus.types import Real
-    from platypus.algorithms import NSGAII
+    from platypus import NSGAII, Problem, Real
 
     def schaffer(x):
         return [x[0]**2, (x[0]-2)**2]
@@ -66,9 +32,6 @@ decision variables is accomplished in Platypus with:
 
     algorithm = NSGAII(problem)
     algorithm.run(10000)
-
-    for solution in algorithm.result:
-        print solution
 ```
 
 ### License

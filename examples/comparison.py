@@ -1,8 +1,4 @@
-import six
-from platypus.algorithms import *
-from platypus.problems import DTLZ2
-from platypus.experimenter import experiment
-from platypus.evaluator import ProcessPoolEvaluator
+from platypus import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
