@@ -34,6 +34,17 @@ decision variables is accomplished in Platypus with:
     algorithm.run(10000)
 ```
 
+### Installation
+
+To install Platypus from source, run the following commands:
+
+```
+
+    git clone https://github.com/Project-Platypus/Platypus.git
+    cd Platypus
+    python setup.py install
+```
+
 ### License
 
 Platypus is released under the GNU General Public License.
