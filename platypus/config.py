@@ -51,7 +51,7 @@ def default_variator(problem):
     
     base_type = problem.types[0].__class__
     
-    if all([isinstance(t, base_type)] for t in problem.types):
+    if all([isinstance(t, base_type) for t in problem.types]):
         if base_type in PlatypusConfig.default_variator:
             return PlatypusConfig.default_variator[base_type]
         else:
@@ -69,7 +69,7 @@ def default_mutator(problem):
     
     base_type = problem.types[0].__class__
     
-    if all([isinstance(t, base_type)] for t in problem.types):
+    if all([isinstance(t, base_type) for t in problem.types]):
         if base_type in PlatypusConfig.default_mutator:
             return PlatypusConfig.default_mutator[base_type]
         else:
