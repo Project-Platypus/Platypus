@@ -182,7 +182,7 @@ class NSGAII(AbstractGeneticAlgorithm):
     def initialize(self):
         super(NSGAII, self).initialize()
         
-        if self.archive:
+        if self.archive is not None:
             self.archive += self.population
         
         if self.variator is None:
