@@ -82,6 +82,8 @@ class FixedLengthArray(object):
 def _convert_constraint(x):
     if isinstance(x, Constraint):
         return x
+    elif isinstance(x, (list, tuple)):
+        return [_convert_constraint(y) for y in x]
     else:
         return Constraint(x)
 
