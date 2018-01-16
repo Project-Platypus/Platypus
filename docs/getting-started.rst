@@ -4,7 +4,7 @@ Getting Started
 
 Installing Platypus
 -------------------
-    
+
 To install the latest development version of Platypus, run the following
 commands.  Note that Platypus is under active development, and as such may
 contain bugs.
@@ -23,7 +23,7 @@ using the NSGA-II algorithm:
 
 .. literalinclude:: ../examples/simple.py
    :language: python
-       
+
 The output shows on each line the objectives for a Pareto optimal solution:
 
 .. code::
@@ -35,20 +35,20 @@ The output shows on each line the objectives for a Pareto optimal solution:
     [0.961083112366, 0.285860932437]
     [0.729124908607, 0.688608373855]
     ...
-      
+
 If *matplotlib* is available, we can also plot the results.  Note that
 *matplotlib* must be installed separately.  Running the following code
 
 .. literalinclude:: ../examples/simple_plot.py
    :language: python
-    
+
 produce a plot similar to:
-    
+
 .. image:: images/figure_1.png
    :scale: 60 %
    :alt: Pareto front for the DTLZ2 problem
    :align: center
-    
+
 Note that we did not need to specify many settings when constructing NSGA-II.
 For any options not specified by the user, Platypus supplies the appropriate
 settings using best practices.  In this example, Platypus inspected the
@@ -67,7 +67,7 @@ operators, such as Parent-Centric Crossover (PCX):
 
     algorithm = NSGAII(problem, variator = PCX())
     algorithm.run(10000)
-    
+
 Defining Unconstrained Problems
 -------------------------------
 
@@ -80,7 +80,7 @@ Schaffer problem, defined by
 .. math::
 
     \text{minimize } (x^2, (x-2)^2) \text{ for } x \in [-10, 10]
-    
+
 can be programmed as follows:
 
 .. literalinclude:: ../examples/custom_problem_1.py
@@ -106,7 +106,7 @@ actual evaluation is performed in the ``evaluate`` method.
 
 Defining Constrained Problems
 -----------------------------
-    
+
 Constrained problems are defined similarly, but must provide two additional
 pieces of information.  First, they must compute the constraint value (or values
 if the problem defines more than one constraint).  Second, they must specify
@@ -116,7 +116,7 @@ the Belegundu problem, defined by:
 .. math::
 
     \text{minimize } (-2x+y, 2x+y) \text{ subject to } y-x \leq 1 \text{ and } x+y \leq 7
-    
+
 This problem has two inequality constraints.  We first simplify the constraints
 by moving the constant to the left of the inequality.  The resulting formulation
 is:
@@ -129,7 +129,7 @@ Then, we program this problem within Platypus as follows:
 
 .. literalinclude:: ../examples/constrained_problem_1.py
    :language: python
-    
+
 First, we call ``Problem(2, 2, 2)`` to create a problem with two decision
 variables, two objectives, and two constraints, respectively.  Next, we set the
 decision variable types and the constraint feasibility criteria.  The constraint
@@ -140,6 +140,21 @@ and equality constraints such as ``">=0"``, ``"==0"``, or ``"!=5"``.  Finally,
 we set the evaluation function.  Note how the ``belegundu`` function returns
 a tuple (two lists) for the objectives and constraints.
 
+The final population could contain infeasible and dominated solutions if the
+number of function evaluations was insufficient (e.g. ``algorithm.Run(100)``).
+In this case we would need to filter out the infeasible solutions:
+
+.. code:: python
+
+    feasible_solutions = [s for s in algorithm.result if s.feasible]
+
+We could also get only the non-dominated solutions:
+
+.. code:: python
+
+    nondominated_solutions = nondominated(algorithm.result)
+
+
 Alternatively, we can develop a reusable class for this problem by extending
 the ``Problem`` class.  Like before, we move the type and constraint
 declarations to the ``__init__`` method and assign the solution's
@@ -147,7 +162,7 @@ declarations to the ``__init__`` method and assign the solution's
 
 .. literalinclude:: ../examples/constrained_problem_2.py
    :language: python
-    
+
 In these examples, we have assumed that the objectives are being minimized.
 Platypus is flexible and allows the optimization direction to be changed per
 objective by setting the ``directions`` attribute.  For example:
@@ -155,4 +170,3 @@ objective by setting the ``directions`` attribute.  For example:
 .. code:: python
 
     problem.directions[:] = Problem.MAXIMIZE
-    
