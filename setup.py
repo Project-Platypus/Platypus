@@ -2,7 +2,6 @@
 
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-from platypus import __version__
 
 class NoseTestCommand(TestCommand):
 
@@ -15,7 +14,7 @@ class NoseTestCommand(TestCommand):
         import nose
         nose.run_exit(argv=['nosetests'])
 
-setup(name='Platypus',
+setup(name='Platypus-Opt',
       version='1.0.0', # Update __init__.py if the version changes!
       description='Multiobjective optimization in Python',
       author='David Hadka',
@@ -26,19 +25,4 @@ setup(name='Platypus',
       install_requires=['six'],
       tests_require=['nose', 'mock'],
       cmdclass={'test': NoseTestCommand},
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'Environment :: Console',
-          'Intended Audience :: Education',
-          'Intended Audience :: Developers',
-          'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
-          'Programming Language :: Python',
-          'Topic :: Scientific/Engineering :: Artificial Intelligence',
-          'Topic :: Scientific/Engineering :: Mathematics',
-          'Topic :: Software Development :: Libraries :: Python Modules',
-          ],
      )
