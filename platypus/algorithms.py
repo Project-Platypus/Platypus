@@ -1,4 +1,4 @@
-# Copyright 2015 David Hadka
+# Copyright 2015-2018 David Hadka
 #
 # This file is part of Platypus, a Python module for designing and using
 # evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
@@ -119,6 +119,8 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
             offspring.extend(self.variator.evolve(parents))
             
         self.evaluate_all(offspring)
+
+        offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
         self.population = offspring[:self.population_size]
     
 class EvolutionaryStrategy(SingleObjectiveAlgorithm):
