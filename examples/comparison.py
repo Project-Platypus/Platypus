@@ -11,7 +11,7 @@ if __name__ == '__main__':
                   (CMAES, {"epsilons":[0.05]}),
                   GDE3,
                   IBEA,
-                  MOEAD,
+                  (MOEAD, {"weight_generator":normal_boundary_weights, "divisions_outer":12}),
                   (OMOPSO, {"epsilons":[0.05]}),
                   SMPSO,
                   SPEA2,

@@ -26,17 +26,20 @@ from .core import POSITIVE_INFINITY
 def chebyshev(values, weights, min_weight=0.0001):
     return max([max(weights[i], min_weight) * values[i] for i in range(len(values))])
 
-def random_weights(size, nobjs):
+# Implementation Note: The first argument to weight vector generators should be nobjs, the number of
+# objectives.
+
+def random_weights(nobjs, population_size):
     weights = []
     
     if nobjs == 2:
         weights = [[1, 0], [0, 1]]
-        weights.extend([(i/(size-1.0), 1.0-i/(size-1.0)) for i in range(1, size-1)])
+        weights.extend([(i/(population_size-1.0), 1.0-i/(population_size-1.0)) for i in range(1, population_size-1)])
     else:
         # generate candidate weights
         candidate_weights = []
         
-        for i in range(size*50):
+        for i in range(population_size*50):
             random_values = [random.uniform(0.0, 1.0) for _ in range(nobjs)]
             candidate_weights.append([x/sum(random_values) for x in random_values])
         
@@ -46,7 +49,7 @@ def random_weights(size, nobjs):
             
         # iteratively fill in the remaining weights by finding the candidate
         # weight with the largest distance from the assigned weights
-        while len(weights) < size:
+        while len(weights) < population_size:
             max_index = -1
             max_distance = -POSITIVE_INFINITY
             

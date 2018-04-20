@@ -21,6 +21,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import math
 import random
+import inspect
 import operator
 import functools
 from functools import reduce
@@ -502,3 +503,22 @@ def roulette(probabilities):
             return i
         
     return 0
+
+# Returns a new dictionary with the given keys removed.
+def remove_keys(d, *keys):
+    result = dict(d)
+    for key in keys:
+        result.pop(key, None)
+    return result
+
+# Returns a new dictionary containing only the given keys.
+def only_keys(d, *keys):
+    result = dict()
+    for key in keys:
+        if key in d:
+            result[key] = d[key]
+    return result
+
+# Returns a new dictionary containing only keys that match parameters for the given function.
+def only_keys_for(d, func):
+    return only_keys(d, *inspect.getargspec(func)[0])

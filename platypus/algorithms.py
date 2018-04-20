@@ -37,7 +37,7 @@ from .operators import TournamentSelector, RandomGenerator,\
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation,\
     GAOperator, SBX, PM, UM, PCX, UNDX, SPX, Multimethod
 from .tools import DistanceMatrix, choose, point_line_dist, lsolve,\
-    tred2, tql2, check_eigensystem
+    tred2, tql2, check_eigensystem, remove_keys, only_keys_for
 from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import default_variator, default_mutator
 
@@ -411,7 +411,6 @@ class SPEA2(AbstractGeneticAlgorithm):
 class MOEAD(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
-                 population_size = 100,
                  neighborhood_size = 10,
                  generator = RandomGenerator(),
                  variator = None,
@@ -421,7 +420,7 @@ class MOEAD(AbstractGeneticAlgorithm):
                  weight_generator = random_weights,
                  scalarizing_function = chebyshev,
                  **kwargs):
-        super(MOEAD, self).__init__(problem, population_size, generator, **kwargs)
+        super(MOEAD, self).__init__(problem, 0, generator, **remove_keys(kwargs, "population_size")) # population_size is set after generating weights
         self.neighborhood_size = neighborhood_size
         self.variator = variator
         self.delta = delta
@@ -430,6 +429,7 @@ class MOEAD(AbstractGeneticAlgorithm):
         self.weight_generator = weight_generator
         self.scalarizing_function = scalarizing_function
         self.generation = 0
+        self.weight_generator_kwargs = only_keys_for(kwargs, weight_generator)
         
     def _update_ideal(self, solution):
         for i in range(self.problem.nobjs):
@@ -486,7 +486,8 @@ class MOEAD(AbstractGeneticAlgorithm):
         self.population = []
         
         # initialize weights
-        self.weights = random_weights(self.population_size, self.problem.nobjs)
+        self.weights = self.weight_generator(self.problem.nobjs, **self.weight_generator_kwargs)
+        self.population_size = len(self.weights)
         
         # initialize the neighborhoods based on weights
         self.neighborhoods = []

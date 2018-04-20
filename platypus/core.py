@@ -251,7 +251,8 @@ class Algorithm(object):
     def __init__(self,
                  problem,
                  evaluator=None,
-                 log_frequency=None):
+                 log_frequency=None,
+                 **kwargs):
         super(Algorithm, self).__init__()
         self.problem = problem
         self.evaluator = evaluator

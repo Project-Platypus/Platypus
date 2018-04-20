@@ -41,8 +41,11 @@ class TestPickling(unittest.TestCase):
     def test_IBEA(self):
         pickle.dumps(IBEA(self.problem))
         
-    def test_MOEAD(self):
-        pickle.dumps(MOEAD(self.problem))
+    def test_MOEAD_random_weights(self):
+        pickle.dumps(MOEAD(self.problem, population_size=100))
+
+    def test_MOEAD_normal_boundary_weights(self):
+        pickle.dumps(MOEAD(self.problem, weight_generator=normal_boundary_weights, divisions_outer=24))
         
     def test_OMOPSO(self):
         pickle.dumps(OMOPSO(self.problem, epsilons=[0.01]))
@@ -76,9 +79,12 @@ class TestRunning(unittest.TestCase):
         
     def test_IBEA(self):
         self.algorithm = IBEA(self.problem)
-        
-    def test_MOEAD(self):
-        self.algorithm = MOEAD(self.problem)
+
+    def test_MOEAD_random_weights(self):
+        self.algorithm = MOEAD(self.problem, population_size=100)
+
+    def test_MOEAD_normal_boundary_weights(self):
+        self.algorithm = MOEAD(self.problem, weight_generator=normal_boundary_weights, divisions_outer=24)
         
     def test_OMOPSO(self):
         self.algorithm = OMOPSO(self.problem, epsilons=[0.01])
