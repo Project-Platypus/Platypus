@@ -45,7 +45,6 @@ To install the latest Platypus release, run the following command:
 To install the latest development version of Platypus, run the following commands:
 
 ```
-
     git clone https://github.com/Project-Platypus/Platypus.git
     cd Platypus
     python setup.py install
