@@ -1520,7 +1520,13 @@ class PeriodicAction(Algorithm):
         raise NotImplementedError("method not implemented")
         
     def __getattr__(self, name):
-        return getattr(self.algorithm, name)
+        # Be careful to not interfere with multiprocessing's unpickling, where it may check for
+        # an attribute before the "algorithm" attribute is set.  Without this guard in place, we
+        # would get stuck in an infinite loop looking for the "algorithm" attribute.
+        if "algorithm" in self.__dict__:
+            return getattr(self.algorithm, name)
+        else:
+            raise AttributeError()
         
 class AdaptiveTimeContinuation(PeriodicAction):
     
