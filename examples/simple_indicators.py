@@ -11,12 +11,13 @@ algorithm = NSGAII(problem)
 # Optimize the problem using 10,000 function evaluations.
 algorithm.run(10000)
 
-# Create the reference set.  For DTLZ2, the PF lies on a unit circle.
+# Create the reference set.  For 2-objective DTLZ2, the reference set
+# solutions must satisfy the equation x^2 + y^2 = 1.
 ref_set = []
 
-for v in numpy.arange(0.0, 1.0, 0.01):
+for x in numpy.arange(0.0, 1.0, 0.01):
     solution = Solution(problem)
-    solution.objectives[:] = [v, math.sqrt(1.0 - v**2)]
+    solution.objectives[:] = [x, math.sqrt(1.0 - x**2)]
     ref_set.append(solution)
 
 # Calculate the performance metrics.
