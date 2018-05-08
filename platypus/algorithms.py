@@ -120,6 +120,7 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
             
         self.evaluate_all(offspring)
 
+        offspring.extend(self.population)
         offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
         self.population = offspring[:self.population_size]
     
