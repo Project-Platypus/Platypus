@@ -1,7 +1,6 @@
-import math
-import random
 from platypus import GeneticAlgorithm, Problem, Binary, nondominated, unique
 
+# This simple example has an optimal value of 15 when picking itmes 1 and 4.
 items = 7
 weights = [2, 3, 6, 7, 5, 9, 4]
 profits = [6, 5, 8, 9, 6, 7, 3]
@@ -24,5 +23,3 @@ algorithm.run(10000)
 
 for solution in unique(nondominated(algorithm.result)):
     print(solution.variables, solution.objectives)
-    
-# The optimal solution picks items 1 and 4, for a total profit of 15

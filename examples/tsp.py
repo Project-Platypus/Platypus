@@ -1,5 +1,4 @@
 import math
-import random
 from platypus import GeneticAlgorithm, Problem, Permutation, nondominated, unique
 
 # The (x, y) coordinates of cities in the PR76 instance.  This instance has
