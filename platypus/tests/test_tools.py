@@ -57,11 +57,11 @@ class TestBinary(unittest.TestCase):
             self.assertBinEqual(self.EXPECTED[i]["binary"], int2bin(i, 4))
         
     def test_bin2int(self):
-        self.assertBinEqual(0, bin2int([]))
-        self.assertBinEqual(0, bin2int([0]))
+        self.assertEqual(0, bin2int([]))
+        self.assertEqual(0, bin2int([0]))
 
         for i in range(16):
-            self.assertBinEqual(i, bin2int(self.EXPECTED[i]["binary"]))
+            self.assertEqual(i, bin2int(self.EXPECTED[i]["binary"]))
         
     def test_bin2gray(self):
         for i in range(16):
@@ -69,7 +69,7 @@ class TestBinary(unittest.TestCase):
         
     def test_gray2bin(self):
         for i in range(16):
-            self.assertBinEqual(i, bin2int(gray2bin(self.EXPECTED[i]["gray"])))
+            self.assertBinEqual(self.EXPECTED[i]["binary"], gray2bin(self.EXPECTED[i]["gray"]))
             
 
 class TestVectorAlgebra(unittest.TestCase):

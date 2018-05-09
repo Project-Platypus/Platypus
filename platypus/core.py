@@ -455,29 +455,30 @@ class Constraint(object):
     LESS_THAN_ZERO = "<0"
     GREATER_THAN_ZERO = ">0"
     
-    def __init__(self, op):
+    def __init__(self, op, value=None):
         super(Constraint, self).__init__()
         
-        if isinstance(op, Constraint):
+        if value is not None:
+            # Passing value as a second argument
+            self.op = op + str(value)
+            self.function = functools.partial(Constraint.OPERATORS[op], y=float(value))
+        elif isinstance(op, Constraint):
+            # Passing a constraint object
             self.op = op.op
             self.function = op.function
+        elif hasattr(op, "__call__"):
+            # Passing a function that returns 0 if feasible and non-zero if not feasible
+            self.op = op
+            self.function = op
         else:
             self.op = op
-            self.function = Constraint.parse(op)
+            if op[1] == '=':
+                self.function = functools.partial(Constraint.OPERATORS[op[0:2]], y=float(op[2:]))
+            else:
+                self.function = functools.partial(Constraint.OPERATORS[op[0:1]], y=float(op[1:]))
         
     def __call__(self, value):
         return self.function(value)
-    
-    @staticmethod
-    def parse(constraint):
-        if hasattr(constraint, "__call__"):
-            return constraint
-        if constraint[1] == '=':
-            return functools.partial(Constraint.OPERATORS[constraint[0:2]],
-                                     y=float(constraint[2:]))
-        else:
-            return functools.partial(Constraint.OPERATORS[constraint[0:1]],
-                                     y=float(constraint[1:]))
         
 class Solution(object):
     """Class representing a solution to a problem.

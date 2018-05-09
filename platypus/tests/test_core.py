@@ -23,7 +23,6 @@ from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
         POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
         EpsilonBoxArchive
-from platypus.core import EpsilonBoxArchive
 
 def createSolution(*args):
     problem = Problem(0, len(args))
@@ -50,42 +49,42 @@ class TestSolution(unittest.TestCase):
 class TestConstraint(unittest.TestCase):
     
     def test_eq(self):
-        constraint = Constraint.parse("==0")
+        constraint = Constraint("==0")
         self.assertEqual(0.0, constraint(0.0))
         self.assertNotEqual(0.0, constraint(1.0))
         self.assertNotEqual(0.0, constraint(-1.0))
         
-        constraint = Constraint.parse("==5")
+        constraint = Constraint("==5")
         self.assertEqual(0.0, constraint(5.0))
         self.assertNotEqual(0.0, constraint(-5.0))
         self.assertNotEqual(0.0, constraint(10.0))
         
     def test_lte(self):
-        constraint = Constraint.parse("<=0")
+        constraint = Constraint("<=0")
         self.assertEqual(0.0, constraint(0.0))
         self.assertEqual(0.0, constraint(-1.0))
         self.assertNotEqual(0.0, constraint(1.0))
         
     def test_gte(self):
-        constraint = Constraint.parse(">=0")
+        constraint = Constraint(">=0")
         self.assertEqual(0.0, constraint(0.0))
         self.assertEqual(0.0, constraint(1.0))
         self.assertNotEqual(0.0, constraint(-1.0))
         
     def test_lt(self):
-        constraint = Constraint.parse("<0")
+        constraint = Constraint("<0")
         self.assertNotEqual(0.0, constraint(0.0))
         self.assertNotEqual(0.0, constraint(1.0))
         self.assertEqual(0.0, constraint(-1.0))
         
     def test_gt(self):
-        constraint = Constraint.parse(">0")
+        constraint = Constraint(">0")
         self.assertNotEqual(0.0, constraint(0.0))
         self.assertEqual(0.0, constraint(1.0))
         self.assertNotEqual(0.0, constraint(-1.0))
         
     def test_neq(self):
-        constraint = Constraint.parse("!=0")
+        constraint = Constraint("!=0")
         self.assertNotEqual(0.0, constraint(0.0))
         self.assertEqual(0.0, constraint(1.0))
         self.assertEqual(0.0, constraint(-1.0))
