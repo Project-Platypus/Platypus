@@ -110,6 +110,9 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
         
         if self.variator is None:
             self.variator = default_variator(self.problem)
+            
+        self.population = sorted(self.population, key=functools.cmp_to_key(self.comparator))
+        self.fittest = self.population[0] 
         
     def iterate(self):
         offspring = []
@@ -120,9 +123,11 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
             
         self.evaluate_all(offspring)
 
-        offspring.extend(self.population)
+        offspring.append(self.fittest)
         offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
+        
         self.population = offspring[:self.population_size]
+        self.fittest = self.population[0]
     
 class EvolutionaryStrategy(SingleObjectiveAlgorithm):
     
@@ -146,7 +151,6 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
         
     def iterate(self):
         offspring = []
-        offspring.extend(self.population)
         
         for i in range(self.offspring_size):
             parents = [self.population[i % len(self.population)]]
@@ -154,6 +158,7 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
             
         self.evaluate_all(offspring)
             
+        offspring.extend(self.population)
         offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
         self.population = offspring[:self.population_size]
     
