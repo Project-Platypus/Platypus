@@ -349,7 +349,7 @@ class SPEA2(AbstractGeneticAlgorithm):
          
         # compute dominance flags
         keys = list(itertools.combinations(range(len(solutions)), 2))
-        flags = map(self.dominance.compare, [solutions[k[0]] for k in keys], [solutions[k[1]] for k in keys])
+        flags = list(map(self.dominance.compare, [solutions[k[0]] for k in keys], [solutions[k[1]] for k in keys]))
         
         # compute the distance matrix
         distanceMatrix = DistanceMatrix(solutions)
@@ -374,7 +374,7 @@ class SPEA2(AbstractGeneticAlgorithm):
             fitness[i] += 1.0 / (distanceMatrix.kth_distance(i, self.k) + 2.0)
              
         # assign fitness attribute
-        for i in range(len(solutions)):    
+        for i in range(len(solutions)):
             solutions[i].fitness = fitness[i]
              
     def _truncate(self, solutions, size):
