@@ -613,7 +613,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
         
         self.population_size = choose(problem.nobjs + divisions_outer - 1, divisions_outer) + \
                 (0 if divisions_inner == 0 else choose(problem.nobjs + divisions_inner - 1, divisions_inner))
-        self.population_size = int(math.ceil(self.population_size / 4.0)) * 4;
+        self.population_size = int(math.ceil(self.population_size / 4.0)) * 4
 
         self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
         self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
