@@ -24,34 +24,46 @@ import copy
 import random
 from .core import POSITIVE_INFINITY
 
-def chebyshev(values, weights, min_weight=0.0001):
-    """Chebyshev (Tchebycheff) function scalarization.
-    
-    Parameters
-    ----------
-    values : list of float
-        The objective values.
-    weights : list of float
-        The weights (the length must be the same as values).
-    min_weight : float
-        The minimum weight allowed.
-    """
-    return max([max(weights[i], min_weight) * values[i] for i in range(len(values))])
+# Scalarizing functions used to compute the fitness of a solution with multiple
+# objectives.
 
-def pbi(solution, ideal_point, weights, theta):
-    """Penalty-based boundary intersection scalarization.
+def chebyshev(solution, ideal_point, weights, min_weight=0.0001):
+    """Chebyshev (Tchebycheff) fitness of a solution with multiple objectives.
     
-    Using this scalarizing function requires numpy.  This assumes the objectives
-    are being minimized.
+    This function is designed to only work with minimized objectives.
     
     Parameters
     ----------
     solution : Solution
-        The solution
-    ideal_point: list of float
-        The ideal point (the length must be the same as values).
+        The solution.
+    ideal_point : list of float
+        The ideal point.
     weights : list of float
-        The weights (the length must be the same as values).
+        The weights.
+    min_weight : float
+        The minimum weight allowed.
+    """
+    nobjs = solution.problem.nobjs
+    objs = solution.objectives
+    return max([max(weights[i], min_weight) * (objs[i]-ideal_point[i]) for i in range(nobjs)])
+
+def pbi(solution, ideal_point, weights, theta):
+    """Penalty-based boundary intersection fitness of a solution with multiple objectives.
+    
+    Requires numpy.  This function is designed to only work with minimized
+    objectives.
+    
+    Callers need to set the theta value by using
+        functools.partial(pbi, theta=0.5)
+    
+    Parameters
+    ----------
+    solution : Solution
+        The solution.
+    ideal_point: list of float
+        The ideal point.
+    weights : list of float
+        The weights.
     theta : float
         The theta value.
     """
@@ -61,9 +73,9 @@ def pbi(solution, ideal_point, weights, theta):
         print("The pbi function requires numpy.", file=sys.stderr)
         raise
 
-    w      = np.array(weights)
+    w = np.array(weights)
     z_star = np.array(ideal_point)
-    F      = np.array(solution.objectives)
+    F = np.array(solution.objectives)
 
     d1 = np.linalg.norm(np.dot((F - z_star), w)) / np.linalg.norm(w)
     d2 = np.linalg.norm(F - (z_star + d1 * w))

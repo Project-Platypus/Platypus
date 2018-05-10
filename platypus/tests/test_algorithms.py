@@ -18,8 +18,10 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pickle
 import unittest
+import functools
 from ..problems import DTLZ2
 from ..algorithms import *
+from ..weights import *
 
 class TestPickling(unittest.TestCase):
     
@@ -98,6 +100,10 @@ class TestRunning(unittest.TestCase):
 
     def test_MOEAD_normal_boundary_weights(self):
         self.algorithm = MOEAD(self.problem, weight_generator=normal_boundary_weights, divisions_outer=24)
+        self._run_test()
+        
+    def test_MOEAD_pbi(self):
+        self.algorithm = MOEAD(self.problem, scalarizing_function=functools.partial(pbi, theta=0.5))
         self._run_test()
         
     def test_OMOPSO(self):

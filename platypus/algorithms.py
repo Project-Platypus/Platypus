@@ -451,9 +451,7 @@ class MOEAD(AbstractGeneticAlgorithm):
             self.ideal_point[i] = min(self.ideal_point[i], solution.objectives[i])
     
     def _calculate_fitness(self, solution, weights):
-        objs = solution.objectives
-        normalized_objs = [objs[i]-self.ideal_point[i] for i in range(self.problem.nobjs)]
-        return self.scalarizing_function(normalized_objs, weights)
+        return self.scalarizing_function(solution, self.ideal_point, weights)
     
     def _update_solution(self, solution, mating_indices):
         c = 0
