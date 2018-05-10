@@ -1153,7 +1153,7 @@ class CMAES(Algorithm):
                 
             for i in range(self.problem.nvars):
                 if self.diag_D[i] < 0.0:
-                    print >> sys.stderr, "an eigenvalue has become negative"
+                    print("an eigenvalue has become negative", file=sys.stderr)
                     self.diag_D[i] = 0.0
                     
                 self.diag_D[i] = math.sqrt(self.diag_D[i])
@@ -1164,7 +1164,7 @@ class CMAES(Algorithm):
             self.population = sorted(self.population, key=lambda x : x.objectives[0])
             
             if self.population[0].objectives[0] == self.population[min(self.offspring_size-1, self.offspring_size/2 + 1) - 1].objectives[0]:
-                print >> sys.stderr, "flat fitness landscape, consider reformulation of fitness, step size increased"
+                print("flat fitness landscape, consider reformulation of fitness, step size increased", file=sys.stderr)
                 self.sigma *= math.exp(0.2 + self.cs / self.damps)
                 
         # align (renormalize) scale C (and consequently sigma)
