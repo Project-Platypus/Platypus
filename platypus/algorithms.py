@@ -437,6 +437,11 @@ class MOEAD(AbstractGeneticAlgorithm):
         self.generation = 0
         self.weight_generator_kwargs = only_keys_for(kwargs, weight_generator)
         
+        # If using the default weight generator, random_weights, use a default
+        # population_size
+        if weight_generator == random_weights and "population_size" not in self.weight_generator_kwargs:
+            self.weight_generator_kwargs["population_size"] = 100
+        
     def _update_ideal(self, solution):
         for i in range(self.problem.nobjs):
             self.ideal_point[i] = min(self.ideal_point[i], solution.objectives[i])
