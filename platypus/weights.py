@@ -21,10 +21,30 @@ from __future__ import absolute_import, division, print_function
 import math
 import copy
 import random
+import numpy as np
 from .core import POSITIVE_INFINITY
 
 def chebyshev(values, weights, min_weight=0.0001):
     return max([max(weights[i], min_weight) * values[i] for i in range(len(values))])
+
+def pbi(solution, ideal_point, weights, theta):
+    '''
+    ----------------------
+    ideal_point : list
+    weights     : list
+    solution    : object
+    ----------------------
+    assume we are solving a minimization problem
+    using numpy to guarantee the numerical stability
+    '''
+    w      = np.array(weights)
+    z_star = np.array(ideal_point)
+    F      = np.array(solution.objectives)
+
+    d1 = np.linalg.norm(np.dot((F - z_star), w)) / np.linalg.norm(w)
+    d2 = np.linalg.norm(F - (z_star + d1 * w))
+
+    return (d1 + theta * d2).tolist()
 
 # Implementation Note: The first argument to weight vector generators should be
 # nobjs, the number of objectives.
