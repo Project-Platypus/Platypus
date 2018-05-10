@@ -119,3 +119,17 @@ class TestRunning(unittest.TestCase):
     def _run_test(self):
         self.algorithm.run(100)
         self.post_checks()
+
+class TestMaximizationGuard(unittest.TestCase):
+    
+    def setUp(self):
+        self.problem = Problem(1, 1)
+        self.problem.directions[:] = Problem.MAXIMIZE
+        
+    def test_MOEAD(self):
+        with self.assertRaises(PlatypusError):
+            MOEAD(self.problem)
+            
+    def test_NSGAIII(self):
+        with self.assertRaises(PlatypusError):
+            NSGAIII(self.problem, divisions_outer = 24)
