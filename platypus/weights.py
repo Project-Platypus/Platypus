@@ -18,25 +18,49 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import, division, print_function
 
+import sys
 import math
 import copy
 import random
-import numpy as np
 from .core import POSITIVE_INFINITY
 
 def chebyshev(values, weights, min_weight=0.0001):
+    """Chebyshev (Tchebycheff) function scalarization.
+    
+    Parameters
+    ----------
+    values : list of float
+        The objective values.
+    weights : list of float
+        The weights (the length must be the same as values).
+    min_weight : float
+        The minimum weight allowed.
+    """
     return max([max(weights[i], min_weight) * values[i] for i in range(len(values))])
 
 def pbi(solution, ideal_point, weights, theta):
-    '''
-    ----------------------
-    ideal_point : list
-    weights     : list
-    solution    : object
-    ----------------------
-    assume we are solving a minimization problem
-    using numpy to guarantee the numerical stability
-    '''
+    """Penalty-based boundary intersection scalarization.
+    
+    Using this scalarizing function requires numpy.  This assumes the objectives
+    are being minimized.
+    
+    Parameters
+    ----------
+    solution : Solution
+        The solution
+    ideal_point: list of float
+        The ideal point (the length must be the same as values).
+    weights : list of float
+        The weights (the length must be the same as values).
+    theta : float
+        The theta value.
+    """
+    try:
+        import numpy as np
+    except:
+        print("The pbi function requires numpy.", file=sys.stderr)
+        raise
+
     w      = np.array(weights)
     z_star = np.array(ideal_point)
     F      = np.array(solution.objectives)
@@ -47,7 +71,8 @@ def pbi(solution, ideal_point, weights, theta):
     return (d1 + theta * d2).tolist()
 
 # Implementation Note: The first argument to weight vector generators should be
-# nobjs, the number of objectives.
+# nobjs, the number of objectives.  The remaining arguments should be provided
+# by the algorithm constructor.
 
 def random_weights(nobjs, population_size):
     """Returns a set of randomly-generated but uniformly distributed weights.
