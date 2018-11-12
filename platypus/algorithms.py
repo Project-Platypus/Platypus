@@ -1418,7 +1418,7 @@ class RegionBasedSelector(Selector):
         
     def draw(self):
         index = random.randrange(len(self.grid.keys()))
-        key = self.grid.keys()[index]
+        key = list(self.grid.keys())[index]
         return (key, self.grid[key])
         
     def select_one(self, population):
