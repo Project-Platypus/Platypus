@@ -28,6 +28,7 @@ import operator
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
+from tqdm import tqdm
 from .evaluator import Job
 
 LOGGER = logging.getLogger("Platypus")
@@ -289,7 +290,7 @@ class Algorithm(object):
         
         self.nfe += len(unevaluated)
     
-    def run(self, condition, callback=None):
+    def run(self, condition, callback=None, recorder=None):
         if isinstance(condition, int):
             condition = MaxEvaluations(condition)
             
@@ -300,6 +301,9 @@ class Algorithm(object):
         start_time = time.time()
         
         LOGGER.log(logging.INFO, "%s starting", type(self).__name__)
+
+        # Starts progress bar
+        pbar = tqdm(total=condition.nfe)  # max nfe
 
         while not condition(self):
             self.step()
@@ -313,7 +317,17 @@ class Algorithm(object):
 
             if callback is not None:
                 callback(self)
-                
+
+            # Saves generation result to a dictionary; tagged by generation number
+            if recorder and recorder.save_all:
+                recorder.add_generation_result(copy.deepcopy(self.result))
+
+            # Updates progress bar
+            pbar.update(self.nfe - pbar.n)
+        
+        if recorder:
+            recorder.commit(self)
+
         LOGGER.log(logging.INFO,
                    "%s finished; Total NFE: %d, Elapsed Time: %s",
                    type(self).__name__,
