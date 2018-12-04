@@ -319,8 +319,8 @@ class Algorithm(object):
                 callback(self)
 
             # Saves generation result to a dictionary; tagged by generation number
-            if recorder and recorder.save_all:
-                recorder.add_generation_result(copy.deepcopy(self.result))
+            if recorder:
+                recorder.update_generation_result(copy.deepcopy(self.result))
 
             # Updates progress bar
             pbar.update(self.nfe - pbar.n)

@@ -3,6 +3,7 @@ Currently saves everything as a pickle object."""
 
 import pickle
 import datetime
+import copy
 
 
 class Recorder:
@@ -16,13 +17,24 @@ class Recorder:
         generator : <Generator>
         selector : <Selector>
         nfe : int
-        result : array of <Solution>
-        all_res : dict of results
+        result : <Solution>[]
+        all_res : dict
+    
+    Other attributes:
+        save_result : boolean
+            If True, save results to file
+        save_all : boolean
+            Save all generation results, if save_result is also True
+        _observers : set
+            A set of observers who are observing this recorder
     """
 
-    def __init__(self, save_all=False):
-        """When save_all is set to True, save all generation results"""
+    def __init__(self, save_result=True, save_all=False):
+        self.save_result = save_result
         self.save_all = save_all
+        self._observers = set()
+
+        # Records
         self._problem = None
         self._population_size = None
         # Consider saving a string repr of these objects
@@ -34,7 +46,22 @@ class Recorder:
         self._result = None
         self._all_res = None
 
-    def add_generation_result(self, result):
+    def attach(self, observer):
+        observer._subject = self
+        self._observers.add(observer)
+    
+    def detach(self, observer):
+        observer._subject = None
+        self._observers.discard(observer)
+
+    def update_generation_result(self, result):
+        for observer in self._observers:
+            observer.update(result)
+
+        if self.save_result and self.save_all:
+            self._save_generation_result(copy.deepcopy(result))  # in case of any werid python behaviour
+
+    def _save_generation_result(self, result):
         if not self._all_res:
             self._all_res = {}
             self._ngen = 0
@@ -42,6 +69,14 @@ class Recorder:
         self._ngen += 1
 
     def commit(self, algorithm):
+        if not self.save_result:
+            return
+        
+        # detach observers 
+        while self._observers:
+            self.detach(self._observers.pop())
+        del self._observers
+
         self._problem = algorithm.problem
         try:
             self._population_size = algorithm.population_size
@@ -66,6 +101,7 @@ class Recorder:
         self.save_to_file()
 
     def save_to_file(self):
+        # TODO(Isa): save to a folder and each pickle object is each record
         # Append timestamp to filename
         filename = f'{datetime.datetime.now():%Y%m%d_%H%M%S}'
 
