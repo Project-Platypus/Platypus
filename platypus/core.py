@@ -403,6 +403,7 @@ class Solution(object):
         self.constraints = FixedLengthArray(problem.nconstrs)
         self.constraint_violation = 0.0
         self.evaluated = False
+        self.metadata = dict()  # Data output from model (main trajectory)
         
     def evaluate(self):
         self.problem(self)
@@ -411,7 +412,7 @@ class Solution(object):
         return self.__str__()
         
     def __str__(self):
-        return "Solution[" + ",".join(list(map(str, self.variables))) + "|" + ",".join(list(map(str, self.objectives))) + "|" + str(self.constraint_violation) + "]"
+        return "Solution[" + ",".join(list(map(str, self.variables))) + "|" + ",".join(list(map(str, self.objectives))) + "|" + str(self.constraint_violation) + "|" + str(self.metadata) + "]"
     
     def __deepcopy__(self, memo):
         """Override to avoid cloning problem definition."""
