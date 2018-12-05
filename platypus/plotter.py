@@ -197,3 +197,119 @@ class MainWindow(QMainWindow):
     def _recurring_timer(self):
         self.counter +=1
         self.clock.setText("Time elapsed: %ds" % self.counter)
+
+
+
+class RouteMainWindow(QMainWindow):
+
+    def __init__(self, nobjs, algorithm, nfe, recorder, *args, **kwargs):
+        super(RouteMainWindow, self).__init__(*args, **kwargs)
+        self.nobjs = nobjs
+        self.algorithm = algorithm
+        self.nfe = nfe
+        self.recorder = recorder
+
+        self._init_UI()
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.clock)
+        layout.addWidget(self.l)
+        layout.addWidget(self.win)
+
+        w = QWidget()
+        w.setLayout(layout)
+
+        self.setCentralWidget(w)
+        self.show()
+
+        self._run_qtimer()  # starts timing application
+
+        self.threadpool = QThreadPool()
+        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+
+        # Sets observee
+        self._subject = None
+        self.recorder.attach(self)
+
+        thread = Thread(target=self._threaded_algorithm)
+        thread.start()
+
+    def update(self, population):
+        # print('result recv with {} items'.format(len(population)))
+        worker = Worker(self._execute_this_plot, population)
+        worker.signals.result.connect(self._print_output)
+        worker.signals.finished.connect(self._thread_complete)
+        worker.signals.progress.connect(self._progress_fn)
+
+        # Execute
+        self.threadpool.start(worker)
+
+    def _threaded_algorithm(self):
+        for i in range(1, 0, -1):
+            self.l.setText('Algorithm starts at %d' % i)
+            time.sleep(1)
+        self.l.setText("Running")
+        self.algorithm.run(self.nfe, recorder=self.recorder)
+
+    def _progress_fn(self, n):
+        # print("%d%% done" % n)
+        pass
+
+    def _print_output(self, s):
+        # print(s)
+        pass
+
+    def _thread_complete(self):
+        # print("THREAD COMPLETE!")
+        pass
+
+    def _execute_this_plot(self, population, progress_callback):
+        import numpy as np
+        for i in range(self.nobjs):
+            objs = [s.objectives[i] for s in population]
+            min_obj_idx = np.argmin(objs)
+            candidate = population[min_obj_idx]
+            route = candidate.metadata['coords_route']
+            self.ps_o[i].plot(route[0], route[1], clear=True)
+            progress_callback.emit((i+1)*100/self.nobjs)
+
+    def _init_UI(self):
+        self._init_clock()
+        self._init_label()
+        self._init_plot_window()
+
+    def _run_qtimer(self):
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self._recurring_timer)
+        self.timer.start()
+
+    def _init_clock(self):
+        self.counter = 0
+        self.clock = QLabel("Time elapsed: %ds" % self.counter)
+
+    def _init_label(self):
+        self.l = QLabel("Start")
+
+    def _init_plot_window(self):
+        self.win = pg.GraphicsWindow()
+        self.win.resize(1000, 800)
+
+        # Hyperline over generations
+        self.ps_o     = [None] * self.nobjs
+        self.curves_o = [None] * self.nobjs
+
+        # Initialise hyperline plots
+        for i in range(self.nobjs):
+            p = self.win.addPlot(title="Hyperline")  # creates a PlotItem
+            self.ps_o[i] = p
+
+        # scatter plots for hyperline
+        for i, p in zip(range(self.nobjs), self.ps_o):
+            self.curves_o[i] = p.plot([], pen=None, symbolBrush=(0,255,0), symbolSize=5, symbolPen=None)
+
+    def _recurring_timer(self):
+        self.counter +=1
+        self.clock.setText("Time elapsed: %ds" % self.counter)
+
+
