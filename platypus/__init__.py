@@ -28,7 +28,5 @@ from .problems import *
 from .tools import *
 from .types import *
 from .weights import *
-from .recorder import *
-from .plotter import *
 
 __version__ = "1.0.2" # Update setup.py if the version changes!
