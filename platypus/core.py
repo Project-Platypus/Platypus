@@ -287,6 +287,7 @@ class Algorithm(object):
                 unevaluated[i].constraint_violation = result.solution.constraint_violation
                 unevaluated[i].feasible = result.solution.feasible
                 unevaluated[i].evaluated = result.solution.evaluated
+                unevaluated[i].metadata = result.solution.metadata
         
         self.nfe += len(unevaluated)
     
