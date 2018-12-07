@@ -141,12 +141,13 @@ we set the evaluation function.  Note how the ``belegundu`` function returns
 a tuple (two lists) for the objectives and constraints.
 
 Constraints may also be defined as functions. Create the function and provide the
-function object itself as the constraint. The function will receive the value to be
-evaluated as its only parameter. The function must return 0 if the constraint is feasible
-and anything else if it is not feasible. The constraint function is **not** provided
-information on which decision variable is being evaluated, however, so if your
-constraints interact, you may need to preprocess your constraint in a subclass of
-`Problem` and then return the appropriate value in your contraint function.
+function object itself as the constraint. The function will be evaluated for each
+decision variable and will receive the decision variable value as its only parameter.
+The function must return 0 if the constraint is feasible and anything else if it
+is not feasible. The constraint function is **not** provided information on which
+decision variable is being evaluated, however, so if your constraints interact,
+you may need to preprocess your constraint in a subclass of `Problem` and then
+return the appropriate value in your contraint function.
 
 The final population could contain infeasible and dominated solutions if the
 number of function evaluations was insufficient (e.g. ``algorithm.Run(100)``).
