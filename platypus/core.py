@@ -157,6 +157,7 @@ class Variator(object):
     def __init__(self, arity):
         super(Variator, self).__init__()
         self.arity = arity
+        self.algorithm = None
         
     @abstractmethod
     def evolve(self, parents):
@@ -267,6 +268,8 @@ class Algorithm(object):
         if self.log_frequency is None:
             from .config import PlatypusConfig
             self.log_frequency = PlatypusConfig.default_log_frequency
+        self.variator.algorithm = self
+        self.ngen = 0
     
     @abstractmethod
     def step(self):
@@ -297,7 +300,6 @@ class Algorithm(object):
             
         if isinstance(condition, TerminationCondition):
             condition.initialize(self)
-            
         last_log = self.nfe
         start_time = time.time()
         
@@ -308,7 +310,7 @@ class Algorithm(object):
 
         while not condition(self):
             self.step()
-            
+            self.ngen += 1
             if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
                 LOGGER.log(logging.INFO,
                            "%s running; NFE Complete: %d, Elapsed Time: %s",

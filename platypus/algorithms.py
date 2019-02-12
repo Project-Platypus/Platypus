@@ -99,11 +99,11 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
                  comparator = ParetoDominance(),
                  variator = None,
                  **kwargs):
-        super(GeneticAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
         self.offspring_size = offspring_size
         self.selector = selector
         self.comparator = comparator
         self.variator = variator
+        super(GeneticAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
         
     def initialize(self):
         super(GeneticAlgorithm, self).initialize()

@@ -185,8 +185,12 @@ class GAOperator(Variator):
         super(GAOperator, self).__init__(variation.arity)
         self.variation = variation
         self.mutation = mutation
+        self.i = 0
         
     def evolve(self, parents):
+        if self.i == 0:
+            self.mutation.algorithm = self.algorithm
+            self.i +=1
         return list(map(self.mutation.evolve, self.variation.evolve(parents)))
     
 class CompoundMutation(Mutation):
