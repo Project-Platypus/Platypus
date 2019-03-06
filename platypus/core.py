@@ -270,6 +270,7 @@ class Algorithm(object):
             self.log_frequency = PlatypusConfig.default_log_frequency
         self.variator.algorithm = self
         self.ngen = 0
+        self.nfe_max = 0
     
     @abstractmethod
     def step(self):
@@ -297,6 +298,7 @@ class Algorithm(object):
     def run(self, condition, callback=None, recorder=None):
         if isinstance(condition, int):
             condition = MaxEvaluations(condition)
+            self.nfe_max = condition.nfe
             
         if isinstance(condition, TerminationCondition):
             condition.initialize(self)
