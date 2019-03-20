@@ -214,7 +214,7 @@ class Subset(Type):
         self.size = size
         
     def rand(self):
-        indices = list(range(1, len(self.elements)))
+        indices = list(range(len(self.elements)))
         random.shuffle(indices)
         return [self.elements[i] for i in indices[:self.size]]
     
