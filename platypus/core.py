@@ -51,7 +51,10 @@ class FixedLengthArray(object):
     def __init__(self, size, default_value = None, convert = None):
         super(FixedLengthArray, self).__init__()
         self._size = size
-        self._data = [default_value]*size
+        if convert is not None:
+            self._data = [convert(default_value) for _ in range(size)]
+        else:
+            self._data = [default_value]*size
         self.convert = convert
         
     def __len__(self):
