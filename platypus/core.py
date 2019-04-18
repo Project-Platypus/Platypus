@@ -268,7 +268,8 @@ class Algorithm(object):
         if self.log_frequency is None:
             from .config import PlatypusConfig
             self.log_frequency = PlatypusConfig.default_log_frequency
-        self.variator.algorithm = self
+        if hasattr(self, 'variator'):
+            self.variator.algorithm = self
         self.ngen = 0
         self.nfe_max = 0
     

@@ -132,10 +132,10 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
                  comparator = ParetoDominance(),
                  variator = None,
                  **kwargs):
-        super(EvolutionaryStrategy, self).__init__(problem, population_size, generator, **kwargs)
         self.offspring_size = offspring_size
         self.comparator = comparator
         self.variator = variator
+        super(EvolutionaryStrategy, self).__init__(problem, population_size, generator, **kwargs)
         
     def initialize(self):
         super(EvolutionaryStrategy, self).initialize()
@@ -165,10 +165,10 @@ class NSGAII(AbstractGeneticAlgorithm):
                  variator = None,
                  archive = None,
                  **kwargs):
-        super(NSGAII, self).__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
         self.archive = archive
+        super(NSGAII, self).__init__(problem, population_size, generator, **kwargs)
         
     def step(self):
         if self.nfe == 0:
@@ -215,9 +215,9 @@ class EpsMOEA(AbstractGeneticAlgorithm):
                  selector = TournamentSelector(2),
                  variator = None,
                  **kwargs):
-        super(EpsMOEA, self).__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
+        super(EpsMOEA, self).__init__(problem, population_size, generator, **kwargs)
         self.dominance = ParetoDominance()
         self.archive = EpsilonBoxArchive(epsilons)
         
@@ -277,9 +277,9 @@ class GDE3(AbstractGeneticAlgorithm):
                  generator = RandomGenerator(),
                  variator = DifferentialEvolution(),
                  **kwargs):
-        super(GDE3, self).__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = ParetoDominance()
+        super(GDE3, self).__init__(problem, population_size, generator, **kwargs)
         
     def select(self, i, arity):
         indices = []
@@ -328,8 +328,8 @@ class SPEA2(AbstractGeneticAlgorithm):
                  dominance = ParetoDominance(),
                  k = 1,
                  **kwargs):
-        super(SPEA2, self).__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
+        super(SPEA2, self).__init__(problem, population_size, generator, **kwargs)
         self.dominance = dominance
         self.k = k
         self.selection = TournamentSelector(2, dominance=AttributeDominance(fitness_key))
@@ -420,9 +420,9 @@ class MOEAD(AbstractGeneticAlgorithm):
                  weight_generator = random_weights,
                  scalarizing_function = chebyshev,
                  **kwargs):
+        self.variator = variator
         super(MOEAD, self).__init__(problem, 0, generator, **remove_keys(kwargs, "population_size")) # population_size is set after generating weights
         self.neighborhood_size = neighborhood_size
-        self.variator = variator
         self.delta = delta
         self.eta = eta
         self.update_utility = update_utility
@@ -601,9 +601,9 @@ class NSGAIII(AbstractGeneticAlgorithm):
                  selector = TournamentSelector(2),
                  variator = None,
                  **kwargs):
-        super(NSGAIII, self).__init__(problem, generator = generator, **kwargs)
         self.selector = selector
         self.variator = variator
+        super(NSGAIII, self).__init__(problem, generator = generator, **kwargs)
         
         self.population_size = choose(problem.nobjs + divisions_outer - 1, divisions_outer) + \
                 (0 if divisions_inner == 0 else choose(problem.nobjs + divisions_inner - 1, divisions_inner))
@@ -1180,7 +1180,7 @@ class CMAES(Algorithm):
         for _ in range(self.offspring_size):
             solution = Solution(self.problem)
             
-            if self.diagonal_iterations >= self.iteration:
+            if self.diagonal_iteratiparticle_swarnmons >= self.iteration:
                 while True:
                     feasible = True
                     
@@ -1298,11 +1298,11 @@ class IBEA(AbstractGeneticAlgorithm):
                  fitness_comparator = AttributeDominance(fitness_key, False),
                  variator = None,
                  **kwargs):
+        self.variator = variator
         super(IBEA, self).__init__(problem, population_size, generator, **kwargs)
         self.fitness_evaluator = fitness_evaluator
         self.fitness_comparator = fitness_comparator
         self.selector = TournamentSelector(2, fitness_comparator)
-        self.variator = variator
         
     def initialize(self):
         super(IBEA, self).initialize()
@@ -1344,8 +1344,8 @@ class PAES(AbstractGeneticAlgorithm):
                  generator = RandomGenerator(),
                  variator = None,
                  **kwargs):
-        super(PAES, self).__init__(problem, 1, generator, **kwargs)
         self.variator = variator
+        super(PAES, self).__init__(problem, 1, generator, **kwargs)
         self.dominance = ParetoDominance()
         self.archive = AdaptiveGridArchive(capacity, problem.nobjs, divisions)
         
