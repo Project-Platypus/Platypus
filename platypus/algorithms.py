@@ -66,6 +66,13 @@ class AbstractGeneticAlgorithm(Algorithm):
         else:
             self.iterate()
             self.result = self.population
+        
+        # Update the id of the individuals
+        for i in range(len(self.result)):
+            self.result[i].id = (self.generation, i)
+
+        # Update generation
+        self.generation += 1
             
     def initialize(self):
         self.population = [self.generator.generate(self.problem) for _ in range(self.population_size)]
