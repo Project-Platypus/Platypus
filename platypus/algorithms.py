@@ -70,6 +70,8 @@ class AbstractGeneticAlgorithm(Algorithm):
         # Update the id of the individuals
         for i in range(len(self.result)):
             self.result[i].id = (self.generation, i)
+            if hasattr(self.result[i], 'tracker') == False:
+                self.result[i].tracker = None
 
         # Update generation
         self.generation += 1

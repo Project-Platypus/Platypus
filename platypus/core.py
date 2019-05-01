@@ -260,6 +260,7 @@ class Algorithm(object):
         self.evaluator = evaluator
         self.log_frequency = log_frequency
         self.nfe = 0
+        self.generation = 0
         
         if self.evaluator is None:
             from .config import PlatypusConfig
