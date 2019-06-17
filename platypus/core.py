@@ -163,8 +163,7 @@ class Variator(object):
         self.arity = arity
 
     def update(self, attribute: str, value: Any):
-        """ Update method, to be called by an observee when the state of the
-            algorithm changes.
+        """ Updates the variator's attribute with the given value. Called by the `Algorithm` class.
         """
         self.__setattr__(attribute, value)
 
@@ -352,7 +351,9 @@ class Algorithm(object):
                    datetime.timedelta(seconds=time.time()-start_time))
 
     def attach(self, observer: object):
-        """ Attaches observers to itself"""
+        """ Attaches observers to the algorithm. The observers must have an `update` method
+            implemented.
+        """
         self._observers.append(observer)
 
     def _notify(self, attribute: str, value: Any):
