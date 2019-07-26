@@ -252,7 +252,7 @@ class _EvaluateJob(Job):
         self.solution = solution
 
     def run(self):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        # signal.signal(signal.SIGINT, signal.SIG_IGN)
         self.solution.evaluate()
 
 
@@ -460,7 +460,7 @@ class Solution(object):
         self.problem = problem
         # self.variables = FixedLengthArray(problem.nvars)
         # self.objectives = FixedLengthArray(problem.nobjs)
-        self.variables = np.zeros((problem.nvars, ))
+        self.variables = np.zeros((problem.objs, ))
         self.objectives = np.zeros((problem.nvars, ))
         self.constraints = FixedLengthArray(problem.nconstrs)
         self.constraint_violation = 0.0
