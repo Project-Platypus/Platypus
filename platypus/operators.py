@@ -190,7 +190,9 @@ class GAOperator(Variator):
     def evolve(self, parents):
         if self.i == 0:
             self.i +=1
-        return list(map(self.mutation.evolve, self.variation.evolve(parents)))
+        children = self.variation.evolve(parents)
+        children_mutated = list(map(self.mutation.evolve, children))
+        return children_mutated
 
 class CompoundMutation(Mutation):
 
