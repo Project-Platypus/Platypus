@@ -460,7 +460,7 @@ class Solution(object):
         self.problem = problem
         # self.variables = FixedLengthArray(problem.nvars)
         # self.objectives = FixedLengthArray(problem.nobjs)
-        self.variables = np.zeros((problem.objs, ))
+        self.variables = np.zeros((problem.nobjs, ))
         self.objectives = np.zeros((problem.nvars, ))
         self.constraints = FixedLengthArray(problem.nconstrs)
         self.constraint_violation = 0.0
