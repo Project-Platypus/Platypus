@@ -34,6 +34,7 @@ from abc import ABCMeta, abstractmethod
 from tqdm import tqdm
 from .evaluator import Job
 from typing import List
+import random
 
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
@@ -202,14 +203,17 @@ class Selector(object):
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
 
+
 class TerminationCondition(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, end_state):
+        self.end_state = end_state
         super(TerminationCondition, self).__init__()
 
     def __call__(self, algorithm):
+        self._update_current_state(algorithm)
         return self.shouldTerminate(algorithm)
 
     def initialize(self, algorithm):
@@ -219,31 +223,27 @@ class TerminationCondition(object):
     def shouldTerminate(self, algorithm):
         raise NotImplementedError("method not implemented")
 
-class MaxEvaluations(TerminationCondition):
+    @abstractmethod
+    def _update_current_state(self, algorithm):
+        pass
 
-    def __init__(self, nfe):
-        super(MaxEvaluations, self).__init__()
-        self.nfe = nfe
-        self.starting_nfe = 0
-
-    def initialize(self, algorithm):
-        self.starting_nfe = algorithm.nfe
-
-    def shouldTerminate(self, algorithm):
-        return algorithm.nfe - self.starting_nfe >= self.nfe
 
 class MaxTime(TerminationCondition):
 
     def __init__(self, max_time):
-        super(MaxTime, self).__init__()
+        super(MaxTime, self).__init__(max_time)
         self.max_time = max_time
-        self.start_time = time.time()
+        self.end_state = max_time
 
     def initialize(self, algorithm):
         self.start_time = time.time()
 
     def shouldTerminate(self, algorithm):
         return time.time() - self.start_time >= self.max_time
+
+    def _update_current_state(self, algorithm):
+        self.current_state = time.time()
+
 
 class _EvaluateJob(Job):
 
@@ -319,7 +319,7 @@ class Algorithm(object):
         LOGGER.log(logging.INFO, "%s starting", type(self).__name__)
 
         # Starts progress bar
-        pbar = tqdm(total=condition.nfe)  # max nfe
+        pbar = tqdm(total=condition.end_state)
 
         while not condition(self):
             self.step()
@@ -339,7 +339,7 @@ class Algorithm(object):
                 recorder.update_generation_result(copy.deepcopy(self.result))
 
             # Updates progress bar
-            pbar.update(self.nfe - pbar.n)
+            pbar.update(condition.current_state - pbar.n)
 
         if recorder:
             recorder.commit(self)
