@@ -789,13 +789,15 @@ class SSX(Variator):
 
 class Multimethod(Variator):
 
-    def __init__(self, algorithm, variators, update_frequency=100):
+    def __init__(self, algorithm, variators, update_frequency=100, reset_frequency=None):
         super(Multimethod, self).__init__(max([v.arity for v in variators]))
         self.algorithm = algorithm
         self.variators = variators
         self.update_frequency = update_frequency
         self.last_update = 0
-        self.probabilities = [1.0 / len(variators) for _ in range(len(variators))]
+        self.probabilities = np.array([1.0 / len(variators) for _ in range(len(variators))])
+        self.reset_frequency = 5*update_frequency if reset_frequency is None else reset_frequency
+        self.min_probability = 0.1 if len(variators) <= 10 else 1/len(variators)
 
         self.select()
 
@@ -816,7 +818,17 @@ class Multimethod(Variator):
                     if hasattr(solution, "operator"):
                         counts[solution.operator] += 1
 
-            self.probabilities = [counts[i] / float(sum(counts)) for i in range(len(self.variators))]
+            self.probabilities = np.array(
+                               [counts[i] / float(sum(counts)) for i in range(len(self.variators))])
+
+            probabilities_less_than_min = self.probabilities < self.min_probability
+            if np.any(probabilities_less_than_min):
+                print(f"modifying probabilities to minimum {self.min_probability}")
+                self.probabilities[probabilities_less_than_min] = self.min_probability
+                remaining_probability = 1-np.sum(self.probabilities[probabilities_less_than_min])
+                self.probabilities[~probabilities_less_than_min] *= remaining_probability/\
+                                            np.sum(self.probabilities[~probabilities_less_than_min])
+
             print(self.probabilities)
 
         self.next_variator = roulette(self.probabilities)
