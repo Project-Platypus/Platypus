@@ -21,6 +21,11 @@ from __future__ import absolute_import, division, print_function
 import copy
 import math
 import random
+
+import numpy as np
+
+from poddie.config import PoddieParameters
+
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from .types import Real, Binary, Permutation, Subset
 from .tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
@@ -192,6 +197,7 @@ class GAOperator(Variator):
             self.i +=1
         children = self.variation.evolve(parents)
         children_mutated = list(map(self.mutation.evolve, children))
+        a=1
         return children_mutated
 
 class CompoundMutation(Mutation):
@@ -255,23 +261,52 @@ class DifferentialEvolution(Variator):
 
 class UniformMutation(Mutation):
 
-    def __init__(self, probability, perturbation):
+    def __init__(self, probability: float, perturbation: float, vertical: bool,
+                 update_frequency: int):
         super(UniformMutation, self).__init__()
         self.probability = probability
         self.perturbation = perturbation
+        self.vertical = vertical
+        self.n_points = int(PoddieParameters.get_instance().route['n_points'])
+        self.probabilities = np.zeros((self.n_points, )) + self.probability
+        self.update_frequency = update_frequency
+        self.last_update = 0
+        self.first_update = True
 
     def mutate(self, parent):
-        result = copy.deepcopy(parent)
+        result = parent.from_instance()
         problem = result.problem
 
-        for i in range(problem.nvars):
-            if random.uniform(0.0, 1.0) <= self.probability:
+        for i in range(self.n_points):
+            # probability = self.probabilities[i]
+            k = i
+            i = i+self.n_points if self.vertical else i
+            if random.uniform(0.0, 1.0) < self.probability:
                 type = problem.types[i]
                 value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
                 result.variables[i] = clip(value, type.min_value, type.max_value)
                 result.evaluated = False
+                # result.mutation_params[k] += 1
+
+        # self._update_probabilities()
 
         return result
+
+    def _update_probabilities(self):
+        self.last_update += 1
+        if self.last_update >= self.update_frequency:
+            self.last_update = 0
+            new_probabilities = np.zeros((self.n_points,))
+            population = self.result
+            for s in population:
+                counts = s.mutation_params
+                new_probabilities += counts
+                s.mutation_params = np.zeros((self.n_points,))
+            if self.first_update:
+                self.first_update = False
+                self.probabilities = new_probabilities/self.update_frequency
+            print(self.probabilities)
+
 
 class NonUniformMutation(Mutation):
 
@@ -782,6 +817,7 @@ class Multimethod(Variator):
                         counts[solution.operator] += 1
 
             self.probabilities = [counts[i] / float(sum(counts)) for i in range(len(self.variators))]
+            print(self.probabilities)
 
         self.next_variator = roulette(self.probabilities)
         self.arity = self.variators[self.next_variator].arity

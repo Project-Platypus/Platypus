@@ -393,6 +393,15 @@ class Algorithm(object):
         self._ngen = value
         self._notify('ngen', value)
 
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, value):
+        self._result = value
+        self._notify('result', value)
+
 
 def _constraint_eq(x, y):
     return abs(x - y)
