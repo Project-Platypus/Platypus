@@ -558,6 +558,23 @@ class ParetoDominance(Dominance):
         else:
             return 1
 
+class PenaltyDominance(Dominance):
+    #NOTE: This works assuming only one objective
+
+    def compare(self, solution1, solution2):
+        assert len(solution1.objectives) == 1, 'PenaltyDominance only works for 1 objective!' + \
+                                               f'Now using {len(solution1.objectives)} objectives.'
+        total_objective1 = solution1.objectives[0] + solution1.constraint_violation*1e02
+        total_objective2 = solution2.objectives[0] + solution2.constraint_violation*1e02
+
+        if total_objective1 > total_objective2:
+            return -1
+        elif total_objective1 < total_objective2:
+            return 1
+        else:
+            return 0
+
+
 class EpsilonDominance(Dominance):
 
     def __init__(self, epsilons):

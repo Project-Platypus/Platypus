@@ -261,72 +261,74 @@ class DifferentialEvolution(Variator):
 
 class UniformMutation(Mutation):
 
-    def __init__(self, probability: float, perturbation: float, vertical: bool,
-                 update_frequency: int):
+    def __init__(self, probability: float, perturbation: float, vertical: bool):
+
         super(UniformMutation, self).__init__()
         self.probability = probability
         self.perturbation = perturbation
         self.vertical = vertical
         self.n_points = int(PoddieParameters.get_instance().route['n_points'])
-        self.probabilities = np.zeros((self.n_points, )) + self.probability
-        self.update_frequency = update_frequency
-        self.last_update = 0
-        self.first_update = True
 
     def mutate(self, parent):
         result = parent.from_instance()
         problem = result.problem
 
         for i in range(self.n_points):
-            # probability = self.probabilities[i]
-            k = i
             i = i+self.n_points if self.vertical else i
             if random.uniform(0.0, 1.0) < self.probability:
                 type = problem.types[i]
                 value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
                 result.variables[i] = clip(value, type.min_value, type.max_value)
                 result.evaluated = False
-                # result.mutation_params[k] += 1
-
-        # self._update_probabilities()
 
         return result
 
-    def _update_probabilities(self):
-        self.last_update += 1
-        if self.last_update >= self.update_frequency:
-            self.last_update = 0
-            new_probabilities = np.zeros((self.n_points,))
-            population = self.result
-            for s in population:
-                counts = s.mutation_params
-                new_probabilities += counts
-                s.mutation_params = np.zeros((self.n_points,))
-            if self.first_update:
-                self.first_update = False
-                self.probabilities = new_probabilities/self.update_frequency
-            print(self.probabilities)
+class SingleUniformMutation(Mutation):
 
+    def __init__(self, probability:float, perturbation: float, vertical:bool):
+        super(SingleUniformMutation, self).__init__()
+        self.probability = probability
+        self.perturbation = perturbation
+        self.vertical = vertical
+        self.n_points = int(PoddieParameters.get_instance().route['n_points'])
+
+    def mutate(self, parent):
+        result = parent.from_instance()
+        problem = result.problem
+
+        i = random.randint(0, self.n_points-1)
+        i = i+self.n_points if self.vertical else i
+        if random.uniform(0.0, 1.0) < self.probability:
+            type = problem.types[i]
+            value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
+            result.variables[i] = clip(value, type.min_value, type.max_value)
+            result.evaluated = False
+
+        return result
 
 class NonUniformMutation(Mutation):
 
-    def __init__(self, probability, perturbation, max_iterations, algorithm):
+    def __init__(self, probability, perturbation, max_iterations, vertical=False):
         super(NonUniformMutation, self).__init__()
         self.probability = probability
         self.perturbation = perturbation
         self.max_iterations = max_iterations
-        self.algorithm = algorithm
+        self.vertical = vertical
+        self.n_points = int(PoddieParameters.get_instance().route['n_points'])
+        self.ngen_max = PoddieParameters.get_instance().optimisation['generation_size']
 
     def _delta(self, difference):
-        current_iteration = self.algorithm.nfe / self.algorithm.swarm_size
+        current_iteration = self.ngen / self.ngen_max
         fraction = min(1.0, current_iteration / float(self.max_iterations))
-        return difference * (1.0 - math.pow(random.uniform(0.0, 1.0), math.pow(1.0 - fraction, self.perturbation)))
+        return difference * (1.0 - math.pow(random.uniform(0.0, 1.0), math.pow(1.0 - fraction,
+                                                                               self.perturbation)))
 
     def mutate(self, parent):
-        result = copy.deepcopy(parent)
+        result = parent.from_instance()
         problem = result.problem
 
-        for i in range(problem.nvars):
+        for i in range(self.n_points):
+            i = i + self.n_points if self.vertical else i
             if random.uniform(0.0, 1.0) <= self.probability:
                 type = problem.types[i]
                 value = result.variables[i]
@@ -340,6 +342,7 @@ class NonUniformMutation(Mutation):
                 result.evaluated = False
 
         return result
+
 
 class UM(Mutation):
     """Uniform mutation."""
