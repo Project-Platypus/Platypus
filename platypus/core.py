@@ -39,6 +39,7 @@ import random
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
+ALLOWANCE_TOLERANCE = 1e-04
 
 class PlatypusError(Exception):
     pass
@@ -341,8 +342,9 @@ class Algorithm(object):
             # Updates progress bar
             pbar.update(condition.current_state - pbar.n)
 
-        if recorder:
-            recorder.commit(self)
+        #NOTE: lines are commented out for now, until recorder is removed for good
+        # if recorder:
+            # recorder.commit(self)
 
         LOGGER.log(logging.INFO,
                    "%s finished; Total NFE: %d, Elapsed Time: %s",
@@ -402,9 +404,18 @@ class Algorithm(object):
         self._result = value
         self._notify('result', value)
 
+    @property
+    def population(self):
+        return self._population
+
+    @population.setter
+    def population(self, value: List):
+        self._population = value
+        self._notify('population', value)
 
 def _constraint_eq(x, y):
-    return abs(x - y)
+    result = 0 if abs(x-y) < ALLOWANCE_TOLERANCE else abs(x-y)
+    return result
 
 def _constraint_leq(x, y):
     return 0 if x <= y else abs(x - y)
@@ -471,7 +482,7 @@ class Solution(object):
         # self.objectives = FixedLengthArray(problem.nobjs)
         self.variables = np.zeros((problem.nvars, ))
         self.objectives = np.zeros((problem.nobjs, ))
-        self.constraints = FixedLengthArray(problem.nconstrs)
+        self.constraints = np.zeros((problem.nconstrs, ))
         self.constraint_violation = 0.0
         self.evaluated = False
         self.metadata = dict()  # Data output from model (main trajectory)
@@ -561,16 +572,15 @@ class ParetoDominance(Dominance):
 class PenaltyDominance(Dominance):
     #NOTE: This works assuming only one objective
 
+    def __init__(self, **_):
+        super().__init__()
+
     def compare(self, solution1, solution2):
         assert len(solution1.objectives) == 1, 'PenaltyDominance only works for 1 objective!' + \
                                                f'Now using {len(solution1.objectives)} objectives.'
 
-        order1 = math.floor(math.log10(solution1.objectives[0]/solution1.constraint_violation))-2 \
-                 if solution1.constraint_violation > 0 else 0
-        order2 = math.floor(math.log10(solution2.objectives[0]/solution2.constraint_violation))-2 \
-                 if solution2.constraint_violation > 0 else 0
-        total_objective1 = solution1.objectives[0] + solution1.constraint_violation * 50
-        total_objective2 = solution2.objectives[0] + solution2.constraint_violation * 50
+        total_objective1 = solution1.objectives[0]
+        total_objective2 = solution2.objectives[0]
 
         if total_objective1 < total_objective2:
             return -1
@@ -578,6 +588,9 @@ class PenaltyDominance(Dominance):
             return 1
         else:
             return 0
+
+    def update(self, *args, **kwargs):
+        pass
 
 
 class EpsilonDominance(Dominance):
