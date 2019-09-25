@@ -24,7 +24,7 @@ import random
 
 import numpy as np
 
-from poddie.config import PoddieParameters
+from poddie.config import PoddieParameters, OperatorsRegister
 
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
 from .types import Real, Binary, Permutation, Subset
@@ -45,8 +45,8 @@ class RandomGenerator(Generator):
 
 class TournamentSelector(Selector):
 
-    def __init__(self, tournament_size = 2, dominance = ParetoDominance()):
-        super(TournamentSelector, self).__init__()
+    def __init__(self, tournament_size = 2, dominance=ParetoDominance()):
+        super(TournamentSelector, self).__init__(dominance)
         self.tournament_size = tournament_size
         self.dominance = dominance
 
@@ -199,6 +199,10 @@ class GAOperator(Variator):
         children_mutated = list(map(self.mutation.evolve, children))
         a=1
         return children_mutated
+
+    def update(self, attribute, value):
+        self.mutation.update(attribute, value)
+
 
 class CompoundMutation(Mutation):
 
@@ -792,15 +796,16 @@ class SSX(Variator):
 
 class Multimethod(Variator):
 
-    def __init__(self, algorithm, variators, update_frequency=100, reset_frequency=None):
+    def __init__(self, variators, update_frequency=100):
         super(Multimethod, self).__init__(max([v.arity for v in variators]))
-        self.algorithm = algorithm
         self.variators = variators
         self.update_frequency = update_frequency
         self.last_update = 0
         self.probabilities = np.array([1.0 / len(variators) for _ in range(len(variators))])
-        self.reset_frequency = 5*update_frequency if reset_frequency is None else reset_frequency
         self.min_probability = 0.1 if len(variators) <= 10 else 1/len(variators)
+
+        # To be set by algo using observer pattern
+        self.population = None
 
         self.select()
 
@@ -811,13 +816,8 @@ class Multimethod(Variator):
             self.last_update = 0
             counts = [1 for _ in range(len(self.variators))]
 
-            if hasattr(self.algorithm, "archive"):
-                for solution in self.algorithm.archive:
-                    if hasattr(solution, "operator"):
-                        counts[solution.operator] += 1
-
-            if hasattr(self.algorithm, "recency_list"):
-                for solution in self.algorithm.recency_list:
+            if self.population is not None:
+                for solution in self.population:
                     if hasattr(solution, "operator"):
                         counts[solution.operator] += 1
 
@@ -841,8 +841,19 @@ class Multimethod(Variator):
         variator = self.variators[self.next_variator]
         result = variator.evolve(parents)
 
-        for solution in result:
-            solution.operator = self.next_variator
+        if isinstance(result, list):
+            for solution in result:
+                solution.operator = self.next_variator
+        else:
+            result.operator = self.next_variator
 
         self.select()
         return result
+
+    def mutate(self, parents):
+        """ Mutator interface"""
+        return self.evolve(parents)
+
+    def update(self, attribute, value):
+        self.__setattr__(attribute, value)
+        [operator.update(attribute, value) for operator in self.variators]

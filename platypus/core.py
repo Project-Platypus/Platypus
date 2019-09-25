@@ -194,7 +194,8 @@ class Selector(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, dominance: 'Dominance'):
+        self.dominance = dominance
         super(Selector, self).__init__()
 
     def select(self, n, population):
@@ -323,8 +324,8 @@ class Algorithm(object):
         pbar = tqdm(total=condition.end_state)
 
         while not condition(self):
-            self.step()
             self.ngen += 1
+            self.step()
             if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
                 LOGGER.log(logging.INFO,
                            "%s running; NFE Complete: %d, Elapsed Time: %s",
@@ -519,6 +520,9 @@ class Dominance(object):
 
     def compare(self, solution1, solution2):
         raise NotImplementedError("method not implemented")
+
+    def update(self, attribute, value):
+        self.__setattr__(attribute, value)
 
 class ParetoDominance(Dominance):
 
