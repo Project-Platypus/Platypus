@@ -596,6 +596,14 @@ class PenaltyDominance(Dominance):
     def update(self, *args, **kwargs):
         pass
 
+class RankDominance(Dominance):
+    def compare(self, solution1, solution2):
+        if solution1.rank < solution2.rank:
+            return -1
+        elif solution1.rank > solution2.rank:
+            return 1
+        else:
+            return 0
 
 class EpsilonDominance(Dominance):
 

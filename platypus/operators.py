@@ -26,7 +26,8 @@ import numpy as np
 
 from poddie.config import PoddieParameters, OperatorsRegister
 
-from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, Mutation, EPSILON
+from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, \
+                  Mutation, EPSILON, RankDominance
 from .types import Real, Binary, Permutation, Subset
 from .tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
 
@@ -50,6 +51,25 @@ class TournamentSelector(Selector):
         self.tournament_size = tournament_size
         self.dominance = dominance
 
+    def select_one(self, population):
+        winner = random.choice(population)
+
+        for _ in range(self.tournament_size-1):
+            candidate = random.choice(population)
+            flag = self.dominance.compare(winner, candidate)
+
+            if flag > 0:
+                winner = candidate
+
+        return winner
+
+class RankSelector(Selector):
+
+    def __init__(self, tournament_size = 2, dominance = RankDominance()):
+        super(RankSelector, self).__init__()
+        self.tournament_size = tournament_size
+        self.dominance = dominance
+    
     def select_one(self, population):
         winner = random.choice(population)
 
