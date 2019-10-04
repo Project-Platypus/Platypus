@@ -43,6 +43,25 @@ class RandomGenerator(Generator):
         solution = Solution(problem)
         solution.variables = [x.rand() for x in problem.types]
         return solution
+    
+class InjectedPopulation(Generator):
+    
+    def __init__(self, solutions):
+        super(InjectedPopulation, self).__init__()
+        self.solutions = []
+        
+        for solution in solutions:
+            self.solutions.append(copy.deepcopy(solution))
+        
+    def generate(self, problem):
+        if len(self.solutions) > 0:
+            # If we have more solutions to inject, return one from the list
+            return self.solutions.pop()
+        else:
+            # Otherwise generate a random solution
+            solution = Solution(problem)
+            solution.variables = [x.rand() for x in problem.types]
+            return solution
 
 class TournamentSelector(Selector):
 

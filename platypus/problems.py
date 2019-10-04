@@ -88,8 +88,8 @@ class DTLZ2(Problem):
         
 class DTLZ3(Problem):
     
-    def __init__(self, nobjs = 2):
-        super(DTLZ3, self).__init__(nobjs+9, nobjs)
+    def __init__(self, nobjs = 2, nvars=None):
+        super(DTLZ3, self).__init__(nobjs+9 if nvars is None else nvars, nobjs)
         self.types[:] = Real(0, 1)
         
     def evaluate(self, solution):
@@ -223,21 +223,21 @@ def _r_nonsep(y, A):
     return _correct_to_01(numerator / denominator)
 
 def _WFG1_t1(y, k):
-    return y[:k] + map(functools.partial(_s_linear, A=0.35), y[k:])
+    return y[:k] + list(map(functools.partial(_s_linear, A=0.35), y[k:]))
 
 def _WFG1_t2(y, k):
-    return y[:k] + map(functools.partial(_b_flat, A=0.8, B=0.75, C=0.85), y[k:])
+    return y[:k] + list(map(functools.partial(_b_flat, A=0.8, B=0.75, C=0.85), y[k:]))
 
 def _WFG1_t3(y):
-    return map(functools.partial(_b_poly, alpha=0.02), y)
+    return list(map(functools.partial(_b_poly, alpha=0.02), y))
 
 def _WFG1_t4(y, k, M):
     w = [2.0*(i+1) for i in range(len(y))]
     t = []
     
     for i in range(M-1):
-        head = i * k / (M-1)
-        tail = (i+1) * k / (M-1)
+        head = i * k // (M-1)
+        tail = (i+1) * k // (M-1)
         y_sub = _subvector(y, head, tail)
         w_sub = _subvector(w, head, tail)
         t.append(_r_sum(y_sub, w_sub))
@@ -251,7 +251,7 @@ def _WFG2_t2(y, k):
     l = len(y) - k
     t = y[:k]
     
-    for i in range(k+1, k+(l/2)+1):
+    for i in range(k+1, k+(l//2)+1):
         head = k + 2 * (i - k) - 2
         tail = k + 2 * (i - k)
         t.append(_r_nonsep(_subvector(y, head, tail), 2))
@@ -263,8 +263,8 @@ def _WFG2_t3(y, k, M):
     t = []
     
     for i in range(M-1):
-        head = i * k / (M-1)
-        tail = (i+1) * k / (M-1)
+        head = i * k // (M-1)
+        tail = (i+1) * k // (M-1)
         y_sub = _subvector(y, head, tail)
         w_sub = _subvector(w, head, tail)
         t.append(_r_sum(y_sub, w_sub))
@@ -275,19 +275,19 @@ def _WFG2_t3(y, k, M):
     return t
 
 def _WFG4_t1(y):
-    return map(functools.partial(_s_multi, A=30, B=10, C=0.35), y)
+    return list(map(functools.partial(_s_multi, A=30, B=10, C=0.35), y))
 
 def _WFG5_t1(y):
-    return map(functools.partial(_s_decept, A=0.35, B=0.001, C=0.05), y)
+    return list(map(functools.partial(_s_decept, A=0.35, B=0.001, C=0.05), y))
 
 def _WFG6_t2(y, k, M):
     t = []
     
     for i in range(M-1):
-        head = i * k / (M-1)
-        tail = (i+1) * k / (M-1)
+        head = i * k // (M-1)
+        tail = (i+1) * k // (M-1)
         y_sub = _subvector(y, head, tail)
-        t.append(_r_nonsep(y_sub, k / (M-1)))
+        t.append(_r_nonsep(y_sub, k // (M-1)))
         
     y_sub = _subvector(y, k, len(y))
     t.append(_r_nonsep(y_sub, len(y)-k))
@@ -334,7 +334,7 @@ def _WFG9_t1(y):
     return t
 
 def _WFG9_t2(y, k):
-    return map(functools.partial(_s_decept, A=0.35, B=0.001, C=0.05), y[:k]) + map(functools.partial(_s_multi, A=30, B=95, C=0.35), y[k:])
+    return list(map(functools.partial(_s_decept, A=0.35, B=0.001, C=0.05), y[:k])) + list(map(functools.partial(_s_multi, A=30, B=95, C=0.35), y[k:]))
 
 def _create_A(M, degenerate):
     if degenerate:
@@ -843,7 +843,7 @@ class UF6(Problem):
                 prod2 *= pj
                 count2 += 1
         
-        hj = 2.0 * (0.5/N + E) * math.sin(2.0*N*math.pi*[0])
+        hj = 2.0 * (0.5/N + E) * math.sin(2.0*N*math.pi*x[0])
         hj = max(hj, 0.0)
         
         f1 = x[0] + hj + 2.0*(4.0*sum1 - 2.0*prod1 + 2.0)/count1
@@ -883,7 +883,7 @@ class UF8(Problem):
     
     def __init__(self, nvars = 30):
         super(UF8, self).__init__(nvars, 3)
-        self.types[0:1] = Real(0, 1)
+        self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
     
     def evaluate(self, solution):
@@ -917,7 +917,7 @@ class UF9(Problem):
     
     def __init__(self, nvars = 30):
         super(UF9, self).__init__(nvars, 3)
-        self.types[0:1] = Real(0, 1)
+        self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
     
     def evaluate(self, solution):
@@ -954,7 +954,7 @@ class UF10(Problem):
     
     def __init__(self, nvars = 30):
         super(UF10, self).__init__(nvars, 3)
-        self.types[0:1] = Real(0, 1)
+        self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
     
     def evaluate(self, solution):
@@ -1482,7 +1482,7 @@ class CF8(Problem):
     
     def __init__(self, nvars = 10):
         super(CF8, self).__init__(nvars, 3, 1)
-        self.types[0:1] = Real(0, 1)
+        self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-4, 4)
         self.constraints[:] = ">=0"
         
@@ -1521,7 +1521,7 @@ class CF9(Problem):
     
     def __init__(self, nvars = 10):
         super(CF9, self).__init__(nvars, 3, 1)
-        self.types[0:1] = Real(0, 1)
+        self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         
@@ -1560,7 +1560,7 @@ class CF10(Problem):
     
     def __init__(self, nvars = 10):
         super(CF10, self).__init__(nvars, 3, 1)
-        self.types[0:1] = Real(0, 1)
+        self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
         self.constraints[:] = ">=0"
         

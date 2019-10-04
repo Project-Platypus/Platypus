@@ -42,7 +42,7 @@ def distance_to_nearest(solution, set):
 
 class GenerationalDistance(Indicator):
     
-    def __init__(self, reference_set = None, d = 2.0):
+    def __init__(self, reference_set, d = 2.0):
         super(GenerationalDistance, self).__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
         self.d = d
@@ -59,7 +59,7 @@ class GenerationalDistance(Indicator):
 
 class InvertedGenerationalDistance(Indicator):
     
-    def __init__(self, reference_set = None, d = 1.0):
+    def __init__(self, reference_set, d = 1.0):
         super(InvertedGenerationalDistance, self).__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
         self.d = d
@@ -72,7 +72,7 @@ class InvertedGenerationalDistance(Indicator):
 
 class EpsilonIndicator(Indicator):
     
-    def __init__(self, reference_set = None):
+    def __init__(self, reference_set):
         super(EpsilonIndicator, self).__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
         self.minimum, self.maximum = normalize(reference_set)
@@ -108,10 +108,14 @@ class Hypervolume(Indicator):
     
     def __init__(self, reference_set=None, minimum=None, maximum=None):
         if reference_set is not None:
+            if minimum is not None or maximum is not None:
+                raise ValueError("minimum and maximum must not be specified if reference_set is defined")
             self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
             self.minimum, self.maximum = normalize(reference_set)
         else:
-            self.minimum, self.maximum = minimum, maximum
+            if minimum is None or maximum is None:
+                raise ValueError("minimum and maximum must be specified when no reference_set is defined")
+            self.minimum, self.maximum = minimum, maximum 
             
     def invert(self, solution):
         for i in range(solution.problem.nobjs):

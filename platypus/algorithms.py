@@ -32,7 +32,7 @@ from .core import Algorithm, ParetoDominance, AttributeDominance,\
     EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
     Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
     crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive,\
-    PlatypusError
+    PlatypusError, Problem
 from .operators import TournamentSelector, RandomGenerator,\
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation,\
     GAOperator, SBX, PM, UM, PCX, UNDX, SPX, Multimethod
@@ -118,8 +118,10 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
         super(GeneticAlgorithm, self).initialize()
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
-
+            self.variator = default_variator(self.problem) 
+        self.population = sorted(self.population, key=functools.cmp_to_key(self.comparator))
+        self.fittest = self.population[0] 
+        
     def iterate(self):
         offspring = []
 
@@ -129,9 +131,12 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
 
         self.evaluate_all(offspring)
 
+        offspring.append(self.fittest)
         offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
+        
         self.population = offspring[:self.population_size]
-
+        self.fittest = self.population[0]
+    
 class EvolutionaryStrategy(SingleObjectiveAlgorithm):
 
     def __init__(self, problem,
@@ -162,11 +167,8 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
             offspring.extend(self.variator.evolve(parents))
 
         self.evaluate_all(offspring)
-
-        # for i, individual in enumerate(self.population):
-            # self.population[i] = individual if self.comparator(individual, offspring[i]) < 0 \
-                                #  else offspring[i]
-
+    
+        offspring.extend(self.population)
         offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
         self.population = offspring[:self.population_size]
         self.result = self.population
@@ -360,6 +362,7 @@ class SPEA2(AbstractGeneticAlgorithm):
         keys = list(itertools.combinations(range(len(solutions)), 2))
         flags = map(self.dominance.compare, [solutions[k[0]] for k in keys], [solutions[k[1]] for k in keys])
 
+
         # compute the distance matrix
         distanceMatrix = DistanceMatrix(solutions)
 
@@ -446,15 +449,23 @@ class MOEAD(AbstractGeneticAlgorithm):
         self.generation = 0
         self.weight_generator_kwargs = only_keys_for(kwargs, weight_generator)
 
+        # MOEA/D currently only works on minimization problems
+        if any([d != Problem.MINIMIZE for d in problem.directions]):
+            raise PlatypusError("MOEAD currently only works with minimization problems")
+        
+        # If using the default weight generator, random_weights, use a default
+        # population_size
+        if weight_generator == random_weights and "population_size" not in self.weight_generator_kwargs:
+            self.weight_generator_kwargs["population_size"] = 100
+
     def _update_ideal(self, solution):
         for i in range(self.problem.nobjs):
             self.ideal_point[i] = min(self.ideal_point[i], solution.objectives[i])
 
     def _calculate_fitness(self, solution, weights):
-        objs = solution.objectives
-        normalized_objs = [objs[i]-self.ideal_point[i] for i in range(self.problem.nobjs)]
-        return self.scalarizing_function(normalized_objs, weights)
 
+        return self.scalarizing_function(solution, self.ideal_point, weights)
+    
     def _update_solution(self, solution, mating_indices):
         c = 0
         random.shuffle(mating_indices)
@@ -622,11 +633,16 @@ class NSGAIII(AbstractGeneticAlgorithm):
 
         self.population_size = choose(problem.nobjs + divisions_outer - 1, divisions_outer) + \
                 (0 if divisions_inner == 0 else choose(problem.nobjs + divisions_inner - 1, divisions_inner))
-        self.population_size = int(math.ceil(self.population_size / 4.0)) * 4;
+        self.population_size = int(math.ceil(self.population_size / 4.0)) * 4
 
         self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
         self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
 
+        
+        # NSGAIII currently only works on minimization problems
+        if any([d != Problem.MINIMIZE for d in problem.directions]):
+            raise PlatypusError("NSGAIII currently only works with minimization problems")
+    
     def _find_extreme_points(self, solutions, objective):
         nobjs = self.problem.nobjs
 
@@ -1151,7 +1167,7 @@ class CMAES(Algorithm):
 
             for i in range(self.problem.nvars):
                 if self.diag_D[i] < 0.0:
-                    print >> sys.stderr, "an eigenvalue has become negative"
+                    print("an eigenvalue has become negative", file=sys.stderr)
                     self.diag_D[i] = 0.0
 
                 self.diag_D[i] = math.sqrt(self.diag_D[i])
@@ -1162,7 +1178,7 @@ class CMAES(Algorithm):
             self.population = sorted(self.population, key=lambda x : x.objectives[0])
 
             if self.population[0].objectives[0] == self.population[min(self.offspring_size-1, self.offspring_size/2 + 1) - 1].objectives[0]:
-                print >> sys.stderr, "flat fitness landscape, consider reformulation of fitness, step size increased"
+                print("flat fitness landscape, consider reformulation of fitness, step size increased", file=sys.stderr)
                 self.sigma *= math.exp(0.2 + self.cs / self.damps)
 
         # align (renormalize) scale C (and consequently sigma)
@@ -1416,7 +1432,7 @@ class RegionBasedSelector(Selector):
 
     def draw(self):
         index = random.randrange(len(self.grid.keys()))
-        key = self.grid.keys()[index]
+        key = list(self.grid.keys())[index]
         return (key, self.grid[key])
 
     def select_one(self, population):
@@ -1535,8 +1551,15 @@ class PeriodicAction(Algorithm):
         raise NotImplementedError("method not implemented")
 
     def __getattr__(self, name):
-        return getattr(self.algorithm, name)
 
+        # Be careful to not interfere with multiprocessing's unpickling, where it may check for
+        # an attribute before the "algorithm" attribute is set.  Without this guard in place, we
+        # would get stuck in an infinite loop looking for the "algorithm" attribute.
+        if "algorithm" in self.__dict__:
+            return getattr(self.algorithm, name)
+        else:
+            raise AttributeError()
+        
 class AdaptiveTimeContinuation(PeriodicAction):
 
     def __init__(self,

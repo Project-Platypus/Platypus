@@ -95,11 +95,54 @@ def _convert_constraint(x):
         return Constraint(x)
 
 class Problem(object):
-
+    """Class representing a problem.
+    
+    Attributes
+    ----------
+    nvars: int
+        The number of decision variables
+    nobjs: int
+        The number of objectives.
+    nconstrs: int
+        The number of constraints.
+    function: callable
+        The function used to evaluate the problem.  If no function is given,
+        it is expected that the evaluate method is overridden.
+    types: FixedLengthArray of Type
+        The type of each decision variable.  The type describes the bounds and
+        encoding/decoding required for each decision variable.
+    directions: FixedLengthArray of int
+        The optimization direction of each objective, either MINIMIZE (-1) or
+        MAXIMIZE (1)
+    constraints: FixedLengthArray of Constraint
+        Describes the types of constraints as an equality or inequality.  The
+        default requires each constraint value to be 0.
+    """
+    
     MINIMIZE = -1
     MAXIMIZE = 1
 
     def __init__(self, nvars, nobjs, nconstrs = 0, function=None):
+        """Create a new problem.
+    
+        Problems can be constructed by either subclassing and overriding the
+        evaluate method or passing in a function of the form::
+        
+            def func_name(vars):
+                # vars is a list of the decision variable values
+                return (objs, constrs)
+        
+        Parameters
+        ----------
+        nvars: int
+            The number of decision variables.
+        nobjs: int
+            The number of objectives.
+        nconstrs: int (default 0)
+            The number of constraints.
+        function: callable (default None)
+            The function that is used to evaluate the problem.
+        """
         super(Problem, self).__init__()
         self.nvars = nvars
         self.nobjs = nobjs
@@ -110,6 +153,16 @@ class Problem(object):
         self.constraints = FixedLengthArray(nconstrs, "==0", _convert_constraint)
 
     def __call__(self, solution):
+        """Evaluate the solution.
+        
+        This method is responsible for decoding the decision variables,
+        invoking the evaluate method, and updating the solution.
+        
+        Parameters
+        ----------
+        solution: Solution
+            The solution to evaluate.
+        """
         problem = solution.problem
         solution.variables[:] = [problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)]
 
@@ -121,6 +174,18 @@ class Problem(object):
         solution.evaluated = True
 
     def evaluate(self, solution):
+        """Evaluates the problem.
+        
+        By default, this method calls the function passed to the constructor.
+        Alternatively, a problem can subclass and override this method.  When
+        overriding, this method is responsible for updating the objectives
+        and constraints stored in the solution.
+        
+        Parameters
+        ----------
+        solution: Solution
+            The solution to evaluate.
+        """
         if self.function is None:
             raise PlatypusError("function not defined")
 
@@ -146,7 +211,8 @@ class Problem(object):
         solution.constraints[:] = constrs
 
 class Generator(object):
-
+    """Abstract class for generating initial populations."""
+    
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -157,6 +223,7 @@ class Generator(object):
         raise NotImplementedError("method not implemented")
 
 class Variator(object):
+    """Abstract class for variation operators (crossover and mutation)."""
 
     __metaclass__ = ABCMeta
 
@@ -174,6 +241,7 @@ class Variator(object):
         raise NotImplementedError("method not implemented")
 
 class Mutation(Variator):
+    """Variator for mutation, which requires only one parent."""
 
     __metaclass__ = ABCMeta
 
@@ -207,7 +275,8 @@ class Selector(object):
 
 
 class TerminationCondition(object):
-
+    """Abstract class for defining termination conditions."""
+    
     __metaclass__ = ABCMeta
 
     def __init__(self, end_state):
@@ -219,10 +288,31 @@ class TerminationCondition(object):
         return self.shouldTerminate(algorithm)
 
     def initialize(self, algorithm):
+        """Initializes this termination condition.
+        
+        This method is used to collect any initial state, such as the current
+        NFE or current time, needed for calculating the termination criteria.
+        
+        Parameters
+        ----------
+        algorithm : Algorithm
+            The algorithm being run.
+        """
         pass
 
     @abstractmethod
     def shouldTerminate(self, algorithm):
+        """Checks if the algorithm should terminate.
+        
+        Check the termination condition, returning True if the termination
+        condition is satisfied; False otherwise.  This method is called after
+        each iteration of the algorithm.
+        
+        Parameters
+        ----------
+        algorithm : Algorithm
+            The algorithm being run.
+        """
         raise NotImplementedError("method not implemented")
 
     @abstractmethod
@@ -230,8 +320,31 @@ class TerminationCondition(object):
         pass
 
 
+class MaxEvaluations(TerminationCondition):
+    """Termination condition based on the maximum number of function evaluations.
+    
+    Note that since we check the termination condition after each iteration, it
+    is possible for the algorithm to exceed the max NFE.
+    
+    Parameters
+    ----------
+    nfe : int
+        The maximum number of function evaluations to execute.
+    """
+    def __init__(self, nfe):
+        super(MaxEvaluations, self).__init__()
+        self.nfe = nfe
+        self.starting_nfe = 0
+        
+    def initialize(self, algorithm):
+        self.starting_nfe = algorithm.nfe
+        
+    def shouldTerminate(self, algorithm):
+        return algorithm.nfe - self.starting_nfe >= self.nfe
+    
 class MaxTime(TerminationCondition):
-
+    """Termination condition based on the maximum elapsed time."""
+    
     def __init__(self, max_time):
         super(MaxTime, self).__init__(max_time)
         self.max_time = max_time
@@ -450,33 +563,57 @@ class Constraint(object):
     LESS_THAN_ZERO = "<0"
     GREATER_THAN_ZERO = ">0"
 
-    def __init__(self, op):
+    
+    def __init__(self, op, value=None):
         super(Constraint, self).__init__()
-
-        if isinstance(op, Constraint):
+        
+        if value is not None:
+            # Passing value as a second argument
+            self.op = op + str(value)
+            self.function = functools.partial(Constraint.OPERATORS[op], y=float(value))
+        elif isinstance(op, Constraint):
+            # Passing a constraint object
             self.op = op.op
             self.function = op.function
+        elif hasattr(op, "__call__"):
+            # Passing a function that returns 0 if feasible and non-zero if not feasible
+            self.op = op
+            self.function = op
         else:
             self.op = op
-            self.function = Constraint.parse(op)
-
+            if op[1] == '=':
+                self.function = functools.partial(Constraint.OPERATORS[op[0:2]], y=float(op[2:]))
+            else:
+                self.function = functools.partial(Constraint.OPERATORS[op[0:1]], y=float(op[1:]))
+        
     def __call__(self, value):
         return self.function(value)
-
-    @staticmethod
-    def parse(constraint):
-        if hasattr(constraint, "__call__"):
-            return constraint
-        if constraint[1] == '=':
-            return functools.partial(Constraint.OPERATORS[constraint[0:2]],
-                                     y=float(constraint[2:]))
-        else:
-            return functools.partial(Constraint.OPERATORS[constraint[0:1]],
-                                     y=float(constraint[1:]))
-
+        
 class Solution(object):
-
+    """Class representing a solution to a problem.
+    
+    Attributes
+    ----------
+    problem: Problem
+        The problem.
+    variables: FixedLengthArray of objects
+        The values of the variables.
+    objectives: FixedLengthArray of float
+        The values of the objectives.  These values will only be assigned after
+        the solution is evaluated.
+    constraints: FixedLengthArray of float
+        The values of the constraints.  These values will only be assigned
+        after the solution is evaluated.
+    constraint_violation: float
+        The magnitude of the constraint violation.
+    feasible: bool
+        True if the solution does not violate any constraints; False otherwise.
+    evaluated: bool
+        True if the solution is evaluated; False otherwise.
+    """
+    
     def __init__(self, problem):
+        """Creates a new solution for the given problem."""
         super(Solution, self).__init__()
         self.problem = problem
         # self.variables = FixedLengthArray(problem.nvars)
@@ -489,6 +626,7 @@ class Solution(object):
         self.metadata = dict()  # Data output from model (main trajectory)
 
     def evaluate(self):
+        """Evaluates this solution."""
         self.problem(self)
 
     def __repr__(self):
@@ -498,7 +636,7 @@ class Solution(object):
         return "Solution[" + ",".join(list(map(str, self.variables))) + "|" + ",".join(list(map(str, self.objectives))) + "|" + str(self.constraint_violation) + "|" + str(self.metadata) + "]"
 
     def __deepcopy__(self, memo):
-        """Override to avoid cloning problem definition."""
+        """Overridden to avoid cloning the problem definition."""
         result = Solution(self.problem)
         memo[id(self)] = result
 
@@ -509,6 +647,7 @@ class Solution(object):
         return result
 
 class Dominance(object):
+    """Compares two solutions for dominance."""
 
     __metaclass__ = ABCMeta
 
@@ -519,13 +658,32 @@ class Dominance(object):
         return self.compare(solution1, solution2)
 
     def compare(self, solution1, solution2):
+        """Compare two solutions.
+        
+        Returns -1 if the first solution dominates the second, 1 if the
+        second solution dominates the first, or 0 if the two solutions are
+        mutually non-dominated.
+        
+        Parameters
+        ----------
+        solution1 : Solution
+            The first solution.
+        solution2 : Solution
+            The second solution.
+        """
         raise NotImplementedError("method not implemented")
 
     def update(self, attribute, value):
         self.__setattr__(attribute, value)
 
 class ParetoDominance(Dominance):
-
+    """Pareto dominance with constraints.
+    
+    If either solution violates constraints, then the solution with a smaller
+    constraint violation is preferred.  If both solutions are feasible, then
+    Pareto dominance is used to select the preferred solution.
+    """
+    
     def __init__(self):
         super(ParetoDominance, self).__init__()
 
@@ -606,6 +764,12 @@ class RankDominance(Dominance):
             return 0
 
 class EpsilonDominance(Dominance):
+    """Epsilon dominance.
+    
+    Similar to Pareto dominance except if the two solutions are contained
+    within the same epsilon-box, the solution closer to the optimal corner
+    or the box is preferred.
+    """
 
     def __init__(self, epsilons):
         super(EpsilonDominance, self).__init__()
@@ -757,6 +921,8 @@ class AttributeDominance(Dominance):
             return 0
 
 class Archive(object):
+    """An archive only containing non-dominated solutions."""
+    
 
     def __init__(self, dominance = ParetoDominance()):
         super(Archive, self).__init__()
@@ -968,7 +1134,16 @@ class EpsilonBoxArchive(Archive):
                 self.improvements += 1
 
 def unique(solutions, objectives=True):
-    """Returns the unique solutions."""
+    """Returns the unique solutions.
+    
+    Parameters
+    ----------
+    solutions : list of Solution
+        The list of solutions.
+    objectives: bool
+        If True, then only compare solutions using their objectives.  If False,
+        the compare solutions using their decision variables.
+    """
     unique_ids = set()
     result = []
 
