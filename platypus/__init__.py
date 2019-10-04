@@ -19,7 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 from .core import *
-from .algorithms import *
+# from .algorithms import *
 from .evaluator import *
 from .experimenter import *
 from .indicators import *

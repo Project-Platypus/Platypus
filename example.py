@@ -1,4 +1,6 @@
-from platypus import NSGAIII, DTLZ2
+from platypus import NSGAIII, DTLZ2, Recorder
+from platypus import MainWindow
+from PyQt5.QtGui import QApplication
 
 # define the problem definition
 problem = DTLZ2(3)
@@ -7,7 +9,15 @@ problem = DTLZ2(3)
 algorithm = NSGAIII(problem, divisions_outer=12)
 
 # optimize the problem using 10,000 function evaluations
-algorithm.run(10000)
+recorder = Recorder(save_result=True, save_all=False)
+
+# GUI version
+app = QApplication([])
+window = MainWindow(nobjs=problem.nobjs, algorithm=algorithm, nfe=10000, recorder=recorder)
+app.exec_()
+
+# # non-GUI version
+# algorithm.run(10000, recorder=recorder)
 
 # plot the results using matplotlib
 import matplotlib.pyplot as plt
