@@ -14,8 +14,8 @@ class NoseTestCommand(TestCommand):
         import nose
         nose.run_exit(argv=['nosetests'])
 
-setup(name='Platypus-Opt',
-      version='1.0.2', # Update __init__.py if the version changes!
+setup(name='Platypus',
+      version='1.0.6', # Update __init__.py if the version changes!
       description='Multiobjective optimization in Python',
       author='David Hadka',
       author_email='dhadka@users.noreply.github.com',
