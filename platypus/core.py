@@ -33,8 +33,11 @@ from typing import Any
 from abc import ABCMeta, abstractmethod
 from tqdm import tqdm
 from .evaluator import Job
-from typing import List
+from typing import List, Optional
 import random
+
+
+from poddie.utils.cluster_utils import assign_cluster_number_to_object
 
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
@@ -422,6 +425,7 @@ class Algorithm(object):
         self.nfe += len(unevaluated)
 
     def run(self, condition, callback=None, recorder=None):
+        self.ngen = 0
         if isinstance(condition, int):
             condition = MaxEvaluations(condition)
             self.nfe_max = condition.nfe
@@ -437,8 +441,8 @@ class Algorithm(object):
         pbar = tqdm(total=condition.end_state)
 
         while not condition(self):
-            self.ngen += 1
             self.step()
+            self.ngen += 1
             if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
                 LOGGER.log(logging.INFO,
                            "%s running; NFE Complete: %d, Elapsed Time: %s",
@@ -451,7 +455,7 @@ class Algorithm(object):
 
             # Saves generation result to a dictionary; tagged by generation number
             if recorder:
-                recorder.update_generation_result(copy.deepcopy(self.result))
+                recorder.update_generation_result(self.result)
 
             # Updates progress bar
             pbar.update(condition.current_state - pbar.n)
