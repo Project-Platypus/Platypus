@@ -21,15 +21,19 @@ from __future__ import absolute_import, division, print_function
 import copy
 import math
 import random
+from typing import List
 
 import numpy as np
 
 from poddie.config import PoddieParameters, OperatorsRegister
+from poddie.utils.gen_utils import check_variable_bounds
+from poddie.utils.cluster_utils import get_cluster_number
 
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, \
                   Mutation, EPSILON, RankDominance
 from .types import Real, Binary, Permutation, Subset
 from .tools import add, subtract, multiply, is_zero, magnitude, orthogonalize, normalize, random_vector, zeros, roulette
+
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -322,6 +326,7 @@ class UniformMutation(Mutation):
                 type = problem.types[i]
                 value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
                 result.variables[i] = clip(value, type.min_value, type.max_value)
+                check_variable_bounds(result)
                 result.evaluated = False
 
         return result
@@ -346,6 +351,7 @@ class SingleUniformMutation(Mutation):
             value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
             result.variables[i] = clip(value, type.min_value, type.max_value)
             result.evaluated = False
+            check_variable_bounds(result)
 
         return result
 
@@ -835,13 +841,14 @@ class SSX(Variator):
 
 class Multimethod(Variator):
 
-    def __init__(self, variators, update_frequency=100):
+    def __init__(self, variators: List[Variator], tag: str, update_frequency=100):
         super(Multimethod, self).__init__(max([v.arity for v in variators]))
         self.variators = variators
         self.update_frequency = update_frequency
         self.last_update = 0
         self.probabilities = np.array([1.0 / len(variators) for _ in range(len(variators))])
         self.min_probability = 0.1 if len(variators) <= 10 else 1/len(variators)
+        self._tag = tag
 
         # To be set by algo using observer pattern
         self.population = None
@@ -857,8 +864,8 @@ class Multimethod(Variator):
 
             if self.population is not None:
                 for solution in self.population:
-                    if hasattr(solution, "operator"):
-                        counts[solution.operator] += 1
+                    if hasattr(solution, "operator") and self._tag in solution.operator.keys():
+                        counts[solution.operator[self._tag]] += 1
 
             self.probabilities = np.array(
                                [counts[i] / float(sum(counts)) for i in range(len(self.variators))])
@@ -882,9 +889,13 @@ class Multimethod(Variator):
 
         if isinstance(result, list):
             for solution in result:
-                solution.operator = self.next_variator
+                if not hasattr(solution, "operator"):
+                    solution.operator = dict()
+                solution.operator[self._tag] = self.next_variator
         else:
-            result.operator = self.next_variator
+            if not hasattr(result, "operator"):
+                result.operator = dict()
+            result.operator[self._tag] = self.next_variator
 
         self.select()
         return result
@@ -896,3 +907,49 @@ class Multimethod(Variator):
     def update(self, attribute, value):
         self.__setattr__(attribute, value)
         [operator.update(attribute, value) for operator in self.variators]
+
+
+class ArchiveMultimethod(Multimethod):
+
+    def __init__(self, variators: List[Variator], tag: str, update_frequency: int, half_life: int,
+                 **_):
+        super().__init__(variators, tag, update_frequency)
+        self._decay_rate = math.log(2)/half_life
+
+    def select(self):
+        self.last_update += 1
+
+        if self.last_update >= self.update_frequency:
+            self.last_update = 0
+            counts = [1 for _ in range(len(self.variators))]
+
+            cluster_id = get_cluster_number(self)
+            register = OperatorsRegister.get_instance(cluster_id)
+            archive = register.get_operator('archive')
+
+            n_elems = len(archive)
+            if n_elems > 0:
+                probability_kernel = self._decay_rate * np.exp(-self._decay_rate * np.arange(n_elems))
+                weights = probability_kernel/probability_kernel[0]
+                print(weights[:10])
+
+                for i, solution in enumerate(archive):
+                    if hasattr(solution, "operator") and self._tag in solution.operator.keys():
+                        counts[solution.operator[self._tag]] += 1 * weights[i]
+                print(counts)
+
+            self.probabilities = np.array(
+                               [counts[i] / float(sum(counts)) for i in range(len(self.variators))])
+
+            probabilities_less_than_min = self.probabilities < self.min_probability
+            if np.any(probabilities_less_than_min):
+                print(f"modifying probabilities to minimum {self.min_probability}")
+                self.probabilities[probabilities_less_than_min] = self.min_probability
+                remaining_probability = 1-np.sum(self.probabilities[probabilities_less_than_min])
+                self.probabilities[~probabilities_less_than_min] *= remaining_probability/\
+                                            np.sum(self.probabilities[~probabilities_less_than_min])
+
+            print(self.probabilities)
+
+        self.next_variator = roulette(self.probabilities)
+        self.arity = self.variators[self.next_variator].arity

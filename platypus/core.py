@@ -37,7 +37,6 @@ from typing import List, Optional
 import random
 
 
-from poddie.utils.cluster_utils import assign_cluster_number_to_object
 
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
@@ -99,7 +98,7 @@ def _convert_constraint(x):
 
 class Problem(object):
     """Class representing a problem.
-    
+
     Attributes
     ----------
     nvars: int
@@ -121,20 +120,20 @@ class Problem(object):
         Describes the types of constraints as an equality or inequality.  The
         default requires each constraint value to be 0.
     """
-    
+
     MINIMIZE = -1
     MAXIMIZE = 1
 
     def __init__(self, nvars, nobjs, nconstrs = 0, function=None):
         """Create a new problem.
-    
+
         Problems can be constructed by either subclassing and overriding the
         evaluate method or passing in a function of the form::
-        
+
             def func_name(vars):
                 # vars is a list of the decision variable values
                 return (objs, constrs)
-        
+
         Parameters
         ----------
         nvars: int
@@ -157,10 +156,10 @@ class Problem(object):
 
     def __call__(self, solution):
         """Evaluate the solution.
-        
+
         This method is responsible for decoding the decision variables,
         invoking the evaluate method, and updating the solution.
-        
+
         Parameters
         ----------
         solution: Solution
@@ -178,12 +177,12 @@ class Problem(object):
 
     def evaluate(self, solution):
         """Evaluates the problem.
-        
+
         By default, this method calls the function passed to the constructor.
         Alternatively, a problem can subclass and override this method.  When
         overriding, this method is responsible for updating the objectives
         and constraints stored in the solution.
-        
+
         Parameters
         ----------
         solution: Solution
@@ -213,9 +212,19 @@ class Problem(object):
         solution.objectives[:] = objs
         solution.constraints[:] = constrs
 
-class Generator(object):
+
+class Operator:
+    """ Class that encapsulates all genetic operators (selector, generator, variator, mutator
+        and comparator)
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class Generator(Operator):
     """Abstract class for generating initial populations."""
-    
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -225,7 +234,7 @@ class Generator(object):
     def generate(self, problem):
         raise NotImplementedError("method not implemented")
 
-class Variator(object):
+class Variator(Operator):
     """Abstract class for variation operators (crossover and mutation)."""
 
     __metaclass__ = ABCMeta
@@ -261,7 +270,7 @@ class Mutation(Variator):
     def mutate(self, parent):
         raise NotImplementedError("method not implemented")
 
-class Selector(object):
+class Selector(Operator):
 
     __metaclass__ = ABCMeta
 
@@ -279,7 +288,7 @@ class Selector(object):
 
 class TerminationCondition(object):
     """Abstract class for defining termination conditions."""
-    
+
     __metaclass__ = ABCMeta
 
     def __init__(self, end_state):
@@ -292,10 +301,10 @@ class TerminationCondition(object):
 
     def initialize(self, algorithm):
         """Initializes this termination condition.
-        
+
         This method is used to collect any initial state, such as the current
         NFE or current time, needed for calculating the termination criteria.
-        
+
         Parameters
         ----------
         algorithm : Algorithm
@@ -306,11 +315,11 @@ class TerminationCondition(object):
     @abstractmethod
     def shouldTerminate(self, algorithm):
         """Checks if the algorithm should terminate.
-        
+
         Check the termination condition, returning True if the termination
         condition is satisfied; False otherwise.  This method is called after
         each iteration of the algorithm.
-        
+
         Parameters
         ----------
         algorithm : Algorithm
@@ -325,10 +334,10 @@ class TerminationCondition(object):
 
 class MaxEvaluations(TerminationCondition):
     """Termination condition based on the maximum number of function evaluations.
-    
+
     Note that since we check the termination condition after each iteration, it
     is possible for the algorithm to exceed the max NFE.
-    
+
     Parameters
     ----------
     nfe : int
@@ -338,16 +347,16 @@ class MaxEvaluations(TerminationCondition):
         super(MaxEvaluations, self).__init__()
         self.nfe = nfe
         self.starting_nfe = 0
-        
+
     def initialize(self, algorithm):
         self.starting_nfe = algorithm.nfe
-        
+
     def shouldTerminate(self, algorithm):
         return algorithm.nfe - self.starting_nfe >= self.nfe
-    
+
 class MaxTime(TerminationCondition):
     """Termination condition based on the maximum elapsed time."""
-    
+
     def __init__(self, max_time):
         super(MaxTime, self).__init__(max_time)
         self.max_time = max_time
@@ -567,10 +576,10 @@ class Constraint(object):
     LESS_THAN_ZERO = "<0"
     GREATER_THAN_ZERO = ">0"
 
-    
+
     def __init__(self, op, value=None):
         super(Constraint, self).__init__()
-        
+
         if value is not None:
             # Passing value as a second argument
             self.op = op + str(value)
@@ -589,13 +598,13 @@ class Constraint(object):
                 self.function = functools.partial(Constraint.OPERATORS[op[0:2]], y=float(op[2:]))
             else:
                 self.function = functools.partial(Constraint.OPERATORS[op[0:1]], y=float(op[1:]))
-        
+
     def __call__(self, value):
         return self.function(value)
-        
+
 class Solution(object):
     """Class representing a solution to a problem.
-    
+
     Attributes
     ----------
     problem: Problem
@@ -615,7 +624,7 @@ class Solution(object):
     evaluated: bool
         True if the solution is evaluated; False otherwise.
     """
-    
+
     def __init__(self, problem):
         """Creates a new solution for the given problem."""
         super(Solution, self).__init__()
@@ -650,7 +659,7 @@ class Solution(object):
 
         return result
 
-class Dominance(object):
+class Dominance(Operator):
     """Compares two solutions for dominance."""
 
     __metaclass__ = ABCMeta
@@ -663,11 +672,11 @@ class Dominance(object):
 
     def compare(self, solution1, solution2):
         """Compare two solutions.
-        
+
         Returns -1 if the first solution dominates the second, 1 if the
         second solution dominates the first, or 0 if the two solutions are
         mutually non-dominated.
-        
+
         Parameters
         ----------
         solution1 : Solution
@@ -682,12 +691,12 @@ class Dominance(object):
 
 class ParetoDominance(Dominance):
     """Pareto dominance with constraints.
-    
+
     If either solution violates constraints, then the solution with a smaller
     constraint violation is preferred.  If both solutions are feasible, then
     Pareto dominance is used to select the preferred solution.
     """
-    
+
     def __init__(self):
         super(ParetoDominance, self).__init__()
 
@@ -769,7 +778,7 @@ class RankDominance(Dominance):
 
 class EpsilonDominance(Dominance):
     """Epsilon dominance.
-    
+
     Similar to Pareto dominance except if the two solutions are contained
     within the same epsilon-box, the solution closer to the optimal corner
     or the box is preferred.
@@ -926,7 +935,7 @@ class AttributeDominance(Dominance):
 
 class Archive(object):
     """An archive only containing non-dominated solutions."""
-    
+
 
     def __init__(self, dominance = ParetoDominance()):
         super(Archive, self).__init__()
@@ -1139,7 +1148,7 @@ class EpsilonBoxArchive(Archive):
 
 def unique(solutions, objectives=True):
     """Returns the unique solutions.
-    
+
     Parameters
     ----------
     solutions : list of Solution
