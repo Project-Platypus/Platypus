@@ -243,11 +243,6 @@ class Variator(Operator):
         super(Variator, self).__init__()
         self.arity = arity
 
-    def update(self, attribute: str, value: Any):
-        """ Updates the variator's attribute with the given value. Called by the `Algorithm` class.
-        """
-        self.__setattr__(attribute, value)
-
     @abstractmethod
     def evolve(self, parents):
         raise NotImplementedError("method not implemented")
@@ -485,15 +480,6 @@ class Algorithm(object):
         """
         self._observers.append(observer)
 
-    def _notify(self, attribute: str, value: Any):
-        for observer in self._observers:
-            try:
-                observer.update(attribute, value)
-            except Exception as e:
-                LOGGER.warning(
-                "Error when updating observer {} with attribute: {} and value: {}".format(observer,
-                                                                                         attribute,
-                                                                                         value))
 
     @property
     def nfe(self):
@@ -502,7 +488,6 @@ class Algorithm(object):
     @nfe.setter
     def nfe(self, value: int):
         self._nfe = value
-        self._notify('nfe', value)
 
     @property
     def nfe_max(self):
@@ -511,7 +496,6 @@ class Algorithm(object):
     @nfe_max.setter
     def nfe_max(self, value: int):
         self._nfe_max = value
-        self._notify('nfe_max', value)
 
     @property
     def ngen(self):
@@ -520,7 +504,6 @@ class Algorithm(object):
     @ngen.setter
     def ngen(self, value: int):
         self._ngen = value
-        self._notify('ngen', value)
 
     @property
     def result(self):
@@ -529,7 +512,6 @@ class Algorithm(object):
     @result.setter
     def result(self, value):
         self._result = value
-        self._notify('result', value)
 
     @property
     def population(self):
@@ -538,7 +520,6 @@ class Algorithm(object):
     @population.setter
     def population(self, value: List):
         self._population = value
-        self._notify('population', value)
 
 def _constraint_eq(x, y):
     result = 0 if abs(x-y) < ALLOWANCE_TOLERANCE else abs(x-y)
@@ -686,9 +667,6 @@ class Dominance(Operator):
         """
         raise NotImplementedError("method not implemented")
 
-    def update(self, attribute, value):
-        self.__setattr__(attribute, value)
-
 class ParetoDominance(Dominance):
     """Pareto dominance with constraints.
 
@@ -764,8 +742,6 @@ class PenaltyDominance(Dominance):
         else:
             return 0
 
-    def update(self, *args, **kwargs):
-        pass
 
 class RankDominance(Dominance):
     def compare(self, solution1, solution2):
