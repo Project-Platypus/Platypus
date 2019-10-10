@@ -47,16 +47,16 @@ class RandomGenerator(Generator):
         solution = Solution(problem)
         solution.variables = [x.rand() for x in problem.types]
         return solution
-    
+
 class InjectedPopulation(Generator):
-    
+
     def __init__(self, solutions):
         super(InjectedPopulation, self).__init__()
         self.solutions = []
-        
+
         for solution in solutions:
             self.solutions.append(copy.deepcopy(solution))
-        
+
     def generate(self, problem):
         if len(self.solutions) > 0:
             # If we have more solutions to inject, return one from the list
@@ -92,7 +92,7 @@ class RankSelector(Selector):
         super(RankSelector, self).__init__()
         self.tournament_size = tournament_size
         self.dominance = dominance
-    
+
     def select_one(self, population):
         winner = random.choice(population)
 
@@ -243,9 +243,6 @@ class GAOperator(Variator):
         a=1
         return children_mutated
 
-    def update(self, attribute, value):
-        self.mutation.update(attribute, value)
-
 
 class CompoundMutation(Mutation):
 
@@ -351,7 +348,7 @@ class SingleUniformMutation(Mutation):
             value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
             result.variables[i] = clip(value, type.min_value, type.max_value)
             result.evaluated = False
-            check_variable_bounds(result)
+            # check_variable_bounds(result)
 
         return result
 
@@ -387,7 +384,7 @@ class NonUniformMutation(Mutation):
                 else:
                     value += self._delta(type.min_value - value)
 
-                result.variables[i] = clip(value, type.min_value, type.max_value)
+                # result.variables[i] = clip(value, type.min_value, type.max_value)
                 result.evaluated = False
 
         return result
@@ -850,9 +847,6 @@ class Multimethod(Variator):
         self.min_probability = 0.1 if len(variators) <= 10 else 1/len(variators)
         self._tag = tag
 
-        # To be set by algo using observer pattern
-        self.population = None
-
         self.select()
 
     def select(self):
@@ -903,10 +897,6 @@ class Multimethod(Variator):
     def mutate(self, parents):
         """ Mutator interface"""
         return self.evolve(parents)
-
-    def update(self, attribute, value):
-        self.__setattr__(attribute, value)
-        [operator.update(attribute, value) for operator in self.variators]
 
 
 class ArchiveMultimethod(Multimethod):
