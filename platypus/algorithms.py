@@ -703,7 +703,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
             
             try:
                 b = [1.0]*nobjs
-                A = [s.normalized_objectives for s in extreme_points]
+                A = [s.normalized_objectives[:] for s in extreme_points]
                 x = lsolve(A, b)
                 intercepts = [1.0 / i for i in x]
             except:
