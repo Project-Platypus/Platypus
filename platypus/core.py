@@ -339,15 +339,18 @@ class MaxEvaluations(TerminationCondition):
         The maximum number of function evaluations to execute.
     """
     def __init__(self, nfe):
-        super(MaxEvaluations, self).__init__()
-        self.nfe = nfe
+        super().__init__(nfe)
         self.starting_nfe = 0
 
     def initialize(self, algorithm):
         self.starting_nfe = algorithm.nfe
 
     def shouldTerminate(self, algorithm):
-        return algorithm.nfe - self.starting_nfe >= self.nfe
+        return algorithm.nfe - self.starting_nfe >= self.end_state
+
+    def _update_current_state(self, algorithm):
+        self.current_state = algorithm.nfe
+
 
 class MaxTime(TerminationCondition):
     """Termination condition based on the maximum elapsed time."""
@@ -391,8 +394,7 @@ class Algorithm(object):
         self.problem = problem
         self.evaluator = evaluator
         self.log_frequency = log_frequency
-        self._nfe = 0
-        self.generation = 0
+        self.nfe = 0
 
         if self.evaluator is None:
             from .config import PlatypusConfig
@@ -401,9 +403,6 @@ class Algorithm(object):
         if self.log_frequency is None:
             from .config import PlatypusConfig
             self.log_frequency = PlatypusConfig.default_log_frequency
-        self._ngen = 0
-        self._nfe_max = 0
-        self._observers = []
 
     @abstractmethod
     def step(self):
@@ -429,10 +428,9 @@ class Algorithm(object):
         self.nfe += len(unevaluated)
 
     def run(self, condition, callback=None, recorder=None):
-        self.ngen = 0
         if isinstance(condition, int):
             condition = MaxEvaluations(condition)
-            self.nfe_max = condition.nfe
+            self.nfe_max = condition.end_state
 
         if isinstance(condition, TerminationCondition):
             condition.initialize(self)
@@ -446,7 +444,6 @@ class Algorithm(object):
 
         while not condition(self):
             self.step()
-            self.ngen += 1
             if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
                 LOGGER.log(logging.INFO,
                            "%s running; NFE Complete: %d, Elapsed Time: %s",
@@ -474,52 +471,6 @@ class Algorithm(object):
                    self.nfe,
                    datetime.timedelta(seconds=time.time()-start_time))
 
-    def attach(self, observer: object):
-        """ Attaches observers to the algorithm. The observers must have an `update` method
-            implemented.
-        """
-        self._observers.append(observer)
-
-
-    @property
-    def nfe(self):
-        return self._nfe
-
-    @nfe.setter
-    def nfe(self, value: int):
-        self._nfe = value
-
-    @property
-    def nfe_max(self):
-        return self._nfe_max
-
-    @nfe_max.setter
-    def nfe_max(self, value: int):
-        self._nfe_max = value
-
-    @property
-    def ngen(self):
-        return self._ngen
-
-    @ngen.setter
-    def ngen(self, value: int):
-        self._ngen = value
-
-    @property
-    def result(self):
-        return self._result
-
-    @result.setter
-    def result(self, value):
-        self._result = value
-
-    @property
-    def population(self):
-        return self._population
-
-    @population.setter
-    def population(self, value: List):
-        self._population = value
 
 def _constraint_eq(x, y):
     result = 0 if abs(x-y) < ALLOWANCE_TOLERANCE else abs(x-y)
@@ -610,8 +561,6 @@ class Solution(object):
         """Creates a new solution for the given problem."""
         super(Solution, self).__init__()
         self.problem = problem
-        # self.variables = FixedLengthArray(problem.nvars)
-        # self.objectives = FixedLengthArray(problem.nobjs)
         self.variables = np.zeros((problem.nvars, ))
         self.objectives = np.zeros((problem.nobjs, ))
         self.constraints = np.zeros((problem.nconstrs, ))
