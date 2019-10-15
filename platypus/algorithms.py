@@ -25,7 +25,9 @@ import random
 import operator
 import itertools
 import functools
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, ABC
+from typing import List, Optional, TYPE_CHECKING
+
 from .core import Algorithm, ParetoDominance, AttributeDominance,\
     AttributeDominance, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
@@ -46,18 +48,21 @@ try:
 except NameError:
     from sets import Set as set
 
-class AbstractGeneticAlgorithm(Algorithm):
+if TYPE_CHECKING:
+    from .core import Generator, Selector, Dominance, Variator, Problem
 
-    __metaclass__ = ABCMeta
+class AbstractGeneticAlgorithm(Algorithm, ABC):
 
-    def __init__(self, problem,
-                 population_size = 100,
-                 generator = RandomGenerator(),
+    def __init__(self, problem: 'Problem',
+                 population_size: int,
+                 generator: 'Generator' = RandomGenerator(),
                  **kwargs):
         super(AbstractGeneticAlgorithm, self).__init__(problem, **kwargs)
+        self.ngen = 0
         self.population_size = population_size
         self.generator = generator
-        self.result = []
+        self.population: List['Solution'] = []
+        self.result: List['Solution'] = []
 
     def step(self):
         if self.nfe == 0:
@@ -66,47 +71,41 @@ class AbstractGeneticAlgorithm(Algorithm):
         else:
             self.iterate()
             self.result = self.population
-
-        # Update the id of the individuals
-        for i in range(len(self.result)):
-            self.result[i].id = (self.generation, i)
-            if hasattr(self.result[i], 'tracker') == False:
-                self.result[i].tracker = None
-
-        # Update generation
-        self.generation += 1
+        self.ngen += 1
 
     def initialize(self):
-        self.population = [self.generator.generate(self.problem) for _ in range(self.population_size)]
+        self.population = [self.generator.generate(self.problem)
+                           for _ in range(self.population_size)]
         self.evaluate_all(self.population)
 
     @abstractmethod
     def iterate(self):
         raise NotImplementedError("method not implemented")
 
-class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm):
 
-    __metaclass__ = ABCMeta
+class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, ABC):
 
     def __init__(self, problem,
                  population_size = 100,
                  generator = RandomGenerator(),
                  **kwargs):
-        super(SingleObjectiveAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
+        super(SingleObjectiveAlgorithm, self).__init__(problem, population_size,
+                                                       generator, **kwargs)
 
         if problem.nobjs != 1:
             raise PlatypusError("can not instantiate single objective algorithm "
                                 "on problem with %d objectives" % problem.nobjs)
 
+
 class GeneticAlgorithm(SingleObjectiveAlgorithm):
 
-    def __init__(self, problem,
-                 population_size = 100,
-                 offspring_size = 100,
-                 generator = RandomGenerator(),
-                 selector = TournamentSelector(2),
-                 comparator = ParetoDominance(),
-                 variator = None,
+    def __init__(self, problem: 'Problem',
+                 population_size: int = 100,
+                 offspring_size: int = 100,
+                 generator: 'Generator' = RandomGenerator(),
+                 selector: 'Selector' = TournamentSelector(2),
+                 comparator: 'Dominance' = ParetoDominance(),
+                 variator: Optional['Variator'] = None,
                  **kwargs):
         self.offspring_size = offspring_size
         self.selector = selector
@@ -118,10 +117,10 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
         super(GeneticAlgorithm, self).initialize()
 
         if self.variator is None:
-            self.variator = default_variator(self.problem) 
+            self.variator = default_variator(self.problem)
+
         self.population = sorted(self.population, key=functools.cmp_to_key(self.comparator))
-        self.fittest = self.population[0] 
-        
+
     def iterate(self):
         offspring = []
 
@@ -133,10 +132,10 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
 
         offspring.append(self.fittest)
         offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
-        
+
         self.population = offspring[:self.population_size]
         self.fittest = self.population[0]
-    
+
 class EvolutionaryStrategy(SingleObjectiveAlgorithm):
 
     def __init__(self, problem,
@@ -145,10 +144,12 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
                  generator = RandomGenerator(),
                  comparator = ParetoDominance(),
                  variator = None,
+                 replacement = False,
                  **kwargs):
         self.offspring_size = offspring_size
         self.comparator = comparator
         self.variator = variator
+        self._replacement = replacement
         super(EvolutionaryStrategy, self).__init__(problem, population_size, generator, **kwargs)
 
     def initialize(self):
@@ -167,11 +168,20 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
             offspring.extend(self.variator.evolve(parents))
 
         self.evaluate_all(offspring)
-    
-        offspring.extend(self.population)
-        offspring = sorted(offspring, key=functools.cmp_to_key(self.comparator))
-        self.population = offspring[:self.population_size]
+
+        if self._replacement:
+            for i, individual in enumerate(self.population):
+                self.population[i] = individual if self.comparator(individual, offspring[i]) < 0 \
+                                     else offspring[i]
+                if self.comparator(individual, offspring[i]) > 0:
+                    print("replacing")
+        else:
+            self.population = offspring
+            self.population = sorted(self.population, key=functools.cmp_to_key(self.comparator))
+            self.population = self.population[:self.population_size]
+
         self.result = self.population
+
 
 class NSGAII(AbstractGeneticAlgorithm):
 
@@ -452,7 +462,7 @@ class MOEAD(AbstractGeneticAlgorithm):
         # MOEA/D currently only works on minimization problems
         if any([d != Problem.MINIMIZE for d in problem.directions]):
             raise PlatypusError("MOEAD currently only works with minimization problems")
-        
+
         # If using the default weight generator, random_weights, use a default
         # population_size
         if weight_generator == random_weights and "population_size" not in self.weight_generator_kwargs:
@@ -465,7 +475,7 @@ class MOEAD(AbstractGeneticAlgorithm):
     def _calculate_fitness(self, solution, weights):
 
         return self.scalarizing_function(solution, self.ideal_point, weights)
-    
+
     def _update_solution(self, solution, mating_indices):
         c = 0
         random.shuffle(mating_indices)
@@ -638,11 +648,11 @@ class NSGAIII(AbstractGeneticAlgorithm):
         self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
         self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
 
-        
+
         # NSGAIII currently only works on minimization problems
         if any([d != Problem.MINIMIZE for d in problem.directions]):
             raise PlatypusError("NSGAIII currently only works with minimization problems")
-    
+
     def _find_extreme_points(self, solutions, objective):
         nobjs = self.problem.nobjs
 
@@ -1559,7 +1569,7 @@ class PeriodicAction(Algorithm):
             return getattr(self.algorithm, name)
         else:
             raise AttributeError()
-        
+
 class AdaptiveTimeContinuation(PeriodicAction):
 
     def __init__(self,
