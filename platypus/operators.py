@@ -26,7 +26,6 @@ from typing import List
 import numpy as np
 
 from poddie.config import PoddieParameters, OperatorsRegister
-from poddie.utils.gen_utils import check_variable_bounds
 from poddie.utils.cluster_utils import get_cluster_number
 
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, \
@@ -323,7 +322,6 @@ class UniformMutation(Mutation):
                 type = problem.types[i]
                 value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
                 result.variables[i] = clip(value, type.min_value, type.max_value)
-                check_variable_bounds(result)
                 result.evaluated = False
 
         return result
@@ -348,7 +346,6 @@ class SingleUniformMutation(Mutation):
             value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
             result.variables[i] = clip(value, type.min_value, type.max_value)
             result.evaluated = False
-            # check_variable_bounds(result)
 
         return result
 
