@@ -1,4 +1,4 @@
-numpy
-six
-nose
-mock
+numpy==1.16.5
+six==1.13.0
+nose==1.3.7
+mock==3.0.5
