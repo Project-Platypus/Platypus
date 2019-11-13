@@ -1,0 +1,4 @@
+numpy
+six
+nose
+mock
