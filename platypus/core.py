@@ -22,19 +22,16 @@ import sys
 import copy
 import math
 import time
-import signal
 import logging
 import datetime
 import operator
 import functools
 import itertools
 import numpy as np
-from typing import Any
 from abc import ABCMeta, abstractmethod
 from tqdm import tqdm
 from .evaluator import Job
-from typing import List, Optional
-import random
+from typing import Any, Optional
 
 
 
@@ -454,10 +451,6 @@ class Algorithm(object):
             if callback is not None:
                 callback(self)
 
-            # Saves generation result to a dictionary; tagged by generation number
-            if recorder:
-                recorder.update_generation_result(self.result)
-
             # Updates progress bar
             pbar.update(condition.current_state - pbar.n)
 
@@ -566,7 +559,7 @@ class Solution(object):
         self.constraints = np.zeros((problem.nconstrs, ))
         self.constraint_violation = 0.0
         self.evaluated = False
-        self.metadata = dict()  # Data output from model (main trajectory)
+        self.metadata: Optional[Dict[str, Any]] = None
 
     def evaluate(self):
         """Evaluates this solution."""
