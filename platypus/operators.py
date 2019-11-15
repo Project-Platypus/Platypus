@@ -25,9 +25,6 @@ from typing import List
 
 import numpy as np
 
-from poddie.config import PoddieParameters, OperatorsRegister
-from poddie.utils.cluster_utils import get_cluster_number
-
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, \
                   Mutation, EPSILON, RankDominance
 from .types import Real, Binary, Permutation, Subset
@@ -894,49 +891,3 @@ class Multimethod(Variator):
     def mutate(self, parents):
         """ Mutator interface"""
         return self.evolve(parents)
-
-
-class ArchiveMultimethod(Multimethod):
-
-    def __init__(self, variators: List[Variator], tag: str, update_frequency: int, half_life: int,
-                 **_):
-        super().__init__(variators, tag, update_frequency)
-        self._decay_rate = math.log(2)/half_life
-
-    def select(self):
-        self.last_update += 1
-
-        if self.last_update >= self.update_frequency:
-            self.last_update = 0
-            counts = [1 for _ in range(len(self.variators))]
-
-            cluster_id = get_cluster_number(self)
-            register = OperatorsRegister.get_instance(cluster_id)
-            archive = register.get_operator('archive')
-
-            n_elems = len(archive)
-            if n_elems > 0:
-                probability_kernel = self._decay_rate * np.exp(-self._decay_rate * np.arange(n_elems))
-                weights = probability_kernel/probability_kernel[0]
-                print(weights[:10])
-
-                for i, solution in enumerate(archive):
-                    if hasattr(solution, "operator") and self._tag in solution.operator.keys():
-                        counts[solution.operator[self._tag]] += 1 * weights[i]
-                print(counts)
-
-            self.probabilities = np.array(
-                               [counts[i] / float(sum(counts)) for i in range(len(self.variators))])
-
-            probabilities_less_than_min = self.probabilities < self.min_probability
-            if np.any(probabilities_less_than_min):
-                print(f"modifying probabilities to minimum {self.min_probability}")
-                self.probabilities[probabilities_less_than_min] = self.min_probability
-                remaining_probability = 1-np.sum(self.probabilities[probabilities_less_than_min])
-                self.probabilities[~probabilities_less_than_min] *= remaining_probability/\
-                                            np.sum(self.probabilities[~probabilities_less_than_min])
-
-            print(self.probabilities)
-
-        self.next_variator = roulette(self.probabilities)
-        self.arity = self.variators[self.next_variator].arity
