@@ -25,6 +25,7 @@ from typing import List
 
 import numpy as np
 
+from poddie.config import PoddieParameters
 from .core import PlatypusError, Solution, ParetoDominance, Generator, Selector, Variator, \
                   Mutation, EPSILON, RankDominance
 from .types import Real, Binary, Permutation, Subset
