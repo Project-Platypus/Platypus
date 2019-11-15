@@ -288,7 +288,6 @@ class TerminationCondition(object):
         super(TerminationCondition, self).__init__()
 
     def __call__(self, algorithm):
-        self._update_current_state(algorithm)
         return self.shouldTerminate(algorithm)
 
     def initialize(self, algorithm):
@@ -322,6 +321,9 @@ class TerminationCondition(object):
     @abstractmethod
     def _update_current_state(self, algorithm):
         pass
+
+    def update_current_state(self, algorithm):
+        self._update_current_state(algorithm)
 
 
 class MaxEvaluations(TerminationCondition):
@@ -437,10 +439,11 @@ class Algorithm(object):
         LOGGER.log(logging.INFO, "%s starting", type(self).__name__)
 
         # Starts progress bar
-        pbar = tqdm(total=condition.end_state)
+        pbar = tqdm(desc=type(self).__name__, total=condition.end_state)
 
         while not condition(self):
             self.step()
+            condition.update_current_state(self)
             if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
                 LOGGER.log(logging.INFO,
                            "%s running; NFE Complete: %d, Elapsed Time: %s",
@@ -453,10 +456,6 @@ class Algorithm(object):
 
             # Updates progress bar
             pbar.update(condition.current_state - pbar.n)
-
-        #NOTE: lines are commented out for now, until recorder is removed for good
-        # if recorder:
-            # recorder.commit(self)
 
         LOGGER.log(logging.INFO,
                    "%s finished; Total NFE: %d, Elapsed Time: %s",
