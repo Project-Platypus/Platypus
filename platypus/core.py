@@ -439,7 +439,7 @@ class Algorithm(object):
         LOGGER.log(logging.INFO, "%s starting", type(self).__name__)
 
         # Starts progress bar
-        pbar = tqdm(desc=type(self).__name__, total=condition.end_state)
+        pbar = tqdm(desc=type(self).__name__, total=condition.end_state, position=0)
 
         while not condition(self):
             self.step()
