@@ -34,7 +34,6 @@ from .evaluator import Job
 from typing import Any, Optional
 
 
-
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
@@ -168,7 +167,6 @@ class Problem(object):
         self.evaluate(solution)
 
         solution.variables[:] = [problem.types[i].encode(solution.variables[i]) for i in range(problem.nvars)]
-        solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(solution.problem.constraints, solution.constraints)])
         solution.feasible = solution.constraint_violation == 0.0
         solution.evaluated = True
 
@@ -419,7 +417,6 @@ class Algorithm(object):
                 unevaluated[i].variables[:] = result.solution.variables[:]
                 unevaluated[i].objectives[:] = result.solution.objectives[:]
                 unevaluated[i].constraints[:] = result.solution.constraints[:]
-                unevaluated[i].constraint_violation = result.solution.constraint_violation
                 unevaluated[i].feasible = result.solution.feasible
                 unevaluated[i].evaluated = result.solution.evaluated
                 unevaluated[i].metadata = result.solution.metadata
@@ -556,7 +553,6 @@ class Solution(object):
         self.variables = np.zeros((problem.nvars, ))
         self.objectives = np.zeros((problem.nobjs, ))
         self.constraints = np.zeros((problem.nconstrs, ))
-        self.constraint_violation = 0.0
         self.evaluated = False
         self.metadata: Optional[Dict[str, Any]] = None
 
@@ -580,6 +576,11 @@ class Solution(object):
                 setattr(result, k, copy.deepcopy(v, memo))
 
         return result
+
+    @property
+    def constraint_violation(self) -> float:
+        return sum([abs(f(x)) for (f, x) in zip(self.problem.constraints, self.constraints)])
+
 
 class Dominance(Operator):
     """Compares two solutions for dominance."""
