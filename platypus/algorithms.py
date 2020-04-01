@@ -43,7 +43,6 @@ from .tools import DistanceMatrix, choose, point_line_dist, lsolve,\
 from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import default_variator, default_mutator
 
-from memory_profiler import profile
 
 try:
     set
