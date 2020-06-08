@@ -84,7 +84,7 @@ class EpsilonIndicator(Indicator):
             return POSITIVE_INFINITY
         
         normalize(feasible, self.minimum, self.maximum)
-        return max([min([max([s2.normalized_objectives[k] - s1.normalized_objectives[k] for k in range(s2.problem.nobjs)]) for s2 in set]) for s1 in self.reference_set])
+        return max([min([max([s2.normalized_objectives[k] - s1.normalized_objectives[k] for k in range(s2.problem.nobjs)]) for s2 in feasible]) for s1 in self.reference_set])
     
 class Spacing(Indicator):
     
