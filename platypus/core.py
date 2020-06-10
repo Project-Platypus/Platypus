@@ -420,6 +420,7 @@ class Algorithm(object):
                 unevaluated[i].feasible = result.solution.feasible
                 unevaluated[i].evaluated = result.solution.evaluated
                 unevaluated[i].metadata = result.solution.metadata
+                unevaluated[i]._profile = result.solution.profile
 
         self.nfe += len(unevaluated)
 
