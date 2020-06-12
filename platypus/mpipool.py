@@ -118,12 +118,12 @@ class MPIPool(object):
                 result = self.function(task)
             except:
                 tb = traceback.format_exc()
-                self.comm.isend(MPIPoolException(tb), dest=0, tag=status.tag)
+                self.comm.send(MPIPoolException(tb), dest=0, tag=status.tag)
                 return
             if self.debug:
                 print("Worker {0} sending answer {1} with tag {2}."
                       .format(self.rank, result, status.tag))
-            self.comm.isend(result, dest=0, tag=status.tag)
+            self.comm.send(result, dest=0, tag=status.tag)
 
     def map(self, function, tasks, callback=None):
         """
