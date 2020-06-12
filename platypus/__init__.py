@@ -19,14 +19,13 @@
 from __future__ import absolute_import, division, print_function
 
 from .core import *
-from .algorithms import *
 from .evaluator import *
 from .experimenter import *
 from .indicators import *
-from .operators import *
+# from .operators import *
 from .problems import *
 from .tools import *
 from .types import *
 from .weights import *
 
-__version__ = "1.0.4.1" # Update setup.py if the version changes!
+__version__ = "1.0.4.2" # Update setup.py if the version changes!
