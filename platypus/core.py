@@ -557,7 +557,7 @@ class Solution(object):
         self.variables = np.zeros((problem.nvars, ))
         self.objectives = np.zeros((problem.nobjs, ))
         self.constraints = np.zeros((problem.nconstrs, ))
-        self.evaluated = False
+        self._evaluated = False
         self.metadata: Optional[Dict[str, Any]] = None
 
     def evaluate(self):
@@ -584,7 +584,10 @@ class Solution(object):
     @property
     def constraint_violation(self) -> float:
         return sum([abs(f(x)) for (f, x) in zip(self.problem.constraints, self.constraints)])
-
+    
+    @property
+    def evaluated(self) -> bool:
+        return self._evaluated
 
 class Dominance(Operator):
     """Compares two solutions for dominance."""
