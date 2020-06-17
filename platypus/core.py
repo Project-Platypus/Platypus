@@ -589,6 +589,10 @@ class Solution(object):
     def evaluated(self) -> bool:
         return self._evaluated
 
+    @evaluated.setter
+    def evaluated(self, value: bool) -> bool:
+        self._evaluated = value
+
 class Dominance(Operator):
     """Compares two solutions for dominance."""
 
