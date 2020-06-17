@@ -590,7 +590,7 @@ class Solution(object):
         return self._evaluated
 
     @evaluated.setter
-    def evaluated(self, value: bool) -> bool:
+    def evaluated(self, value: bool):
         self._evaluated = value
 
 class Dominance(Operator):
