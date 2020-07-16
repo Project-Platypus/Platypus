@@ -557,6 +557,7 @@ class Solution(object):
         self.variables = np.zeros((problem.nvars, ))
         self.objectives = np.zeros((problem.nobjs, ))
         self.constraints = np.zeros((problem.nconstrs, ))
+        self.evaluated = False
         self.metadata: Optional[Dict[str, Any]] = None
 
     def evaluate(self):
