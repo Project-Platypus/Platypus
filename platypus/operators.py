@@ -237,7 +237,6 @@ class GAOperator(Variator):
             self.i +=1
         children = self.variation.evolve(parents)
         children_mutated = list(map(self.mutation.evolve, children))
-        a=1
         return children_mutated
 
 
