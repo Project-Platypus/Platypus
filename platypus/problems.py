@@ -1106,7 +1106,7 @@ class UF11(Problem):
         transformed_solution.evaluate()
         
         for i in range(self.nobjs):
-            solution.objectives[i] = [2.0 / (1.0 + math.exp(-psum[i])) * (transformed_solution.objectives[i] + 1.0)]
+            solution.objectives[i] = 2.0 / (1.0 + math.exp(-psum[i])) * (transformed_solution.objectives[i] + 1.0)
 
 class UF12(Problem):
     
@@ -1218,18 +1218,18 @@ class UF12(Problem):
     
     def __init__(self):
         super(UF12, self).__init__(30, 5)
-        self.types[:] = [Real(UF11.LB[i], UF11.UB[i]) for i in range(self.nvars)]
+        self.types[:] = [Real(UF12.LB[i], UF12.UB[i]) for i in range(self.nvars)]
         self.internal_problem = DTLZ3(self.nobjs, self.nvars)
         
     def evaluate(self, solution):
-        zz, psum = _transform(solution.variables[:], UF11.M, UF11.LAM, self.nvars, self.nobjs)
+        zz, psum = _transform(solution.variables[:], UF12.M, UF12.LAM, self.nvars, self.nobjs)
         
         transformed_solution = Solution(self.internal_problem)
         transformed_solution.variables[:] = zz
         transformed_solution.evaluate()
         
         for i in range(self.nobjs):
-            solution.objectives[i] = [2.0 / (1.0 + math.exp(-psum[i])) * (transformed_solution.objectives[i] + 1.0)]
+            solution.objectives[i] = 2.0 / (1.0 + math.exp(-psum[i])) * (transformed_solution.objectives[i] + 1.0)
 
 class UF13(WFG):
     
