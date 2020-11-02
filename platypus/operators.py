@@ -307,14 +307,14 @@ class UniformMutation(Mutation):
         self.probability = probability
         self.perturbation = perturbation
         self.vertical = vertical
-        self.n_points = int(PoddieParameters.get_instance().route['n_points'])
 
     def mutate(self, parent):
         result = parent.from_instance()
         problem = result.problem
+        n_points = problem.n_points
 
-        for i in range(self.n_points):
-            i = i+self.n_points if self.vertical else i
+        for i in range(n_points):
+            i = i+n_points if self.vertical else i
             if random.uniform(0.0, 1.0) < self.probability:
                 type = problem.types[i]
                 value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
@@ -330,14 +330,14 @@ class SingleUniformMutation(Mutation):
         self.probability = probability
         self.perturbation = perturbation
         self.vertical = vertical
-        self.n_points = int(PoddieParameters.get_instance().route['n_points'])
 
     def mutate(self, parent):
         result = parent.from_instance()
         problem = result.problem
+        n_points = problem.n_points
 
-        i = random.randint(0, self.n_points-1)
-        i = i+self.n_points if self.vertical else i
+        i = random.randint(0, n_points-1)
+        i = i+n_points if self.vertical else i
         if random.uniform(0.0, 1.0) < self.probability:
             type = problem.types[i]
             value = result.variables[i] + (random.uniform(0.0, 1.0) - 0.5) * self.perturbation
@@ -354,7 +354,6 @@ class NonUniformMutation(Mutation):
         self.perturbation = perturbation
         self.max_iterations = max_iterations
         self.vertical = vertical
-        self.n_points = int(PoddieParameters.get_instance().route['n_points'])
         self.ngen_max = PoddieParameters.get_instance().optimisation['generation_size']
 
     def _delta(self, difference):
@@ -366,9 +365,10 @@ class NonUniformMutation(Mutation):
     def mutate(self, parent):
         result = parent.from_instance()
         problem = result.problem
+        n_points = problem.n_points
 
-        for i in range(self.n_points):
-            i = i + self.n_points if self.vertical else i
+        for i in range(n_points):
+            i = i + n_points if self.vertical else i
             if random.uniform(0.0, 1.0) <= self.probability:
                 type = problem.types[i]
                 value = result.variables[i]
