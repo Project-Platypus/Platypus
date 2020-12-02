@@ -27,11 +27,13 @@ import datetime
 import operator
 import functools
 import itertools
+from more_itertools import pairwise
 import numpy as np
 from abc import ABCMeta, abstractmethod
 from tqdm import tqdm
 from .evaluator import Job
 from typing import Any, Optional
+
 
 
 LOGGER = logging.getLogger("Platypus")
@@ -380,6 +382,16 @@ class _EvaluateJob(Job):
         # signal.signal(signal.SIGINT, signal.SIG_IGN)
         self.solution.evaluate()
 
+class _BuildJob(Job):
+
+    def __init__(self, solutions) -> None:
+        self.solutions = solutions
+        super().__init__()
+
+    def run(self):
+        from poddie.route.centerline_profile import set_route_profiles
+        set_route_profiles(self.solutions)
+
 
 class Algorithm(object):
 
@@ -409,21 +421,24 @@ class Algorithm(object):
         raise NotImplementedError("method not implemented")
 
     def evaluate_all(self, solutions):
-        unevaluated = [s for s in solutions if not s.evaluated]
 
-        jobs = [_EvaluateJob(s) for s in unevaluated]
-        results = self.evaluator.evaluate_all(jobs)
+        unevaluated = [s for s in solutions if not s.evaluated]
+        chunk_bounds = np.linspace(0, len(unevaluated), self.evaluator.n_executors+1, dtype=np.int32)
+        jobs_build = [_BuildJob(unevaluated[chunk_start:chunk_stop]) for chunk_start, chunk_stop
+                      in pairwise(chunk_bounds)]
+        results_build = self.evaluator.evaluate_all(jobs_build)
+        results =itertools.chain.from_iterable([s.solutions for s in results_build])
 
         # if needed, update the original solution with the results
-        for i, result in enumerate(results):
-            if unevaluated[i] != result.solution:
-                unevaluated[i].variables[:] = result.solution.variables[:]
-                unevaluated[i].objectives[:] = result.solution.objectives[:]
-                unevaluated[i].constraints[:] = result.solution.constraints[:]
-                unevaluated[i].feasible = result.solution.feasible
-                unevaluated[i].evaluated = result.solution.evaluated
-                unevaluated[i].metadata = result.solution.metadata
-                unevaluated[i]._profile = result.solution.profile
+        for i, solution in enumerate(results):
+            if unevaluated[i] != solution:
+                unevaluated[i].variables[:] = solution.variables[:]
+                unevaluated[i].objectives[:] = solution.objectives[:]
+                unevaluated[i].constraints[:] = solution.constraints[:]
+                unevaluated[i].feasible = solution.feasible
+                unevaluated[i].evaluated = solution.evaluated
+                unevaluated[i].metadata = solution.metadata
+                unevaluated[i]._profile = solution.profile
 
         self.nfe += len(unevaluated)
 
