@@ -391,6 +391,7 @@ class _BuildJob(Job):
     def run(self):
         from poddie.route.centerline_profile import set_route_profiles
         set_route_profiles(self.solutions)
+        [s.evaluate() for s in self.solutions]
 
 
 class Algorithm(object):
@@ -423,7 +424,9 @@ class Algorithm(object):
     def evaluate_all(self, solutions):
 
         unevaluated = [s for s in solutions if not s.evaluated]
-        chunk_bounds = np.linspace(0, len(unevaluated), self.evaluator.n_executors+1, dtype=np.int32)
+        chunk_bounds = np.linspace(0, len(unevaluated),
+                                  min(len(unevaluated), self.evaluator.n_executors+1),
+                                  dtype=np.int32)
         jobs_build = [_BuildJob(unevaluated[chunk_start:chunk_stop]) for chunk_start, chunk_stop
                       in pairwise(chunk_bounds)]
         results_build = self.evaluator.evaluate_all(jobs_build)
