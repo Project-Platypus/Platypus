@@ -2,3 +2,4 @@ numpy
 six
 nose
 mock
+more-itertools
