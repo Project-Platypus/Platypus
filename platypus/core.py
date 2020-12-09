@@ -27,7 +27,7 @@ import datetime
 import operator
 import functools
 import itertools
-from more_itertools import pairwise
+from more_itertools import divide
 import numpy as np
 from abc import ABCMeta, abstractmethod
 from tqdm import tqdm
@@ -389,6 +389,7 @@ class _BuildJob(Job):
         super().__init__()
 
     def run(self):
+        # TODO 2020-12-09 remove this! Platypus shouldn't have to know about Poddie stuff
         from poddie.route.centerline_profile import set_route_profiles
         set_route_profiles(self.solutions)
         [s.evaluate() for s in self.solutions]
@@ -422,15 +423,11 @@ class Algorithm(object):
         raise NotImplementedError("method not implemented")
 
     def evaluate_all(self, solutions):
-
         unevaluated = [s for s in solutions if not s.evaluated]
-        chunk_bounds = np.linspace(0, len(unevaluated),
-                                  min(len(unevaluated), self.evaluator.n_executors+1),
-                                  dtype=np.int32)
-        jobs_build = [_BuildJob(unevaluated[chunk_start:chunk_stop]) for chunk_start, chunk_stop
-                      in pairwise(chunk_bounds)]
+        num_chunks = min(len(unevaluated), self.evaluator.n_executors)
+        jobs_build = [_BuildJob(chunk) for chunk in divide(num_chunks, unevaluated)]
         results_build = self.evaluator.evaluate_all(jobs_build)
-        results =itertools.chain.from_iterable([s.solutions for s in results_build])
+        results = itertools.chain.from_iterable([s.solutions for s in results_build])
 
         # if needed, update the original solution with the results
         for i, solution in enumerate(results):
