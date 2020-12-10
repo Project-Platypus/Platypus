@@ -27,4 +27,4 @@ from .tools import *
 from .types import *
 from .weights import *
 
-__version__ = "1.0.4.6" # Update setup.py if the version changes!
+__version__ = "1.0.4.7" # Update setup.py if the version changes!

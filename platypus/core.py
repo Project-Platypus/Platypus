@@ -423,7 +423,7 @@ class Algorithm(object):
         raise NotImplementedError("method not implemented")
 
     def evaluate_all(self, solutions):
-        unevaluated = [s for s in solutions if not s.evaluated]
+        unevaluated = [s for s in solutions] #forcing evaluation of all solutions for now if not s.evaluated]
         num_chunks = min(len(unevaluated), self.evaluator.n_executors)
         jobs_build = [_BuildJob(list(chunk)) for chunk in divide(num_chunks, unevaluated)]
         results_build = self.evaluator.evaluate_all(jobs_build)
