@@ -432,8 +432,9 @@ class Algorithm(object):
         # if needed, update the original solution with the results
         for i, solution in enumerate(results):
             if unevaluated[i] != solution:
-                unevaluated[i] = copy.deepcopy(solution)
-                unevaluated[i]._profile = solution.profile
+                for attr, val in solution.__dict__.items():
+                    if attr != 'problem':
+                        unevaluated[i].__setattr__(attr, val)
 
         self.nfe += len(unevaluated)
 
