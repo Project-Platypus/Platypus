@@ -425,20 +425,16 @@ class Algorithm(object):
     def evaluate_all(self, solutions):
         unevaluated = [s for s in solutions if not s.evaluated]
         num_chunks = min(len(unevaluated), self.evaluator.n_executors)
-        jobs_build = [_BuildJob(chunk) for chunk in divide(num_chunks, unevaluated)]
+        jobs_build = [_BuildJob(list(chunk)) for chunk in divide(num_chunks, unevaluated)]
         results_build = self.evaluator.evaluate_all(jobs_build)
         results = itertools.chain.from_iterable([s.solutions for s in results_build])
 
         # if needed, update the original solution with the results
         for i, solution in enumerate(results):
             if unevaluated[i] != solution:
-                unevaluated[i].variables[:] = solution.variables[:]
-                unevaluated[i].objectives[:] = solution.objectives[:]
-                unevaluated[i].constraints[:] = solution.constraints[:]
-                unevaluated[i].feasible = solution.feasible
-                unevaluated[i].evaluated = solution.evaluated
-                unevaluated[i].metadata = solution.metadata
-                unevaluated[i]._profile = solution.profile
+                for attr, val in solution.__dict__.items():
+                    if attr != 'problem':
+                        unevaluated[i].__setattr__(attr, val)
 
         self.nfe += len(unevaluated)
 
@@ -591,7 +587,7 @@ class Solution(object):
         memo[id(self)] = result
 
         for k, v in self.__dict__.items():
-            if k != "problem":
+            if k != "problem" and k != "_profile":
                 setattr(result, k, copy.deepcopy(v, memo))
 
         return result
