@@ -433,12 +433,6 @@ class Algorithm(object):
         for i, solution in enumerate(results):
             if unevaluated[i] != solution:
                 unevaluated[i] = copy.deepcopy(solution)
-                # unevaluated[i].variables[:] = solution.variables[:]
-                # unevaluated[i].objectives[:] = solution.objectives[:]
-                # unevaluated[i].constraints[:] = solution.constraints[:]
-                # unevaluated[i].feasible = solution.feasible
-                # unevaluated[i].evaluated = solution.evaluated
-                # unevaluated[i].metadata = solution.metadata
                 unevaluated[i]._profile = solution.profile
 
         self.nfe += len(unevaluated)
