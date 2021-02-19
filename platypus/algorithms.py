@@ -282,10 +282,12 @@ class GDE3(AbstractGeneticAlgorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  variator = DifferentialEvolution(),
+                 archive = None,
                  **kwargs):
         super(GDE3, self).__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = ParetoDominance()
+        self.archive = archive
         
     def select(self, i, arity):
         indices = []
@@ -312,6 +314,9 @@ class GDE3(AbstractGeneticAlgorithm):
     def initialize(self):
         super(GDE3, self).initialize()
         
+        if self.archive is not None:
+            self.archive += self.population
+
         if self.variator is None:
             self.variator = default_variator(self.problem)   
            
@@ -324,6 +329,9 @@ class GDE3(AbstractGeneticAlgorithm):
             
         self.evaluate_all(offspring)
         self.population = self.survival(offspring)
+
+        if self.archive is not None:
+            self.archive.extend(self.population)
         
 class SPEA2(AbstractGeneticAlgorithm):
      
@@ -333,12 +341,14 @@ class SPEA2(AbstractGeneticAlgorithm):
                  variator = None,
                  dominance = ParetoDominance(),
                  k = 1,
+                 archive = None,
                  **kwargs):
         super(SPEA2, self).__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = dominance
         self.k = k
         self.selection = TournamentSelector(2, dominance=AttributeDominance(fitness_key))
+        self.archive = archive
          
     def _distance(self, solution1, solution2):
         return math.sqrt(sum([math.pow(solution2.objectives[i]-solution1.objectives[i], 2.0) for i in range(self.problem.nobjs)]))
@@ -398,6 +408,9 @@ class SPEA2(AbstractGeneticAlgorithm):
         super(SPEA2, self).initialize()
         self._assign_fitness(self.population)
         
+        if self.archive is not None:
+            self.archive += self.population
+
         if self.variator is None:
             self.variator = default_variator(self.problem)
          
@@ -413,6 +426,9 @@ class SPEA2(AbstractGeneticAlgorithm):
         offspring.extend(self.population)
         self._assign_fitness(offspring)
         self.population = self._truncate(offspring, self.population_size)
+
+        if self.archive is not None:
+            self.archive.extend(self.population)
         
 class MOEAD(AbstractGeneticAlgorithm):
     
@@ -425,6 +441,7 @@ class MOEAD(AbstractGeneticAlgorithm):
                  update_utility = None,
                  weight_generator = random_weights,
                  scalarizing_function = chebyshev,
+                 archive = None,
                  **kwargs):
         super(MOEAD, self).__init__(problem, 0, generator, **remove_keys(kwargs, "population_size")) # population_size is set after generating weights
         self.neighborhood_size = neighborhood_size
@@ -436,6 +453,7 @@ class MOEAD(AbstractGeneticAlgorithm):
         self.scalarizing_function = scalarizing_function
         self.generation = 0
         self.weight_generator_kwargs = only_keys_for(kwargs, weight_generator)
+        self.archive = archive
         
         # MOEA/D currently only works on minimization problems
         if any([d != Problem.MINIMIZE for d in problem.directions]):
@@ -531,6 +549,9 @@ class MOEAD(AbstractGeneticAlgorithm):
         # set the default variator if one is not provided
         if self.variator is None:
             self.variator = default_variator(self.problem)
+
+        if self.archive is not None:
+            self.archive += self.population
             
     def _get_subproblems(self):
         """ Determines the subproblems to search.
@@ -605,6 +626,9 @@ class MOEAD(AbstractGeneticAlgorithm):
         if self.update_utility is not None and self.update_utility >= 0 and self.generation % self.update_utility == 0:
             self._update_utility()
 
+        if self.archive is not None:
+            self.archive.extend(self.population)
+
 class NSGAIII(AbstractGeneticAlgorithm):
     
     def __init__(self, problem,
@@ -613,6 +637,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
                  generator = RandomGenerator(),
                  selector = TournamentSelector(2),
                  variator = None,
+                 archive = None
                  **kwargs):
         super(NSGAIII, self).__init__(problem, generator = generator, **kwargs)
         self.selector = selector
@@ -624,6 +649,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
 
         self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
         self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
+        self.archive = archive
         
         # NSGAIII currently only works on minimization problems
         if any([d != Problem.MINIMIZE for d in problem.directions]):
@@ -770,6 +796,9 @@ class NSGAIII(AbstractGeneticAlgorithm):
     def initialize(self):
         super(NSGAIII, self).initialize()
         
+        if self.archive is not None:
+            self.archive += self.population
+
         if self.variator is None:
             self.variator = default_variator(self.problem)
     
@@ -786,6 +815,9 @@ class NSGAIII(AbstractGeneticAlgorithm):
         nondominated_sort(offspring)
         self.population = self._reference_point_truncate(offspring, self.population_size)
 
+        if self.archive is not None:
+            self.archive.extend(self.population)
+
 class ParticleSwarm(Algorithm):
     
     __metaclass__ = ABCMeta
@@ -800,6 +832,7 @@ class ParticleSwarm(Algorithm):
                  fitness = None,
                  larger_preferred = True,
                  fitness_getter = fitness_key,
+                 archive = None,
                  **kwargs):
         super(ParticleSwarm, self).__init__(problem, **kwargs)
         self.swarm_size = swarm_size
@@ -811,6 +844,7 @@ class ParticleSwarm(Algorithm):
         self.fitness = fitness
         self.larger_preferred = larger_preferred
         self.fitness_getter = fitness_getter
+        self.archive = archive
         
     def step(self):
         if self.nfe == 0:
@@ -833,6 +867,9 @@ class ParticleSwarm(Algorithm):
         self.leaders.truncate(self.leader_size)
         
         self.velocities = [[0.0]*self.problem.nvars for _ in range(self.swarm_size)]
+
+        if self.archive is not None:
+            self.archive += self.population
     
     def iterate(self):
         self._update_velocities()
@@ -843,6 +880,9 @@ class ParticleSwarm(Algorithm):
         
         self.leaders += self.particles
         self.leaders.truncate(self.leader_size)
+
+        if self.archive is not None:
+            self.archive.extend(self.population)
     
     def _update_velocities(self):
         for i in range(self.swarm_size):
@@ -917,6 +957,7 @@ class OMOPSO(ParticleSwarm):
                  mutation_probability = 0.1,
                  mutation_perturbation = 0.5,
                  max_iterations = 100,
+                 archive = None,
                  **kwargs):
         super(OMOPSO, self).__init__(problem,
                                      swarm_size=swarm_size,
@@ -935,6 +976,7 @@ class OMOPSO(ParticleSwarm):
                                                       mutation_perturbation,
                                                       max_iterations,
                                                       self)
+        self.archive = archive                                                    
         
     def step(self):
         if self.nfe == 0:
@@ -947,10 +989,17 @@ class OMOPSO(ParticleSwarm):
     def initialize(self):
         super(OMOPSO, self).initialize()
         self.archive += self.particles
+
+        if self.archive is not None:
+            self.archive += self.population
         
     def iterate(self):
         super(OMOPSO, self).iterate()
         self.archive += self.particles
+
+        if self.archive is not None:
+            self.archive.extend(self.population)
+
         
     def _mutate(self):
         for i in range(self.swarm_size):
@@ -969,6 +1018,7 @@ class SMPSO(ParticleSwarm):
                  mutation_perturbation = 0.5,
                  max_iterations = 100,
                  mutate = None,
+                 archive = None,
                  **kwargs):
         super(SMPSO, self).__init__(problem,
                                     swarm_size=swarm_size,
@@ -983,12 +1033,16 @@ class SMPSO(ParticleSwarm):
         self.max_iterations = max_iterations
         self.maximum_velocity = [(t.max_value - t.min_value)/2.0 for t in problem.types]
         self.minimum_velocity = [-(t.max_value - t.min_value)/2.0 for t in problem.types]
+        self.archive = archive
         
     def initialize(self):
         super(SMPSO, self).initialize()
         
         if self.mutate is None:
             self.mutate = default_mutator(self.problem)
+
+        if self.archive is not None:
+            self.archive += self.population
     
     def _update_velocities(self):
         for i in range(self.swarm_size):
@@ -1040,6 +1094,7 @@ class CMAES(Algorithm):
                  initial_search_point = None,
                  check_consistency = False,
                  epsilons = None,
+                 archive = None,
                  **kwargs):
         super(CMAES, self).__init__(problem, **kwargs)
         self.offspring_size = offspring_size
@@ -1056,6 +1111,7 @@ class CMAES(Algorithm):
         self.population = []
         self.iteration = 0
         self.last_eigenupdate = 0
+        self.archive = archive
         
         if epsilons is None:
             self.archive = Archive()
@@ -1078,6 +1134,9 @@ class CMAES(Algorithm):
             self.result = self.archive
         
     def initialize(self):
+        if self.archive is not None:
+            self.archive += self.population
+
         if self.sigma is None:
             self.sigma = 0.5
             
@@ -1305,6 +1364,9 @@ class CMAES(Algorithm):
 
         self.archive += self.population
         self.update_distribution()
+
+        if self.archive is not None:
+            self.archive.extend(self.population)
         
 class IBEA(AbstractGeneticAlgorithm):
     
@@ -1314,12 +1376,14 @@ class IBEA(AbstractGeneticAlgorithm):
                  fitness_evaluator = HypervolumeFitnessEvaluator(),
                  fitness_comparator = AttributeDominance(fitness_key, False),
                  variator = None,
+                 archive = None,
                  **kwargs):
         super(IBEA, self).__init__(problem, population_size, generator, **kwargs)
         self.fitness_evaluator = fitness_evaluator
         self.fitness_comparator = fitness_comparator
         self.selector = TournamentSelector(2, fitness_comparator)
         self.variator = variator
+        self.archive = archive
         
     def initialize(self):
         super(IBEA, self).initialize()
@@ -1327,6 +1391,9 @@ class IBEA(AbstractGeneticAlgorithm):
         
         if self.variator is None:
             self.variator = default_variator(self.problem)
+
+        if self.archive is not None:
+            self.archive += self.population
         
     def iterate(self):
         offspring = []
@@ -1342,6 +1409,9 @@ class IBEA(AbstractGeneticAlgorithm):
         
         while len(self.population) > self.population_size:
             self.fitness_evaluator.remove(self.population, self._find_worst())
+        
+        if self.archive is not None:
+            self.archive.extend(self.population)
         
     def _find_worst(self):
         index = 0
@@ -1359,7 +1429,7 @@ class PAES(AbstractGeneticAlgorithm):
                  divisions = 8,
                  capacity = 100,
                  generator = RandomGenerator(),
-                 variator = None,
+                 variator = None,                 
                  **kwargs):
         super(PAES, self).__init__(problem, 1, generator, **kwargs)
         self.variator = variator
