@@ -88,19 +88,18 @@ class MPIPool(object):
             # Event loop.
             # Sit here and await instructions.
             if self.debug:
-                print("Worker {0} waiting for task.".format(self.rank))
+                print(f"Worker {self.rank} waiting for task.")
 
             # Blocking receive to wait for instructions.
             task = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
             if self.debug:
-                print("Worker {0} got task {1} with tag {2}."
-                      .format(self.rank, task, status.tag))
+                print(f"Worker {self.rank} got task {task} with tag {status.tag}.")
 
             # Check if message is special sentinel signaling end.
             # If so, stop.
             if isinstance(task, _close_pool_message):
                 if self.debug:
-                    print("Worker {0} told to quit.".format(self.rank))
+                    print(f"Worker {self.rank} told to quit.")
                 break
 
             # Check if message is special type containing new function
@@ -152,8 +151,7 @@ class MPIPool(object):
 
         if function is not self.function:
             if self.debug:
-                print("Master replacing pool function with {0}."
-                      .format(function))
+                print(f"Master replacing pool function with {function}.")
 
             self.function = function
             F = _function_wrapper(function)
@@ -178,8 +176,7 @@ class MPIPool(object):
             for i, task in enumerate(tasks):
                 worker = i % self.size + 1
                 if self.debug:
-                    print("Sent task {0} to worker {1} with tag {2}."
-                          .format(task, worker, i))
+                    print(f"Sent task {task} to worker {worker} with tag {i}.")
                 r = self.comm.isend(task, dest=worker, tag=i)
                 requests.append(r)
 
@@ -190,8 +187,7 @@ class MPIPool(object):
             for i in range(ntask):
                 worker = i % self.size + 1
                 if self.debug:
-                    print("Master waiting for worker {0} with tag {1}"
-                          .format(worker, i))
+                    print(f"Master waiting for worker {worker} with tag {i}")
                 result = self.comm.recv(source=worker, tag=i)
                 if isinstance(result, MPIPoolException):
                     print("One of the MPIPool workers failed with the "
@@ -212,8 +208,7 @@ class MPIPool(object):
             for i, task in enumerate(tasks[0:self.size]):
                 worker = i+1
                 if self.debug:
-                    print("Sent task {0} to worker {1} with tag {2}."
-                          .format(task, worker, i))
+                    print(f"Sent task {task} to worker {worker} with tag {i}.")
                 # Send out the tasks asynchronously.
                 self.comm.isend(task, dest=worker, tag=i)
 
@@ -232,8 +227,7 @@ class MPIPool(object):
 
                 results[i] = result
                 if self.debug:
-                    print("Master received from worker {0} with tag {1}"
-                          .format(worker, i))
+                    print(f"Master received from worker {worker} with tag {i}")
 
                 # Now send the next task to this idle worker (if there are any
                 # left).
@@ -241,8 +235,7 @@ class MPIPool(object):
                     task = tasks[ntasks_dispatched]
                     i = ntasks_dispatched
                     if self.debug:
-                        print("Sent task {0} to worker {1} with tag {2}."
-                              .format(task, worker, i))
+                        print(f"Sent task {task} to worker {worker} with tag {i}.")
                     # Send out the tasks asynchronously.
                     self.comm.isend(task, dest=worker, tag=i)
                     ntasks_dispatched += 1

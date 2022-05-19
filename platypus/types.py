@@ -79,7 +79,7 @@ class Real(Type):
         return random.uniform(self.min_value, self.max_value)
         
     def __str__(self):
-        return "Real(%f, %f)" % (self.min_value, self.max_value)
+        return f"Real({self.min_value:f}, {self.max_value:f})"
         
 class Binary(Type):
     """Represents a binary string.
@@ -186,7 +186,7 @@ class Permutation(Type):
         return elements
         
     def __str__(self):
-        return "Permutation(%d)" % len(self.elements)
+        return f"Permutation({len(self.elements)})"
     
 class Subset(Type):
     """Represents a fixed-size subset.
