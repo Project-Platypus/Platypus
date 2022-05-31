@@ -11,5 +11,6 @@ setup(name='Platypus-Opt',
       url='https://github.com/Project-Platypus/Platypus',
       packages=['platypus'],
       install_requires=['six'],
-      tests_require=['pytest', 'mock']
+      tests_require=['pytest', 'mock'],
+      python_requires='>=3.6'
      )
