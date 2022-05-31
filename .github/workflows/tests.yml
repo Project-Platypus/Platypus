@@ -1,30 +1,23 @@
 name: Tests
 
-on: [push]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ '2.x', '3.x', 'pypy2', 'pypy3' ]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "pypy-3.9"]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-        
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-      
+        cache: "pip"
+
     - name: Run tests - Python ${{ matrix.python-version }}
       run: |
         pip install -r requirements.txt
