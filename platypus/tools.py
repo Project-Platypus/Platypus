@@ -593,4 +593,4 @@ def only_keys_for(d, func):
     func: callable
         The function.
     """
-    return only_keys(d, *inspect.getargspec(func)[0])
+    return only_keys(d, *inspect.getfullargspec(func)[0])
