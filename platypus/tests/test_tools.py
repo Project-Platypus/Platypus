@@ -80,11 +80,11 @@ class TestVectorAlgebra(unittest.TestCase):
         self.assertEqual(2, dot([1, 0, 1], [1, 1, 1]))
         
     def test_subtract(self):
-        self.assertEquals([1, 0, -1], subtract([1, 1, 1], [0, 1, 2]))
+        self.assertEqual([1, 0, -1], subtract([1, 1, 1], [0, 1, 2]))
         
     def test_multiply(self):
-        self.assertEquals([0, 0, 0], multiply(0, [1, 1, 1]))
-        self.assertEquals([.5, .5, .5], multiply(.5, [1, 1, 1]))
+        self.assertEqual([0, 0, 0], multiply(0, [1, 1, 1]))
+        self.assertEqual([.5, .5, .5], multiply(.5, [1, 1, 1]))
         
     def test_magnitude(self):
         self.assertEqual(0, magnitude([0, 0, 0]))
@@ -108,7 +108,7 @@ class TestVectorAlgebra(unittest.TestCase):
     def test_lsolve1(self):
         A = [[1, 0], [0, 1]]
         b = [1, 1]
-        self.assertEquals([1, 1], lsolve(A, b))
+        self.assertEqual([1, 1], lsolve(A, b))
         
     def test_lsolve2(self):
         A = [[0.7, 0.3, 0.0], [0.1, 0.1, 0.7], [0.2, 0.1, 0.9]]
