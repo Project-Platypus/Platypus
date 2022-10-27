@@ -1,0 +1,25 @@
+name: Build distribution
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade build wheel setuptools
+      - name: Build distributions
+        shell: bash -l {0}
+        run: python -m build
+      - name: Publish package
+        if: github.repository == 'Project-Platypus/Platypus' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
