@@ -22,7 +22,7 @@ cities = [(3600, 2300), (3100, 3300), (4700, 5750), (5400, 5750), (5608, 7103),
 
 def dist(x, y):
     return round(math.sqrt((x[0] - y[0])**2 + (x[1] - y[1])**2))
-    
+
 def tsp(x):
     tour = x[0]
     return sum([dist(cities[tour[i]], cities[tour[(i + 1) % len(cities)]]) for i in range(len(tour))])
@@ -31,6 +31,6 @@ problem = Problem(1, 1)
 problem.types[0] = Permutation(range(len(cities)))
 problem.directions[0] = Problem.MINIMIZE
 problem.function = tsp
- 
+
 algorithm = GeneticAlgorithm(problem)
 algorithm.run(100000, callback = lambda a : print(a.nfe, unique(nondominated(algorithm.result))[0].objectives[0]))

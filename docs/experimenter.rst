@@ -18,7 +18,7 @@ Basic Use
 Suppose we want to compare NSGA-II and NSGA-III on the DTLZ2 problem.  In
 general, you will want to run each algorithm several times on the problem
 with different random number generator seeds.  Instead of having to write
-many for loops to run each algorithm for every seed, we can use the 
+many for loops to run each algorithm for every seed, we can use the
 ``experiment`` function.  The experiment function accepts a list of algorithms,
 a list of problems, and several other arguments that configure the experiment,
 such as the number of seeds and number of function evaluations.  It then
@@ -32,7 +32,7 @@ the results using ``display``.
 
 .. literalinclude:: ../examples/experimenter.py
    :language: python
-        
+
 The output of which appears similar to:
 
 .. code::
@@ -58,7 +58,7 @@ with different parameters, pass in a three-element tuple containing
 ``(type, dict, name)``.  The name element provides a custom name for the
 algorithm that will appear in the output.  For example, we could use
 ``(NSGAIII, {"divisions_outer":24}, "NSGAIII_24")``.  The names must be unique.
-        
+
 Parallelization
 ---------------
 
@@ -73,7 +73,7 @@ When using these evaluators, one must also follow any requirements of the
 underlying library.  For example, ``MultiprocessingEvaluator`` uses the
 ``multiprocessing`` module available on Python 2, which requires the users to
 invoke ``freeze_support()`` first.
-        
+
 .. literalinclude:: ../examples/experimenter_parallel.py
    :language: python
 
@@ -94,4 +94,3 @@ Running this script produces the figure below:
    :scale: 100 %
    :alt: Comparing the Pareto fronts for different algorithms on DTLZ2
    :align: center
-   

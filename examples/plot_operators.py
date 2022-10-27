@@ -16,10 +16,10 @@ solution3.variables[:] = [0.0, 0.25]
 
 def generate(variator, parents):
     result = []
-    
+
     while len(result) < 10000:
         result.extend(variator.evolve(parents))
-        
+
     return to_points(result)
 
 def to_points(solutions):

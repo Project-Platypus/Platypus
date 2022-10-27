@@ -13,6 +13,6 @@ algorithm.run(10000)
 
 for solution in unique(nondominated(algorithm.result)):
     print(solution.variables, solution.objectives)
-    
+
 # Output:
 # [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]] [0]
