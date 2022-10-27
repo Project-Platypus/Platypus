@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # display the results
     fig = plt.figure()
 
-    for i, algorithm in enumerate(six.iterkeys(results)):
+    for i, algorithm in enumerate(results.keys()):
         result = results[algorithm]["DTLZ2"][0]
 
         ax = fig.add_subplot(2, 5, i+1, projection='3d')

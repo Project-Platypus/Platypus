@@ -5,7 +5,7 @@ class DTLZ2_Slow(DTLZ2):
 
     def evaluate(self, solution):
         sum(range(1000000))
-        super(DTLZ2_Slow, self).evaluate(solution)
+        super().evaluate(solution)
 
 if __name__ == "__main__":
     # define the problem definition

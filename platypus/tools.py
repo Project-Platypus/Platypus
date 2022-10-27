@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import sys
 import math
@@ -138,7 +137,7 @@ def euclidean_dist(x, y):
 
     return math.sqrt(sum([math.pow(x[i]-y[i], 2.0) for i in range(len(x))]))
 
-class DistanceMatrix(object):
+class DistanceMatrix:
     """Maintains pairwise distances between solutions.
 
     The distance matrix, used by SPEA2, maintains the pairwise distances
@@ -148,7 +147,7 @@ class DistanceMatrix(object):
     """
 
     def __init__(self, solutions, distance_fun=euclidean_dist):
-        super(DistanceMatrix, self).__init__()
+        super().__init__()
         self.distances = []
 
         for i in range(len(solutions)):

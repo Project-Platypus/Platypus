@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from mock import patch
+from unittest.mock import patch
 from ..core import Problem, Solution
 from ..types import Permutation
 from ..operators import Swap

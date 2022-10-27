@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import six
 import time
@@ -34,7 +33,7 @@ except NameError:
 class ExperimentJob(Job):
 
     def __init__(self, instance, nfe, algorithm_name, problem_name, seed, display_stats):
-        super(ExperimentJob, self).__init__()
+        super().__init__()
         self.instance = instance
         self.nfe = nfe
         self.algorithm_name = algorithm_name
@@ -59,7 +58,7 @@ class ExperimentJob(Job):
 class IndicatorJob(Job):
 
     def __init__(self, algorithm_name, problem_name, result_set, indicators):
-        super(IndicatorJob, self).__init__()
+        super().__init__()
         self.algorithm_name = algorithm_name
         self.problem_name = problem_name
         self.result_set = result_set
@@ -197,8 +196,8 @@ def experiment(algorithms = [],
     return results
 
 def calculate_job_generator(results, indicators):
-    for algorithm in six.iterkeys(results):
-        for problem in six.iterkeys(results[algorithm]):
+    for algorithm in results.keys():
+        for problem in results[algorithm].keys():
             for result_set in results[algorithm][problem]:
                 yield IndicatorJob(algorithm, problem, result_set, indicators)
 
@@ -235,12 +234,12 @@ def calculate(results,
     return results
 
 def display(results, ndigits=None):
-    for algorithm in six.iterkeys(results):
+    for algorithm in results.keys():
         print(algorithm)
-        for problem in six.iterkeys(results[algorithm]):
+        for problem in results[algorithm].keys():
             if isinstance(results[algorithm][problem], dict):
                 print("   ", problem)
-                for indicator in six.iterkeys(results[algorithm][problem]):
+                for indicator in results[algorithm][problem].keys():
                     if ndigits:
                         print("       ", indicator, ":", list(map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator])))
                     else:

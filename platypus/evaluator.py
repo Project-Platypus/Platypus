@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import time
 import logging
@@ -40,12 +39,12 @@ def _chunks(items, n):
         if len(result) > 0:
             yield result
 
-class Job(object):
+class Job:
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Job, self).__init__()
+        super().__init__()
 
     @abstractmethod
     def run(self):
@@ -55,12 +54,12 @@ def run_job(job):
     job.run()
     return job
 
-class Evaluator(object):
+class Evaluator:
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Evaluator, self).__init__()
+        super().__init__()
 
     @abstractmethod
     def evaluate_all(self, jobs, **kwargs):
@@ -78,7 +77,7 @@ class Evaluator(object):
 class MapEvaluator(Evaluator):
 
     def __init__(self, map_func=map):
-        super(MapEvaluator, self).__init__()
+        super().__init__()
         self.map_func = map_func
 
     def evaluate_all(self, jobs, **kwargs):
@@ -104,7 +103,7 @@ class MapEvaluator(Evaluator):
 class SubmitEvaluator(Evaluator):
 
     def __init__(self, submit_func):
-        super(SubmitEvaluator, self).__init__()
+        super().__init__()
         self.submit_func = submit_func
 
     def evaluate_all(self, jobs, **kwargs):
@@ -131,7 +130,7 @@ class SubmitEvaluator(Evaluator):
 class ApplyEvaluator(Evaluator):
 
     def __init__(self, apply_func):
-        super(ApplyEvaluator, self).__init__()
+        super().__init__()
         self.apply_func = apply_func
 
     def evaluate_all(self, jobs, **kwargs):
@@ -159,7 +158,7 @@ class ApplyEvaluator(Evaluator):
 class PoolEvaluator(MapEvaluator):
 
     def __init__(self, pool):
-        super(PoolEvaluator, self).__init__(pool.map)
+        super().__init__(pool.map)
         self.pool = pool
 
         if hasattr(pool, "_processes"):
@@ -182,7 +181,7 @@ class MultiprocessingEvaluator(PoolEvaluator):
     def __init__(self, processes=None):
         try:
             from multiprocessing import Pool
-            super(MultiprocessingEvaluator, self).__init__(Pool(processes))
+            super().__init__(Pool(processes))
         except ImportError:
             # prevent error from showing in Eclipse if multiprocessing not available
             raise
@@ -193,7 +192,7 @@ class ProcessPoolEvaluator(SubmitEvaluator):
         try:
             from concurrent.futures import ProcessPoolExecutor
             self.executor = ProcessPoolExecutor(processes)
-            super(ProcessPoolEvaluator, self).__init__(self.executor.submit)
+            super().__init__(self.executor.submit)
             LOGGER.log(logging.INFO, "Started process pool evaluator")
 
             if processes:

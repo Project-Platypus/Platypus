@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import sys
 import copy
@@ -46,10 +45,10 @@ def crowding_distance_key(x):
 def objective_key(x, index=0):
     return x.objectives[index]
 
-class FixedLengthArray(object):
+class FixedLengthArray:
 
     def __init__(self, size, default_value = None, convert = None):
-        super(FixedLengthArray, self).__init__()
+        super().__init__()
         self._size = size
         if convert is not None:
             self._data = [convert(default_value) for _ in range(size)]
@@ -90,7 +89,7 @@ def _convert_constraint(x):
     else:
         return Constraint(x)
 
-class Problem(object):
+class Problem:
     """Class representing a problem.
 
     Attributes
@@ -139,7 +138,7 @@ class Problem(object):
         function: callable (default None)
             The function that is used to evaluate the problem.
         """
-        super(Problem, self).__init__()
+        super().__init__()
         self.nvars = nvars
         self.nobjs = nobjs
         self.nconstrs = nconstrs
@@ -206,25 +205,25 @@ class Problem(object):
         solution.objectives[:] = objs
         solution.constraints[:] = constrs
 
-class Generator(object):
+class Generator:
     """Abstract class for generating initial populations."""
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Generator, self).__init__()
+        super().__init__()
 
     @abstractmethod
     def generate(self, problem):
         raise NotImplementedError("method not implemented")
 
-class Variator(object):
+class Variator:
     """Abstract class for variation operators (crossover and mutation)."""
 
     __metaclass__ = ABCMeta
 
     def __init__(self, arity):
-        super(Variator, self).__init__()
+        super().__init__()
         self.arity = arity
 
     @abstractmethod
@@ -237,7 +236,7 @@ class Mutation(Variator):
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Mutation, self).__init__(1)
+        super().__init__(1)
 
     def evolve(self, parents):
         if hasattr(parents, "__iter__"):
@@ -249,12 +248,12 @@ class Mutation(Variator):
     def mutate(self, parent):
         raise NotImplementedError("method not implemented")
 
-class Selector(object):
+class Selector:
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Selector, self).__init__()
+        super().__init__()
 
     def select(self, n, population):
         return list(map(self.select_one, itertools.repeat(population, n)))
@@ -263,13 +262,13 @@ class Selector(object):
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
 
-class TerminationCondition(object):
+class TerminationCondition:
     """Abstract class for defining termination conditions."""
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(TerminationCondition, self).__init__()
+        super().__init__()
 
     def __call__(self, algorithm):
         return self.shouldTerminate(algorithm)
@@ -314,7 +313,7 @@ class MaxEvaluations(TerminationCondition):
         The maximum number of function evaluations to execute.
     """
     def __init__(self, nfe):
-        super(MaxEvaluations, self).__init__()
+        super().__init__()
         self.nfe = nfe
         self.starting_nfe = 0
 
@@ -328,7 +327,7 @@ class MaxTime(TerminationCondition):
     """Termination condition based on the maximum elapsed time."""
 
     def __init__(self, max_time):
-        super(MaxTime, self).__init__()
+        super().__init__()
         self.max_time = max_time
         self.start_time = time.time()
 
@@ -341,13 +340,13 @@ class MaxTime(TerminationCondition):
 class _EvaluateJob(Job):
 
     def __init__(self, solution):
-        super(_EvaluateJob, self).__init__()
+        super().__init__()
         self.solution = solution
 
     def run(self):
         self.solution.evaluate()
 
-class Algorithm(object):
+class Algorithm:
 
     __metaclass__ = ABCMeta
 
@@ -356,7 +355,7 @@ class Algorithm(object):
                  evaluator=None,
                  log_frequency=None,
                  **kwargs):
-        super(Algorithm, self).__init__()
+        super().__init__()
         self.problem = problem
         self.evaluator = evaluator
         self.log_frequency = log_frequency
@@ -441,7 +440,7 @@ def _constraint_lt(x, y, delta=0.0001):
 def _constraint_gt(x, y, delta=0.0001):
     return 0 if x > y else abs(x - y) + delta
 
-class Constraint(object):
+class Constraint:
 
     OPERATORS = {
              "==" : _constraint_eq,
@@ -459,7 +458,7 @@ class Constraint(object):
     GREATER_THAN_ZERO = ">0"
 
     def __init__(self, op, value=None):
-        super(Constraint, self).__init__()
+        super().__init__()
 
         if value is not None:
             # Passing value as a second argument
@@ -483,7 +482,7 @@ class Constraint(object):
     def __call__(self, value):
         return self.function(value)
 
-class Solution(object):
+class Solution:
     """Class representing a solution to a problem.
 
     Attributes
@@ -508,7 +507,7 @@ class Solution(object):
 
     def __init__(self, problem):
         """Creates a new solution for the given problem."""
-        super(Solution, self).__init__()
+        super().__init__()
         self.problem = problem
         self.variables = FixedLengthArray(problem.nvars)
         self.objectives = FixedLengthArray(problem.nobjs)
@@ -537,13 +536,13 @@ class Solution(object):
 
         return result
 
-class Dominance(object):
+class Dominance:
     """Compares two solutions for dominance."""
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Dominance, self).__init__()
+        super().__init__()
 
     def __call__(self, solution1, solution2):
         return self.compare(solution1, solution2)
@@ -573,7 +572,7 @@ class ParetoDominance(Dominance):
     """
 
     def __init__(self):
-        super(ParetoDominance, self).__init__()
+        super().__init__()
 
     def compare(self, solution1, solution2):
         problem = solution1.problem
@@ -628,7 +627,7 @@ class EpsilonDominance(Dominance):
     """
 
     def __init__(self, epsilons):
-        super(EpsilonDominance, self).__init__()
+        super().__init__()
 
         if hasattr(epsilons, "__getitem__"):
             self.epsilons = epsilons
@@ -753,7 +752,7 @@ class EpsilonDominance(Dominance):
 class AttributeDominance(Dominance):
 
     def __init__(self, getter, larger_preferred=True):
-        super(AttributeDominance, self).__init__()
+        super().__init__()
         self.larger_preferred = larger_preferred
 
         if hasattr(getter, "__call__"):
@@ -776,11 +775,11 @@ class AttributeDominance(Dominance):
         else:
             return 0
 
-class Archive(object):
+class Archive:
     """An archive only containing non-dominated solutions."""
 
     def __init__(self, dominance = ParetoDominance()):
-        super(Archive, self).__init__()
+        super().__init__()
         self._dominance = dominance
         self._contents = []
 
@@ -830,7 +829,7 @@ class Archive(object):
 class AdaptiveGridArchive(Archive):
 
     def __init__(self, capacity, nobjs, divisions, dominance = ParetoDominance()):
-        super(AdaptiveGridArchive, self).__init__(dominance)
+        super().__init__(dominance)
         self.capacity = capacity
         self.nobjs = nobjs
         self.divisions = divisions
@@ -877,7 +876,7 @@ class AdaptiveGridArchive(Archive):
             return True
 
     def remove(self, solution):
-        removed = super(AdaptiveGridArchive, self).remove(solution)
+        removed = super().remove(solution)
 
         if removed:
             index = self.find_index(solution)
@@ -955,7 +954,7 @@ class AdaptiveGridArchive(Archive):
 class FitnessArchive(Archive):
 
     def __init__(self, fitness, dominance = ParetoDominance(), larger_preferred=True, getter=fitness_key):
-        super(FitnessArchive, self).__init__(dominance)
+        super().__init__(dominance)
         self.fitness = fitness
         self.larger_preferred = larger_preferred
         self.getter = getter
@@ -970,7 +969,7 @@ class FitnessArchive(Archive):
 class EpsilonBoxArchive(Archive):
 
     def __init__(self, epsilons):
-        super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
+        super().__init__(EpsilonDominance(epsilons))
         self.improvements = 0
 
     def add(self, solution):
@@ -1244,12 +1243,12 @@ def normalize(solutions, minimum=None, maximum=None):
 
     return minimum, maximum
 
-class FitnessEvaluator(object):
+class FitnessEvaluator:
 
     __metaclass__ = ABCMeta
 
     def __init__(self, kappa = 0.05):
-        super(FitnessEvaluator, self).__init__()
+        super().__init__()
         self.kappa = kappa
 
     @abstractmethod
@@ -1304,7 +1303,7 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
                  kappa = 0.05,
                  rho = 2.0,
                  dominance = ParetoDominance()):
-        super(HypervolumeFitnessEvaluator, self).__init__(kappa = kappa)
+        super().__init__(kappa = kappa)
         self.rho = rho
         self.dominance = dominance
 
@@ -1340,12 +1339,12 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
             else:
                 return self.hypervolume(solution1, solution2, d-1)*(self.rho-a)/self.rho
 
-class Indicator(object):
+class Indicator:
 
     __metaclass = ABCMeta
 
     def __init__(self):
-        super(Indicator, self).__init__()
+        super().__init__()
 
     def __call__(self, set):
         return self.calculate(set)

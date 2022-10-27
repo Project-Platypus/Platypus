@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import math
 import functools
@@ -43,7 +42,7 @@ def distance_to_nearest(solution, set):
 class GenerationalDistance(Indicator):
 
     def __init__(self, reference_set, d = 2.0):
-        super(GenerationalDistance, self).__init__()
+        super().__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
         self.d = d
         self.minimum, self.maximum = normalize(reference_set)
@@ -60,7 +59,7 @@ class GenerationalDistance(Indicator):
 class InvertedGenerationalDistance(Indicator):
 
     def __init__(self, reference_set, d = 1.0):
-        super(InvertedGenerationalDistance, self).__init__()
+        super().__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
         self.d = d
         self.minimum, self.maximum = normalize(reference_set)
@@ -73,7 +72,7 @@ class InvertedGenerationalDistance(Indicator):
 class EpsilonIndicator(Indicator):
 
     def __init__(self, reference_set):
-        super(EpsilonIndicator, self).__init__()
+        super().__init__()
         self.reference_set = [s for s in reference_set if s.constraint_violation==0.0]
         self.minimum, self.maximum = normalize(reference_set)
 
@@ -89,7 +88,7 @@ class EpsilonIndicator(Indicator):
 class Spacing(Indicator):
 
     def __init__(self):
-        super(Spacing, self).__init__()
+        super().__init__()
 
     def calculate(self, set):
         feasible = [s for s in set if s.constraint_violation==0.0]

@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import copy
 import math
@@ -24,7 +23,7 @@ import random
 from abc import ABCMeta, abstractmethod
 from .tools import bin2gray, bin2int, int2bin, gray2bin
 
-class Type(object):
+class Type:
     """The type of a decision variable.
 
     The type of a decision variable defines its bounds, provides a mechanism to
@@ -44,7 +43,7 @@ class Type(object):
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        super(Type, self).__init__()
+        super().__init__()
 
     @abstractmethod
     def rand(self):
@@ -71,7 +70,7 @@ class Real(Type):
     """
 
     def __init__(self, min_value, max_value):
-        super(Real, self).__init__()
+        super().__init__()
         self.min_value = float(min_value)
         self.max_value = float(max_value)
 
@@ -99,7 +98,7 @@ class Binary(Type):
     """
 
     def __init__(self, nbits):
-        super(Binary, self).__init__()
+        super().__init__()
         self.nbits = nbits
 
     def rand(self):
@@ -133,7 +132,7 @@ class Integer(Binary):
     """
 
     def __init__(self, min_value, max_value):
-        super(Integer, self).__init__(int(math.log(int(max_value)-int(min_value), 2)) + 1)
+        super().__init__(int(math.log(int(max_value)-int(min_value), 2)) + 1)
         self.min_value = int(min_value)
         self.max_value = int(max_value)
 
@@ -177,7 +176,7 @@ class Permutation(Type):
     """
 
     def __init__(self, elements):
-        super(Permutation, self).__init__()
+        super().__init__()
         self.elements = list(elements)
 
     def rand(self):
@@ -209,7 +208,7 @@ class Subset(Type):
     """
 
     def __init__(self, elements, size):
-        super(Subset, self).__init__()
+        super().__init__()
         self.elements = list(elements)
         self.size = size
 

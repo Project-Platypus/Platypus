@@ -3,7 +3,7 @@ from platypus import NSGAII, Problem, Real
 class Belegundu(Problem):
 
     def __init__(self):
-        super(Belegundu, self).__init__(2, 2, 2)
+        super().__init__(2, 2, 2)
         self.types[:] = [Real(0, 5), Real(0, 3)]
         self.constraints[:] = "<=0"
 

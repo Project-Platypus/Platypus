@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import copy
 import math
@@ -31,7 +30,7 @@ def clip(value, min_value, max_value):
 class RandomGenerator(Generator):
 
     def __init__(self):
-        super(RandomGenerator, self).__init__()
+        super().__init__()
 
     def generate(self, problem):
         solution = Solution(problem)
@@ -41,7 +40,7 @@ class RandomGenerator(Generator):
 class InjectedPopulation(Generator):
 
     def __init__(self, solutions):
-        super(InjectedPopulation, self).__init__()
+        super().__init__()
         self.solutions = []
 
         for solution in solutions:
@@ -60,7 +59,7 @@ class InjectedPopulation(Generator):
 class TournamentSelector(Selector):
 
     def __init__(self, tournament_size = 2, dominance = ParetoDominance()):
-        super(TournamentSelector, self).__init__()
+        super().__init__()
         self.tournament_size = tournament_size
         self.dominance = dominance
 
@@ -79,7 +78,7 @@ class TournamentSelector(Selector):
 class PM(Mutation):
 
     def __init__(self, probability = 1, distribution_index = 20.0):
-        super(PM, self).__init__()
+        super().__init__()
         self.probability = probability
         self.distribution_index = distribution_index
 
@@ -123,7 +122,7 @@ class PM(Mutation):
 class SBX(Variator):
 
     def __init__(self, probability = 1.0, distribution_index = 15.0):
-        super(SBX, self).__init__(2)
+        super().__init__(2)
         self.probability = probability
         self.distribution_index = distribution_index
 
@@ -201,7 +200,7 @@ class SBX(Variator):
 class GAOperator(Variator):
 
     def __init__(self, variation, mutation):
-        super(GAOperator, self).__init__(variation.arity)
+        super().__init__(variation.arity)
         self.variation = variation
         self.mutation = mutation
 
@@ -211,7 +210,7 @@ class GAOperator(Variator):
 class CompoundMutation(Mutation):
 
     def __init__(self, *mutators):
-        super(CompoundMutation, self).__init__()
+        super().__init__()
         self.mutators = mutators
 
     def mutate(self, parent):
@@ -225,7 +224,7 @@ class CompoundMutation(Mutation):
 class CompoundOperator(Variator):
 
     def __init__(self, *variators):
-        super(CompoundOperator, self).__init__(variators[0].arity)
+        super().__init__(variators[0].arity)
         self.variators = variators
 
     def evolve(self, parents):
@@ -244,7 +243,7 @@ class CompoundOperator(Variator):
 class DifferentialEvolution(Variator):
 
     def __init__(self, crossover_rate=0.1, step_size=0.5):
-        super(DifferentialEvolution, self).__init__(4)
+        super().__init__(4)
         self.crossover_rate = crossover_rate
         self.step_size = step_size
 
@@ -270,7 +269,7 @@ class DifferentialEvolution(Variator):
 class UniformMutation(Mutation):
 
     def __init__(self, probability, perturbation):
-        super(UniformMutation, self).__init__()
+        super().__init__()
         self.probability = probability
         self.perturbation = perturbation
 
@@ -290,7 +289,7 @@ class UniformMutation(Mutation):
 class NonUniformMutation(Mutation):
 
     def __init__(self, probability, perturbation, max_iterations, algorithm):
-        super(NonUniformMutation, self).__init__()
+        super().__init__()
         self.probability = probability
         self.perturbation = perturbation
         self.max_iterations = max_iterations
@@ -324,7 +323,7 @@ class UM(Mutation):
     """Uniform mutation."""
 
     def __init__(self, probability = 1):
-        super(UM, self).__init__()
+        super().__init__()
         self.probability = probability
 
     def mutate(self, parent):
@@ -351,7 +350,7 @@ class UM(Mutation):
 class PCX(Variator):
 
     def __init__(self, nparents = 10, noffspring = 2, eta = 0.1, zeta = 0.1):
-        super(PCX, self).__init__(nparents)
+        super().__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
         self.eta = eta
@@ -416,7 +415,7 @@ class PCX(Variator):
 class UNDX(Variator):
 
     def __init__(self, nparents = 10, noffspring = 2, zeta = 0.5, eta = 0.35):
-        super(UNDX, self).__init__(nparents)
+        super().__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
         self.zeta = zeta
@@ -488,7 +487,7 @@ class UNDX(Variator):
 class SPX(Variator):
 
     def __init__(self, nparents = 10, noffspring = 2, expansion = None):
-        super(SPX, self).__init__(nparents)
+        super().__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
 
@@ -547,7 +546,7 @@ class BitFlip(Mutation):
             The probability of flipping an individual bit.  If the value is
             an int, then the probability is divided by the number of bits.
         """
-        super(BitFlip, self).__init__()
+        super().__init__()
         self.probability = probability
 
     def mutate(self, parent):
@@ -572,7 +571,7 @@ class BitFlip(Mutation):
 class HUX(Variator):
 
     def __init__(self, probability = 1.0):
-        super(HUX, self).__init__(2)
+        super().__init__(2)
         self.probability = probability
 
     def evolve(self, parents):
@@ -596,7 +595,7 @@ class HUX(Variator):
 class Swap(Mutation):
 
     def __init__(self, probability = 0.3):
-        super(Swap, self).__init__()
+        super().__init__()
         self.probability = probability
 
     def mutate(self, parent):
@@ -621,7 +620,7 @@ class Swap(Mutation):
 class PMX(Variator):
 
     def __init__(self, probability = 1.0):
-        super(PMX, self).__init__(2)
+        super().__init__(2)
         self.probability = probability
 
     def evolve(self, parents):
@@ -683,7 +682,7 @@ class PMX(Variator):
 class Insertion(Mutation):
 
     def __init__(self, probability = 0.3):
-        super(Insertion, self).__init__()
+        super().__init__()
         self.probability = probability
 
     def mutate(self, parent):
@@ -718,7 +717,7 @@ class Insertion(Mutation):
 class Replace(Mutation):
 
     def __init__(self, probability = 0.3):
-        super(Replace, self).__init__()
+        super().__init__()
         self.probability = probability
 
     def mutate(self, parent):
@@ -742,7 +741,7 @@ class Replace(Mutation):
 class SSX(Variator):
 
     def __init__(self, probability = 1.0):
-        super(SSX, self).__init__(2)
+        super().__init__(2)
         self.probability = probability
 
     def evolve(self, parents):
@@ -769,7 +768,7 @@ class SSX(Variator):
 class Multimethod(Variator):
 
     def __init__(self, algorithm, variators, update_frequency=100):
-        super(Multimethod, self).__init__(max([v.arity for v in variators]))
+        super().__init__(max([v.arity for v in variators]))
         self.algorithm = algorithm
         self.variators = variators
         self.update_frequency = update_frequency

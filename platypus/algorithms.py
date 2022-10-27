@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import sys
 import copy
@@ -54,7 +53,7 @@ class AbstractGeneticAlgorithm(Algorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  **kwargs):
-        super(AbstractGeneticAlgorithm, self).__init__(problem, **kwargs)
+        super().__init__(problem, **kwargs)
         self.population_size = population_size
         self.generator = generator
         self.result = []
@@ -83,7 +82,7 @@ class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm):
                  population_size = 100,
                  generator = RandomGenerator(),
                  **kwargs):
-        super(SingleObjectiveAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
 
         if problem.nobjs != 1:
             raise PlatypusError("can not instantiate single objective algorithm "
@@ -99,14 +98,14 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
                  comparator = ParetoDominance(),
                  variator = None,
                  **kwargs):
-        super(GeneticAlgorithm, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.offspring_size = offspring_size
         self.selector = selector
         self.comparator = comparator
         self.variator = variator
 
     def initialize(self):
-        super(GeneticAlgorithm, self).initialize()
+        super().initialize()
 
         if self.variator is None:
             self.variator = default_variator(self.problem)
@@ -138,13 +137,13 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
                  comparator = ParetoDominance(),
                  variator = None,
                  **kwargs):
-        super(EvolutionaryStrategy, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.offspring_size = offspring_size
         self.comparator = comparator
         self.variator = variator
 
     def initialize(self):
-        super(EvolutionaryStrategy, self).initialize()
+        super().initialize()
 
         if self.variator is None:
             self.variator = default_mutator(self.problem)
@@ -171,7 +170,7 @@ class NSGAII(AbstractGeneticAlgorithm):
                  variator = None,
                  archive = None,
                  **kwargs):
-        super(NSGAII, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
         self.archive = archive
@@ -188,7 +187,7 @@ class NSGAII(AbstractGeneticAlgorithm):
             self.result = self.population
 
     def initialize(self):
-        super(NSGAII, self).initialize()
+        super().initialize()
 
         if self.archive is not None:
             self.archive += self.population
@@ -221,7 +220,7 @@ class EpsMOEA(AbstractGeneticAlgorithm):
                  selector = TournamentSelector(2),
                  variator = None,
                  **kwargs):
-        super(EpsMOEA, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.selector = selector
         self.variator = variator
         self.dominance = ParetoDominance()
@@ -236,7 +235,7 @@ class EpsMOEA(AbstractGeneticAlgorithm):
         self.result = self.archive
 
     def initialize(self):
-        super(EpsMOEA, self).initialize()
+        super().initialize()
         self.archive += self.population
 
         if self.variator is None:
@@ -283,7 +282,7 @@ class GDE3(AbstractGeneticAlgorithm):
                  generator = RandomGenerator(),
                  variator = DifferentialEvolution(),
                  **kwargs):
-        super(GDE3, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = ParetoDominance()
 
@@ -310,7 +309,7 @@ class GDE3(AbstractGeneticAlgorithm):
         return nondominated_prune(next_population, self.population_size)
 
     def initialize(self):
-        super(GDE3, self).initialize()
+        super().initialize()
 
         if self.variator is None:
             self.variator = default_variator(self.problem)
@@ -334,7 +333,7 @@ class SPEA2(AbstractGeneticAlgorithm):
                  dominance = ParetoDominance(),
                  k = 1,
                  **kwargs):
-        super(SPEA2, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = dominance
         self.k = k
@@ -395,7 +394,7 @@ class SPEA2(AbstractGeneticAlgorithm):
         return survivors
 
     def initialize(self):
-        super(SPEA2, self).initialize()
+        super().initialize()
         self._assign_fitness(self.population)
 
         if self.variator is None:
@@ -426,7 +425,7 @@ class MOEAD(AbstractGeneticAlgorithm):
                  weight_generator = random_weights,
                  scalarizing_function = chebyshev,
                  **kwargs):
-        super(MOEAD, self).__init__(problem, 0, generator, **remove_keys(kwargs, "population_size")) # population_size is set after generating weights
+        super().__init__(problem, 0, generator, **remove_keys(kwargs, "population_size")) # population_size is set after generating weights
         self.neighborhood_size = neighborhood_size
         self.variator = variator
         self.delta = delta
@@ -614,7 +613,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
                  selector = TournamentSelector(2),
                  variator = None,
                  **kwargs):
-        super(NSGAIII, self).__init__(problem, generator = generator, **kwargs)
+        super().__init__(problem, generator = generator, **kwargs)
         self.selector = selector
         self.variator = variator
 
@@ -768,7 +767,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
             return solutions
 
     def initialize(self):
-        super(NSGAIII, self).initialize()
+        super().initialize()
 
         if self.variator is None:
             self.variator = default_variator(self.problem)
@@ -801,7 +800,7 @@ class ParticleSwarm(Algorithm):
                  larger_preferred = True,
                  fitness_getter = fitness_key,
                  **kwargs):
-        super(ParticleSwarm, self).__init__(problem, **kwargs)
+        super().__init__(problem, **kwargs)
         self.swarm_size = swarm_size
         self.leader_size = leader_size
         self.generator = generator
@@ -918,7 +917,7 @@ class OMOPSO(ParticleSwarm):
                  mutation_perturbation = 0.5,
                  max_iterations = 100,
                  **kwargs):
-        super(OMOPSO, self).__init__(problem,
+        super().__init__(problem,
                                      swarm_size=swarm_size,
                                      leader_size=leader_size,
                                      generator = generator,
@@ -945,11 +944,11 @@ class OMOPSO(ParticleSwarm):
             self.result = self.archive
 
     def initialize(self):
-        super(OMOPSO, self).initialize()
+        super().initialize()
         self.archive += self.particles
 
     def iterate(self):
-        super(OMOPSO, self).iterate()
+        super().iterate()
         self.archive += self.particles
 
     def _mutate(self):
@@ -970,7 +969,7 @@ class SMPSO(ParticleSwarm):
                  max_iterations = 100,
                  mutate = None,
                  **kwargs):
-        super(SMPSO, self).__init__(problem,
+        super().__init__(problem,
                                     swarm_size=swarm_size,
                                     leader_size=leader_size,
                                     generator = generator,
@@ -985,7 +984,7 @@ class SMPSO(ParticleSwarm):
         self.minimum_velocity = [-(t.max_value - t.min_value)/2.0 for t in problem.types]
 
     def initialize(self):
-        super(SMPSO, self).initialize()
+        super().initialize()
 
         if self.mutate is None:
             self.mutate = default_mutator(self.problem)
@@ -1041,7 +1040,7 @@ class CMAES(Algorithm):
                  check_consistency = False,
                  epsilons = None,
                  **kwargs):
-        super(CMAES, self).__init__(problem, **kwargs)
+        super().__init__(problem, **kwargs)
         self.offspring_size = offspring_size
         self.cc = cc
         self.cs = cs
@@ -1315,14 +1314,14 @@ class IBEA(AbstractGeneticAlgorithm):
                  fitness_comparator = AttributeDominance(fitness_key, False),
                  variator = None,
                  **kwargs):
-        super(IBEA, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.fitness_evaluator = fitness_evaluator
         self.fitness_comparator = fitness_comparator
         self.selector = TournamentSelector(2, fitness_comparator)
         self.variator = variator
 
     def initialize(self):
-        super(IBEA, self).initialize()
+        super().initialize()
         self.fitness_evaluator.evaluate(self.population)
 
         if self.variator is None:
@@ -1361,7 +1360,7 @@ class PAES(AbstractGeneticAlgorithm):
                  generator = RandomGenerator(),
                  variator = None,
                  **kwargs):
-        super(PAES, self).__init__(problem, 1, generator, **kwargs)
+        super().__init__(problem, 1, generator, **kwargs)
         self.variator = variator
         self.dominance = ParetoDominance()
         self.archive = AdaptiveGridArchive(capacity, problem.nobjs, divisions)
@@ -1375,7 +1374,7 @@ class PAES(AbstractGeneticAlgorithm):
             self.result = self.archive
 
     def initialize(self):
-        super(PAES, self).initialize()
+        super().initialize()
         self.archive += self.population
 
         if self.variator is None:
@@ -1412,7 +1411,7 @@ class PAES(AbstractGeneticAlgorithm):
 class RegionBasedSelector(Selector):
 
     def __init__(self, archive, grid):
-        super(RegionBasedSelector, self).__init__()
+        super().__init__()
         self.archive = archive
         self.grid = grid
 
@@ -1443,7 +1442,7 @@ class PESA2(AbstractGeneticAlgorithm):
                  generator = RandomGenerator(),
                  variator = None,
                  **kwargs):
-        super(PESA2, self).__init__(problem, population_size, generator, **kwargs)
+        super().__init__(problem, population_size, generator, **kwargs)
         self.variator = variator
         self.dominance = ParetoDominance()
         self.archive = AdaptiveGridArchive(capacity, problem.nobjs, divisions)
@@ -1457,7 +1456,7 @@ class PESA2(AbstractGeneticAlgorithm):
             self.result = self.archive
 
     def initialize(self):
-        super(PESA2, self).initialize()
+        super().initialize()
         self.archive += self.population
 
         if self.variator is None:
@@ -1510,7 +1509,7 @@ class PeriodicAction(Algorithm):
                  algorithm,
                  frequency = 10000,
                  by_nfe = True):
-        super(PeriodicAction, self).__init__(algorithm.problem,
+        super().__init__(algorithm.problem,
                                              algorithm.evaluator)
         self.algorithm = algorithm
         self.frequency = frequency
@@ -1555,7 +1554,7 @@ class AdaptiveTimeContinuation(PeriodicAction):
                  min_population_size = 10,
                  max_population_size = 10000,
                  mutator = UM(1.0)):
-        super(AdaptiveTimeContinuation, self).__init__(algorithm,
+        super().__init__(algorithm,
                                                        frequency = window_size,
                                                        by_nfe = False)
         self.window_size = window_size
@@ -1620,7 +1619,7 @@ class EpsilonProgressContinuation(AdaptiveTimeContinuation):
                  min_population_size = 10,
                  max_population_size = 10000,
                  mutator = UM(1.0)):
-        super(EpsilonProgressContinuation, self).__init__(algorithm,
+        super().__init__(algorithm,
                                                           window_size,
                                                           max_window_size,
                                                           population_ratio,
@@ -1630,7 +1629,7 @@ class EpsilonProgressContinuation(AdaptiveTimeContinuation):
         self.last_improvements = 0
 
     def check(self):
-        result = super(EpsilonProgressContinuation, self).check()
+        result = super().check()
 
         if not result:
             if self.archive.improvements <= self.last_improvements:
@@ -1640,7 +1639,7 @@ class EpsilonProgressContinuation(AdaptiveTimeContinuation):
         return result
 
     def restart(self):
-        super(EpsilonProgressContinuation, self).restart()
+        super().restart()
         self.last_improvements = self.archive.improvements
 
 class EpsNSGAII(AdaptiveTimeContinuation):
@@ -1653,7 +1652,7 @@ class EpsNSGAII(AdaptiveTimeContinuation):
                  selector = TournamentSelector(2),
                  variator = None,
                  **kwargs):
-        super(EpsNSGAII, self).__init__(
+        super().__init__(
                 NSGAII(problem,
                        population_size,
                        generator,

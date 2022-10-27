@@ -16,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import, division, print_function
 
 import math
 import random
@@ -33,7 +32,7 @@ from abc import ABCMeta
 class DTLZ1(Problem):
 
     def __init__(self, nobjs = 2):
-        super(DTLZ1, self).__init__(nobjs+4, nobjs)
+        super().__init__(nobjs+4, nobjs)
         self.types[:] = Real(0, 1)
 
     def evaluate(self, solution):
@@ -61,7 +60,7 @@ class DTLZ1(Problem):
 class DTLZ2(Problem):
 
     def __init__(self, nobjs = 2, nvars=None):
-        super(DTLZ2, self).__init__(nobjs+9 if nvars is None else nvars, nobjs)
+        super().__init__(nobjs+9 if nvars is None else nvars, nobjs)
         self.types[:] = Real(0, 1)
 
     def evaluate(self, solution):
@@ -89,7 +88,7 @@ class DTLZ2(Problem):
 class DTLZ3(Problem):
 
     def __init__(self, nobjs = 2, nvars=None):
-        super(DTLZ3, self).__init__(nobjs+9 if nvars is None else nvars, nobjs)
+        super().__init__(nobjs+9 if nvars is None else nvars, nobjs)
         self.types[:] = Real(0, 1)
 
     def evaluate(self, solution):
@@ -117,7 +116,7 @@ class DTLZ3(Problem):
 class DTLZ4(Problem):
 
     def __init__(self, nobjs = 2, alpha = 100.0):
-        super(DTLZ4, self).__init__(nobjs+9, nobjs)
+        super().__init__(nobjs+9, nobjs)
         self.types[:] = Real(0, 1)
         self.alpha = alpha
 
@@ -147,7 +146,7 @@ class DTLZ4(Problem):
 class DTLZ7(Problem):
 
     def __init__(self, nobjs = 2):
-        super(DTLZ7, self).__init__(nobjs+19, nobjs)
+        super().__init__(nobjs+19, nobjs)
         self.types[:] = Real(0, 1)
 
     def evaluate(self, solution):
@@ -417,7 +416,7 @@ class WFG(Problem):
     __metaclass__ = ABCMeta
 
     def __init__(self, k, l, m):
-        super(WFG, self).__init__(k+l, m)
+        super().__init__(k+l, m)
         self.k = k
         self.l = l
         self.m = m
@@ -426,7 +425,7 @@ class WFG(Problem):
 class WFG1(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG1, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -448,7 +447,7 @@ class WFG1(WFG):
 class WFG2(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG2, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -469,7 +468,7 @@ class WFG2(WFG):
 class WFG3(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG3, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -490,7 +489,7 @@ class WFG3(WFG):
 class WFG4(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG4, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -510,7 +509,7 @@ class WFG4(WFG):
 class WFG5(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG5, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -530,7 +529,7 @@ class WFG5(WFG):
 class WFG6(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG6, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -550,7 +549,7 @@ class WFG6(WFG):
 class WFG7(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG7, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -571,7 +570,7 @@ class WFG7(WFG):
 class WFG8(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG8, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -601,7 +600,7 @@ class WFG8(WFG):
 class WFG9(WFG):
 
     def __init__(self, nobjs = 2):
-        super(WFG9, self).__init__(nobjs-1, 10, nobjs)
+        super().__init__(nobjs-1, 10, nobjs)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -666,7 +665,7 @@ def _transform(x, M, lam, nvars, nobjs):
 class UF1(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF1, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
 
@@ -694,7 +693,7 @@ class UF1(Problem):
 class UF2(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF2, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
 
@@ -722,7 +721,7 @@ class UF2(Problem):
 class UF3(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF3, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[:] = Real(0, 1)
 
     def evaluate(self, solution):
@@ -754,7 +753,7 @@ class UF3(Problem):
 class UF4(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF4, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
 
@@ -783,7 +782,7 @@ class UF4(Problem):
 class UF5(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF5, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
 
@@ -815,7 +814,7 @@ class UF5(Problem):
 class UF6(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF6, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
 
@@ -853,7 +852,7 @@ class UF6(Problem):
 class UF7(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF7, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
 
@@ -882,7 +881,7 @@ class UF7(Problem):
 class UF8(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF8, self).__init__(nvars, 3)
+        super().__init__(nvars, 3)
         self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
 
@@ -916,7 +915,7 @@ class UF8(Problem):
 class UF9(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF9, self).__init__(nvars, 3)
+        super().__init__(nvars, 3)
         self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
 
@@ -953,7 +952,7 @@ class UF9(Problem):
 class UF10(Problem):
 
     def __init__(self, nvars = 30):
-        super(UF10, self).__init__(nvars, 3)
+        super().__init__(nvars, 3)
         self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
 
@@ -1094,7 +1093,7 @@ class UF11(Problem):
             1.000, 1.000, 1.000 ]
 
     def __init__(self):
-        super(UF11, self).__init__(30, 5)
+        super().__init__(30, 5)
         self.types[:] = [Real(UF11.LB[i], UF11.UB[i]) for i in range(self.nvars)]
         self.internal_problem = DTLZ2(self.nobjs, self.nvars)
 
@@ -1217,7 +1216,7 @@ class UF12(Problem):
             1.000, 1.000, 1.000 ]
 
     def __init__(self):
-        super(UF12, self).__init__(30, 5)
+        super().__init__(30, 5)
         self.types[:] = [Real(UF12.LB[i], UF12.UB[i]) for i in range(self.nvars)]
         self.internal_problem = DTLZ3(self.nobjs, self.nvars)
 
@@ -1234,7 +1233,7 @@ class UF12(Problem):
 class UF13(WFG):
 
     def __init__(self):
-        super(UF13, self).__init__(8, 22, 5)
+        super().__init__(8, 22, 5)
 
     def evaluate(self, solution):
         y = _normalize_z(solution.variables[:])
@@ -1256,7 +1255,7 @@ class UF13(WFG):
 class CF1(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF1, self).__init__(nvars, 2, 1)
+        super().__init__(nvars, 2, 1)
         self.types[:] = Real(0, 1)
         self.constraints[:] = ">=0"
 
@@ -1287,7 +1286,7 @@ class CF1(Problem):
 class CF2(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF2, self).__init__(nvars, 2, 1)
+        super().__init__(nvars, 2, 1)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-1, 1)
         self.constraints[:] = ">=0"
@@ -1320,7 +1319,7 @@ class CF2(Problem):
 class CF3(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF3, self).__init__(nvars, 2, 1)
+        super().__init__(nvars, 2, 1)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1357,7 +1356,7 @@ class CF3(Problem):
 class CF4(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF4, self).__init__(nvars, 2, 1)
+        super().__init__(nvars, 2, 1)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1387,7 +1386,7 @@ class CF4(Problem):
 class CF5(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF5, self).__init__(nvars, 2, 1)
+        super().__init__(nvars, 2, 1)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1417,7 +1416,7 @@ class CF5(Problem):
 class CF6(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF6, self).__init__(nvars, 2, 2)
+        super().__init__(nvars, 2, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1447,7 +1446,7 @@ class CF6(Problem):
 class CF7(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF7, self).__init__(nvars, 2, 2)
+        super().__init__(nvars, 2, 2)
         self.types[0] = Real(0, 1)
         self.types[1:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1481,7 +1480,7 @@ class CF7(Problem):
 class CF8(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF8, self).__init__(nvars, 3, 1)
+        super().__init__(nvars, 3, 1)
         self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-4, 4)
         self.constraints[:] = ">=0"
@@ -1520,7 +1519,7 @@ class CF8(Problem):
 class CF9(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF9, self).__init__(nvars, 3, 1)
+        super().__init__(nvars, 3, 1)
         self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1559,7 +1558,7 @@ class CF9(Problem):
 class CF10(Problem):
 
     def __init__(self, nvars = 10):
-        super(CF10, self).__init__(nvars, 3, 1)
+        super().__init__(nvars, 3, 1)
         self.types[0:2] = Real(0, 1)
         self.types[2:] = Real(-2, 2)
         self.constraints[:] = ">=0"
@@ -1605,13 +1604,13 @@ class ZDT(Problem):
     __metaclass__ = ABCMeta
 
     def __init__(self, nvars):
-        super(ZDT, self).__init__(nvars, 2)
+        super().__init__(nvars, 2)
         self.types[:] = Real(0, 1)
 
 class ZDT1(ZDT):
 
     def __init__(self):
-        super(ZDT1, self).__init__(30)
+        super().__init__(30)
 
     def evaluate(self, solution):
         x = solution.variables[:]
@@ -1622,7 +1621,7 @@ class ZDT1(ZDT):
 class ZDT2(ZDT):
 
     def __init__(self):
-        super(ZDT2, self).__init__(30)
+        super().__init__(30)
 
     def evaluate(self, solution):
         x = solution.variables[:]
@@ -1633,7 +1632,7 @@ class ZDT2(ZDT):
 class ZDT3(ZDT):
 
     def __init__(self):
-        super(ZDT3, self).__init__(30)
+        super().__init__(30)
 
     def evaluate(self, solution):
         x = solution.variables[:]
@@ -1644,7 +1643,7 @@ class ZDT3(ZDT):
 class ZDT4(ZDT):
 
     def __init__(self):
-        super(ZDT4, self).__init__(10)
+        super().__init__(10)
 
     def evaluate(self, solution):
         x = solution.variables[:]
@@ -1655,7 +1654,7 @@ class ZDT4(ZDT):
 class ZDT5(ZDT):
 
     def __init__(self):
-        super(ZDT5, self).__init__(11)
+        super().__init__(11)
         self.types[0] = Binary(30)
         self.types[1:] = Binary(5)
 
@@ -1668,7 +1667,7 @@ class ZDT5(ZDT):
 class ZDT6(ZDT):
 
     def __init__(self):
-        super(ZDT6, self).__init__(10)
+        super().__init__(10)
 
     def evaluate(self, solution):
         x = solution.variables[:]
