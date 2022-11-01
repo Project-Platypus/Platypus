@@ -1,19 +1,17 @@
-# -*- coding: utf-8 -*-
-
 # The MIT License (MIT)
-# 
+#
 # Copyright (c) 2014, 2015 Adrian Price-Whelan & Dan Foreman-Mackey
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
 
 __all__ = ["MPIPool", "MPIPoolException"]
 
@@ -31,7 +27,7 @@ import traceback
 from mpi4py import MPI
 
 
-class MPIPool(object):
+class MPIPool:
     """
     A pool that distributes tasks over a set of MPI processes using
     mpi4py. MPI is an API for distributed memory parallelism, used
@@ -107,7 +103,7 @@ class MPIPool(object):
             if isinstance(task, _function_wrapper):
                 self.function = task.function
                 if self.debug:
-                    print("Worker {0} replaced its task function: {1}."
+                    print("Worker {} replaced its task function: {}."
                           .format(self.rank, self.function))
                 continue
 
@@ -120,7 +116,7 @@ class MPIPool(object):
                 self.comm.send(MPIPoolException(tb), dest=0, tag=status.tag)
                 return
             if self.debug:
-                print("Worker {0} sending answer {1} with tag {2}."
+                print("Worker {} sending answer {} with tag {}."
                       .format(self.rank, result, status.tag))
             self.comm.send(result, dest=0, tag=status.tag)
 
@@ -265,12 +261,12 @@ class MPIPool(object):
         self.close()
 
 
-class _close_pool_message(object):
+class _close_pool_message:
     def __repr__(self):
         return "<Close pool message>"
 
 
-class _function_wrapper(object):
+class _function_wrapper:
     def __init__(self, function):
         self.function = function
 

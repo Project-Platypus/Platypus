@@ -52,14 +52,14 @@ To install the latest development version of Platypus, run the following command
 
 #### Anaconda
 
-Platypus is also available via conda-forge. 
+Platypus is also available via conda-forge.
 
 ```
     conda config --add channels conda-forge
     conda install platypus-opt
 ```
 
-For more information see the [feedstock](https://github.com/conda-forge/platypus-opt-feedstock) located here. 
+For more information see the [feedstock](https://github.com/conda-forge/platypus-opt-feedstock) located here.
 
 ### License
 
