@@ -10,7 +10,6 @@ setup(name='Platypus-Opt',
       license="GNU GPL version 3",
       url='https://github.com/Project-Platypus/Platypus',
       packages=['platypus'],
-      install_requires=['six'],
       tests_require=['pytest', 'mock'],
       python_requires='>=3.6'
      )

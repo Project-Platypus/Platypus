@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 from .types import Real, Binary, Permutation, Subset
 from .operators import GAOperator, CompoundOperator, CompoundMutation, SBX, PM, HUX, BitFlip, PMX, Insertion, Swap, SSX, Replace
 from .core import PlatypusError

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 import time
 import datetime
 import functools
