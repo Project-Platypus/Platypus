@@ -20,5 +20,5 @@ jobs:
 
     - name: Run tests - Python ${{ matrix.python-version }}
       run: |
-        pip install -r requirements.txt
+        pip install .[test]
         python -m pytest
