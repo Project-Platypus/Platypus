@@ -5,15 +5,14 @@ Getting Started
 Installing Platypus
 -------------------
 
-To install the latest development version of Platypus, run the following
-commands.  Note that Platypus is under active development, and as such may
-contain bugs.
+To install the latest version of Platypus, run the following commands.
 
 ::
 
+    pip install -U build setuptools
     git clone https://github.com/Project-Platypus/Platypus.git
     cd Platypus
-    python setup.py develop
+    python -m build
 
 A Simple Example
 ----------------
