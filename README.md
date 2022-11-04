@@ -3,6 +3,7 @@
 <a href="https://github.com/Project-Platypus/Platypus"><img alt="GitHub Actions status" src="https://github.com/Project-Platypus/Platypus/workflows/Tests/badge.svg?branch=master&event=push"></a>
 [![Documentation Status](https://readthedocs.org/projects/platypus/badge/?version=latest)](http://platypus.readthedocs.org/en/latest/?badge=latest)
 [![PyPI Latest Release](https://img.shields.io/pypi/v/Platypus-Opt.svg)](https://pypi.org/project/Platypus-Opt/)
+[![PyPI](https://img.shields.io/pypi/dm/Platypus-Opt.svg)](https://pypi.org/project/Platypus-Opt/)
 
 ### What is Platypus?
 
