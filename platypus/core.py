@@ -80,6 +80,9 @@ class FixedLengthArray:
 
     def __str__(self):
         return "[" + ", ".join(list(map(str, self._data))) + "]"
+        
+    def __repr__(self):
+        return self.__str__()
 
 def _convert_constraint(x):
     if isinstance(x, Constraint):
