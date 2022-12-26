@@ -8,7 +8,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v7
         with:
           stale-issue-message: 'This issue is stale and will be closed soon. If you feel this issue is still relevant, please comment to keep it active. Please also consider working on a fix and submitting a PR.'
           stale-pr-message: 'This PR is stale and will be closed soon. If you feel this PR is still relevant, please comment asking for reviews.'
