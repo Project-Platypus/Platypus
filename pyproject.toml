@@ -21,6 +21,7 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 
 [project.optional-dependencies]
 test = ["pytest", "mock"]
+doc = ["sphinx", "numpydoc"]
 
 [tool.setuptools.dynamic]
 version = {attr = "platypus.__version__"}
