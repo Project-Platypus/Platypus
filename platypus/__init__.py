@@ -28,4 +28,4 @@ from .tools import *
 from .types import *
 from .weights import *
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
