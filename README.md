@@ -51,6 +51,7 @@ To install the latest development version of Platypus, run the following command
     git clone https://github.com/Project-Platypus/Platypus.git
     cd Platypus
     python -m build
+    python -m pip install --editable .
 ```
 
 #### Anaconda
