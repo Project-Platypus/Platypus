@@ -285,9 +285,17 @@ class TestEpsilonBoxArchive(unittest.TestCase):
         s3 = createSolution(0.245, 0.245)
         s4 = createSolution(0.1, 0.5)
         s5 = createSolution(0.5, 0.5)
-        s6 = createSolution(0.0, 0.0)
+        s6 = createSolution(0.05, 0.05)
+        s7 = createSolution(0.04, 0.04)
+        s8 = createSolution(0.02, 0.02)
+        s9 = createSolution(0.0, 0.0)
+        s10 = createSolution(-0.01, -0.01)
+
+        solutions = [s1, s2, s3, s4, s5, s6, s7, s8, s9]
+        expectedImprovements = [0, 1, 1, 1, 1, 2, 2, 2, 2, 3]
 
         archive = EpsilonBoxArchive([0.1])
 
-        archive.extend([s1, s2, s3, s4, s5, s6])
-        self.assertEqual(2, archive.improvements)
+        for (s, i) in zip(solutions, expectedImprovements):
+            archive.add(s)
+            self.assertEqual(i, archive.improvements)
