@@ -416,7 +416,6 @@ class Algorithm:
                            self.nfe,
                            datetime.timedelta(seconds=time.time()-start_time))
 
-            print(callback)
             if callback is not None:
                 callback(self)
 
