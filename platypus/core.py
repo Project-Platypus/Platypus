@@ -987,7 +987,7 @@ class EpsilonBoxArchive(Archive):
         else:
             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
 
-            if any(dominated) and all(not_same_box):
+            if all(not_same_box):
                 self.improvements += 1
 
             return True
