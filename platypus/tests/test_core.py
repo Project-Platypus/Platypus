@@ -280,6 +280,8 @@ class TestNormalize(unittest.TestCase):
 class TestEpsilonBoxArchive(unittest.TestCase):
 
     def test_improvements(self):
+        # Note that improvements are based on falling into a new epsilon-box.  Given an epsilon of 0.1,
+        # the boundaries are spaced [..., -0.2, -0.1, 0.0, 0.1, 0.2, ...]
         s1 = createSolution(0.25, 0.25)
         s2 = createSolution(0.1, 0.1)
         s3 = createSolution(0.245, 0.245)
@@ -291,7 +293,7 @@ class TestEpsilonBoxArchive(unittest.TestCase):
         s9 = createSolution(0.0, 0.0)
         s10 = createSolution(-0.01, -0.01)
 
-        solutions = [s1, s2, s3, s4, s5, s6, s7, s8, s9]
+        solutions = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10]
         expectedImprovements = [0, 1, 1, 1, 1, 2, 2, 2, 2, 3]
 
         archive = EpsilonBoxArchive([0.1])
