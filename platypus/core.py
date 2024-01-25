@@ -987,8 +987,10 @@ class EpsilonBoxArchive(Archive):
         else:
             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
 
-            if dominated and not_same_box:
+            if all(not_same_box):
                 self.improvements += 1
+
+            return True
 
 def unique(solutions, objectives=True):
     """Returns the unique solutions.

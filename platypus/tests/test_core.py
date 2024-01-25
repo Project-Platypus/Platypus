@@ -280,14 +280,22 @@ class TestNormalize(unittest.TestCase):
 class TestEpsilonBoxArchive(unittest.TestCase):
 
     def test_improvements(self):
-        s1 = createSolution(0.25, 0.25)
-        s2 = createSolution(0.1, 0.1)
-        s3 = createSolution(0.245, 0.245)
-        s4 = createSolution(0.1, 0.5)
-        s5 = createSolution(0.5, 0.5)
-        s6 = createSolution(0.0, 0.0)
+        s1 = createSolution(0.25, 0.25)    # Improvement 1 - First solution always counted as improvement
+        s2 = createSolution(0.10, 0.10)    # Improvement 2 - Dominates prior solution and in new epsilon-box
+        s3 = createSolution(0.24, 0.24)
+        s4 = createSolution(0.09, 0.50)    # Improvement 3 - Non-dominated to all existing solutions
+        s5 = createSolution(0.50, 0.50)
+        s6 = createSolution(0.05, 0.05)    # Improvement 4 - Dominates prior solution and in new epsilon-box
+        s7 = createSolution(0.04, 0.04)
+        s8 = createSolution(0.02, 0.02)
+        s9 = createSolution(0.00, 0.00)
+        s10 = createSolution(-0.01, -0.01) # Improvement 5 - Dominates prior solution and in new epsilon-box
+
+        solutions = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10]
+        expectedImprovements = [1, 2, 2, 3, 3, 4, 4, 4, 4, 5]
 
         archive = EpsilonBoxArchive([0.1])
 
-        archive.extend([s1, s2, s3, s4, s5, s6])
-        self.assertEqual(2, archive.improvements)
+        for (s, i) in zip(solutions, expectedImprovements):
+            archive.add(s)
+            self.assertEqual(i, archive.improvements)
