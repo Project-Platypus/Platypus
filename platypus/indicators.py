@@ -18,7 +18,6 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-import functools
 from .core import Solution, Problem, Indicator, normalize, POSITIVE_INFINITY
 from .tools import euclidean_dist
 

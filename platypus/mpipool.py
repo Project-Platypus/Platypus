@@ -111,7 +111,7 @@ class MPIPool:
             # the input and return it asynchronously.
             try:
                 result = self.function(task)
-            except:
+            except Exception:
                 tb = traceback.format_exc()
                 self.comm.send(MPIPoolException(tb), dest=0, tag=status.tag)
                 return

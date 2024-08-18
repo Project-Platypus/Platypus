@@ -22,7 +22,7 @@ import datetime
 import functools
 from collections import OrderedDict
 from .core import PlatypusError
-from .evaluator import Job, MapEvaluator
+from .evaluator import Job
 
 try:
     set
@@ -183,10 +183,10 @@ def experiment(algorithms = [],
     count = 0
 
     for job in job_results:
-        if not job.algorithm_name in results:
+        if job.algorithm_name not in results:
             results[job.algorithm_name] = {}
 
-        if not job.problem_name in results[job.algorithm_name]:
+        if job.problem_name not in results[job.algorithm_name]:
             results[job.algorithm_name][job.problem_name] = []
 
         results[job.algorithm_name][job.problem_name].append(job.instance.result)
@@ -216,16 +216,16 @@ def calculate(results,
     results = OrderedDict()
 
     for job in indicator_results:
-        if not job.algorithm_name in results:
+        if job.algorithm_name not in results:
             results[job.algorithm_name] = {}
 
-        if not job.problem_name in results[job.algorithm_name]:
+        if job.problem_name not in results[job.algorithm_name]:
             results[job.algorithm_name][job.problem_name] = {}
 
         for i in range(len(indicators)):
             indicator_name = indicators[i].__class__.__name__
 
-            if not indicator_name in results[job.algorithm_name][job.problem_name]:
+            if indicator_name not in results[job.algorithm_name][job.problem_name]:
                 results[job.algorithm_name][job.problem_name][indicator_name] = []
 
             results[job.algorithm_name][job.problem_name][indicator_name].append(job.results[i])
