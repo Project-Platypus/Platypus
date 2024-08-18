@@ -25,8 +25,7 @@ import operator
 import itertools
 import functools
 from abc import ABCMeta, abstractmethod
-from .core import Algorithm, ParetoDominance, AttributeDominance,\
-    AttributeDominance, nondominated_sort, nondominated_prune,\
+from .core import Algorithm, ParetoDominance, AttributeDominance, nondominated_sort, nondominated_prune,\
     nondominated_truncate, nondominated_split, crowding_distance,\
     EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
     Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
@@ -34,7 +33,7 @@ from .core import Algorithm, ParetoDominance, AttributeDominance,\
     PlatypusError, Problem
 from .operators import TournamentSelector, RandomGenerator,\
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation,\
-    GAOperator, SBX, PM, UM, PCX, UNDX, SPX, Multimethod
+    UM
 from .tools import DistanceMatrix, choose, point_line_dist, lsolve,\
     tred2, tql2, check_eigensystem, remove_keys, only_keys_for
 from .weights import random_weights, chebyshev, normal_boundary_weights

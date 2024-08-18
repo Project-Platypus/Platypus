@@ -170,23 +170,23 @@ class SBX(Variator):
                 alpha = alpha * rand
                 betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
             else:
-                alpha = alpha * rand;
+                alpha = alpha * rand
                 alpha = 1.0 / (2.0 - alpha)
                 betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
 
             x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
-            beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)));
-            alpha = 2.0 - pow(beta, self.distribution_index + 1.0);
+            beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)))
+            alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
 
             if rand <= 1.0 / alpha:
-                alpha = alpha * rand;
-                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0));
+                alpha = alpha * rand
+                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
             else:
-                alpha = alpha * rand;
-                alpha = 1.0 / (2.0 - alpha);
-                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0));
+                alpha = alpha * rand
+                alpha = 1.0 / (2.0 - alpha)
+                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
 
-            x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1));
+            x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1))
 
             # randomly swap the values
             if bool(random.getrandbits(1)):

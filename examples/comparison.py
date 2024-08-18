@@ -1,6 +1,5 @@
 from platypus import *
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 if __name__ == '__main__':
     # setup the experiment

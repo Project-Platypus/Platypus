@@ -1014,7 +1014,7 @@ def unique(solutions, objectives=True):
         else:
             id = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
 
-        if not id in unique_ids:
+        if id not in unique_ids:
             unique_ids.add(id)
             result.append(solution)
 
