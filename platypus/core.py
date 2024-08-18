@@ -63,7 +63,7 @@ class FixedLengthArray:
         if self.convert is not None:
             value = self.convert(value)
 
-        if type(index) == slice:
+        if isinstance(index, slice):
             indices = range(*index.indices(self._size))
 
             if hasattr(value, "__len__") and len(value) == len(indices):
@@ -979,7 +979,7 @@ class EpsilonBoxArchive(Archive):
         flags = [self._dominance.compare(solution, s) for s in self._contents]
         dominates = [x > 0 for x in flags]
         nondominated = [x == 0 for x in flags]
-        dominated = [x < 0 for x in flags]
+        # dominated = [x < 0 for x in flags]
         not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
 
         if any(dominates):
@@ -1265,7 +1265,6 @@ class FitnessEvaluator:
             return
 
         normalize(solutions)
-        problem = solutions[0].problem
         self.fitcomp = []
         self.max_fitness = -POSITIVE_INFINITY
 
@@ -1273,7 +1272,7 @@ class FitnessEvaluator:
             self.fitcomp.append([])
 
             for j in range(len(solutions)):
-                value  = self.calculate_indicator(solutions[i], solutions[j])
+                value = self.calculate_indicator(solutions[i], solutions[j])
                 self.fitcomp[i].append(value)
                 self.max_fitness = max(self.max_fitness, abs(value))
 

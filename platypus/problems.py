@@ -1675,4 +1675,3 @@ class ZDT6(ZDT):
         g = 1.0 + 9.0*math.pow(sum(x[1:]) / (self.nvars-1.0), 0.25)
         h = 1.0 - math.pow(f / g, 2.0)
         solution.objectives[:] = [f, g*h]
-

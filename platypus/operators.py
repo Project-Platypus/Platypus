@@ -439,7 +439,6 @@ class UNDX(Variator):
 
         g = [sum([x[i][j] for i in range(k)]) / k for j in range(n)]
 
-
         # basis vectors defined by parents
         e_zeta = []
         e_eta = []

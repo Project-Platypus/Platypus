@@ -219,4 +219,3 @@ class Subset(Type):
 
     def __str__(self):
         return "Subset(%d, %d)" % (len(self.elements), self.size)
-

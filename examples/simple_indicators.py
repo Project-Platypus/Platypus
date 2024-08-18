@@ -1,5 +1,4 @@
 import math
-import numpy
 from platypus import *
 
 # Define the problem definition.
@@ -15,9 +14,9 @@ algorithm.run(10000)
 # solutions must satisfy the equation x^2 + y^2 = 1.
 ref_set = []
 
-for x in numpy.arange(0.0, 1.0, 0.01):
+for i in range(100):
     solution = Solution(problem)
-    solution.objectives[:] = [x, math.sqrt(1.0 - x**2)]
+    solution.objectives[:] = [i / 100.0, math.sqrt(1.0 - (i / 100.0)**2)]
     ref_set.append(solution)
 
 # Calculate the performance metrics.
