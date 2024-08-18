@@ -2,6 +2,7 @@ name: Tests
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
   schedule: # Run tests once a week to detect regressions
     - cron: '0 0 * * 1'
