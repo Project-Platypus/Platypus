@@ -34,4 +34,3 @@ print("Eps-Indicator:", aei.calculate(algorithm.result))
 
 spacing = Spacing()
 print("Spacing:", spacing.calculate(algorithm.result))
-

@@ -1,4 +1,5 @@
 from platypus import NSGAII, DTLZ2
+import matplotlib.pyplot as plt
 
 # define the problem definition
 problem = DTLZ2()
@@ -10,8 +11,6 @@ algorithm = NSGAII(problem)
 algorithm.run(10000)
 
 # plot the results using matplotlib
-import matplotlib.pyplot as plt
-
 plt.scatter([s.objectives[0] for s in algorithm.result],
             [s.objectives[1] for s in algorithm.result])
 plt.xlim([0, 1.1])

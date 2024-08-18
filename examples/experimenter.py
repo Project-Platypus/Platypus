@@ -1,7 +1,7 @@
 from platypus import NSGAII, NSGAIII, DTLZ2, Hypervolume, experiment, calculate, display
 
 if __name__ == "__main__":
-    algorithms = [NSGAII, (NSGAIII, {"divisions_outer":12})]
+    algorithms = [NSGAII, (NSGAIII, {"divisions_outer": 12})]
     problems = [DTLZ2(3)]
 
     # run the experiment
