@@ -979,7 +979,7 @@ class EpsilonBoxArchive(Archive):
         flags = [self._dominance.compare(solution, s) for s in self._contents]
         dominates = [x > 0 for x in flags]
         nondominated = [x == 0 for x in flags]
-        dominated = [x < 0 for x in flags]
+        # dominated = [x < 0 for x in flags]
         not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
 
         if any(dominates):
