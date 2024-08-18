@@ -14,9 +14,9 @@ algorithm.run(10000)
 # solutions must satisfy the equation x^2 + y^2 = 1.
 ref_set = []
 
-for x in [x / 100.0 for x in range(100)]:
+for i in range(100):
     solution = Solution(problem)
-    solution.objectives[:] = [x, math.sqrt(1.0 - x**2)]
+    solution.objectives[:] = [i / 100.0, math.sqrt(1.0 - (i / 100.0)**2)]
     ref_set.append(solution)
 
 # Calculate the performance metrics.
