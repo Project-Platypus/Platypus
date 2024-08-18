@@ -27,7 +27,6 @@ def tsp(x):
     tour = x[0]
     return sum([dist(cities[tour[i]], cities[tour[(i + 1) % len(cities)]]) for i in range(len(tour))])
 
-
 problem = Problem(1, 1)
 problem.types[0] = Permutation(range(len(cities)))
 problem.directions[0] = Problem.MINIMIZE
