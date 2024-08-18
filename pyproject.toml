@@ -10,7 +10,7 @@ authors = [
 ]
 readme = "README.md"
 license = { file="COPYING" }
-requires-python = ">= 3.6"
+requires-python = ">= 3.8"
 dependencies = ["numpy"]
 dynamic = ["version"]  # Version is read from platypus/__init__.py
 
