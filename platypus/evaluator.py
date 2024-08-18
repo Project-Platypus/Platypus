@@ -205,4 +205,3 @@ class ProcessPoolEvaluator(SubmitEvaluator):
         LOGGER.log(logging.DEBUG, "Closing process pool evaluator")
         self.executor.shutdown()
         LOGGER.log(logging.INFO, "Closed process pool evaluator")
-

@@ -25,17 +25,17 @@ import operator
 import itertools
 import functools
 from abc import ABCMeta, abstractmethod
-from .core import Algorithm, ParetoDominance, AttributeDominance,\
-    AttributeDominance, nondominated_sort, nondominated_prune,\
-    nondominated_truncate, nondominated_split, crowding_distance,\
-    EPSILON, POSITIVE_INFINITY, Archive, EpsilonDominance, FitnessArchive,\
-    Solution, HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key,\
-    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive,\
+from .core import Algorithm, ParetoDominance, AttributeDominance, \
+    nondominated_sort, nondominated_prune, nondominated_truncate, \
+    nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
+    Archive, EpsilonDominance, FitnessArchive, Solution, \
+    HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key, \
+    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive, \
     PlatypusError, Problem
-from .operators import TournamentSelector, RandomGenerator,\
-    DifferentialEvolution, clip, UniformMutation, NonUniformMutation,\
-    GAOperator, SBX, PM, UM, PCX, UNDX, SPX, Multimethod
-from .tools import DistanceMatrix, choose, point_line_dist, lsolve,\
+from .operators import TournamentSelector, RandomGenerator, \
+    DifferentialEvolution, clip, UniformMutation, NonUniformMutation, \
+    UM
+from .tools import DistanceMatrix, choose, point_line_dist, lsolve, \
     tred2, tql2, check_eigensystem, remove_keys, only_keys_for
 from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import default_variator, default_mutator
@@ -425,7 +425,7 @@ class MOEAD(AbstractGeneticAlgorithm):
                  weight_generator = random_weights,
                  scalarizing_function = chebyshev,
                  **kwargs):
-        super().__init__(problem, 0, generator, **remove_keys(kwargs, "population_size")) # population_size is set after generating weights
+        super().__init__(problem, 0, generator, **remove_keys(kwargs, "population_size"))  # population_size is set after generating weights
         self.neighborhood_size = neighborhood_size
         self.variator = variator
         self.delta = delta
@@ -705,7 +705,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
                 A = [s.normalized_objectives[:] for s in extreme_points]
                 x = lsolve(A, b)
                 intercepts = [1.0 / i for i in x]
-            except:
+            except Exception:
                 degenerate = True
 
             if not degenerate:
@@ -1003,8 +1003,8 @@ class SMPSO(ParticleSwarm):
 
             for j in range(self.problem.nvars):
                 self.velocities[i][j] = self._constriction(C1, C2) * \
-                        (W * self.velocities[i][j] + \
-                        C1*r1*(local_best[j] - particle[j]) + \
+                        (W * self.velocities[i][j] +
+                        C1*r1*(local_best[j] - particle[j]) +
                         C2*r2*(leader[j] - particle[j]))
 
                 self.velocities[i][j] = clip(self.velocities[i][j],
@@ -1660,4 +1660,3 @@ class EpsNSGAII(AdaptiveTimeContinuation):
                        variator,
                        EpsilonBoxArchive(epsilons),
                        **kwargs))
-

@@ -41,6 +41,7 @@ class _PlatypusConfig:
 
         self.default_log_frequency = None
 
+
 PlatypusConfig = _PlatypusConfig()
 
 def default_variator(problem):
