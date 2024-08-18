@@ -9,3 +9,4 @@ build/
 dist/
 private/
 .ipynb_checkpoints/
+.idea
