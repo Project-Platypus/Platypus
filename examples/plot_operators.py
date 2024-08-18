@@ -26,8 +26,8 @@ def to_points(solutions):
     return [s.variables[0] for s in solutions], [s.variables[1] for s in solutions]
 
 fig, axarr = plt.subplots(2, 3)
-options = {"s":0.1, "alpha":0.5}
-parent_options = {"s":25, "color":"b"}
+options = {"s": 0.1, "alpha": 0.5}
+parent_options = {"s": 25, "color": "b"}
 
 axarr[0, 0].scatter(*generate(GAOperator(SBX(1.0, 20.0), PM(0.5, 250.0)), [solution1, solution3]), **options)
 axarr[0, 0].scatter(*to_points([solution1, solution3]), **parent_options)
@@ -66,7 +66,6 @@ axarr[0, 1].annotate("",
                      arrowprops=dict(arrowstyle="fancy",
                                      connectionstyle="arc3",
                                      color="0.75"))
-
 
 for i in range(1):
     for j in range(3):

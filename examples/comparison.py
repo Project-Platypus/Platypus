@@ -6,15 +6,15 @@ if __name__ == '__main__':
     problem = DTLZ2(3)
 
     algorithms = [NSGAII,
-                  (NSGAIII, {"divisions_outer":12}),
-                  (CMAES, {"epsilons":[0.05]}),
+                  (NSGAIII, {"divisions_outer": 12}),
+                  (CMAES, {"epsilons": [0.05]}),
                   GDE3,
                   IBEA,
-                  (MOEAD, {"weight_generator":normal_boundary_weights, "divisions_outer":12}),
-                  (OMOPSO, {"epsilons":[0.05]}),
+                  (MOEAD, {"weight_generator": normal_boundary_weights, "divisions_outer": 12}),
+                  (OMOPSO, {"epsilons": [0.05]}),
                   SMPSO,
                   SPEA2,
-                  (EpsMOEA, {"epsilons":[0.05]})]
+                  (EpsMOEA, {"epsilons": [0.05]})]
 
     # run the experiment using Python 3's concurrent futures for parallel evaluation
     with ProcessPoolEvaluator() as evaluator:

@@ -1,4 +1,5 @@
 import random
+import matplotlib.pyplot as plt
 from platypus import (NSGAII, DTLZ2, Solution, EpsilonBoxArchive, GenerationalDistance, InvertedGenerationalDistance,
                       Hypervolume, EpsilonIndicator, Spacing)
 
@@ -14,7 +15,7 @@ reference_set = EpsilonBoxArchive([0.02, 0.02, 0.02])
 
 for _ in range(1000):
     solution = Solution(problem)
-    solution.variables = [random.uniform(0,1) if i < problem.nobjs-1 else 0.5 for i in range(problem.nvars)]
+    solution.variables = [random.uniform(0, 1) if i < problem.nobjs-1 else 0.5 for i in range(problem.nvars)]
     solution.evaluate()
     reference_set.add(solution)
 
@@ -35,8 +36,6 @@ sp = Spacing()
 print("Spacing:", sp.calculate(algorithm.result))
 
 # plot the result versus the reference set
-import matplotlib.pyplot as plt
-
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1, projection='3d')
 ax.scatter([s.objectives[0] for s in reference_set],

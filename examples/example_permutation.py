@@ -5,7 +5,7 @@ def ordering(x):
     return sum([abs(p_i - i) for i, p_i in enumerate(x[0])])
 
 problem = Problem(1, 1)
-problem.types[0] = Permutation(range(10)) # Permutation of elements [0, 1, ..., 9]
+problem.types[0] = Permutation(range(10))  # Permutation of elements [0, 1, ..., 9]
 problem.function = ordering
 
 algorithm = GeneticAlgorithm(problem)
