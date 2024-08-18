@@ -33,17 +33,11 @@ from .core import Algorithm, ParetoDominance, AttributeDominance, \
     crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive, \
     PlatypusError, Problem
 from .operators import TournamentSelector, RandomGenerator, \
-    DifferentialEvolution, clip, UniformMutation, NonUniformMutation, \
-    UM
+    DifferentialEvolution, clip, UniformMutation, NonUniformMutation, UM
 from .tools import DistanceMatrix, choose, point_line_dist, lsolve, \
     tred2, tql2, check_eigensystem, remove_keys, only_keys_for
 from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import default_variator, default_mutator
-
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 class AbstractGeneticAlgorithm(Algorithm):
 
