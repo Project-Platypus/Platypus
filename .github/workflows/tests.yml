@@ -48,7 +48,7 @@ jobs:
         #    F405 - Name may be undefined, or defined from star imports: module
         flake8 --extend-ignore=E127,E128,E129,E201,E202,E203,E225,E251,E302,E501,E741 \
             --per-file-ignores="__init__.py:F401,F403 examples/*:E305,F403,F405 */tests/*:F403,F405" \
-            platypus/ examples/
+            platypus/ examples/ example.py
 
     - name: Run tests
       run: |

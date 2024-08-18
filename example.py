@@ -1,4 +1,5 @@
 from platypus import NSGAIII, DTLZ2
+import matplotlib.pyplot as plt
 
 # define the problem definition
 problem = DTLZ2(3)
@@ -10,9 +11,6 @@ algorithm = NSGAIII(problem, divisions_outer=12)
 algorithm.run(10000)
 
 # plot the results using matplotlib
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.scatter([s.objectives[0] for s in algorithm.result],
