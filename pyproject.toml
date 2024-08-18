@@ -11,7 +11,7 @@ authors = [
 readme = "README.md"
 license = { file="COPYING" }
 requires-python = ">= 3.8"
-dependencies = ["numpy"]
+dependencies = []
 dynamic = ["version"]  # Version is read from platypus/__init__.py
 
 [project.urls]
@@ -20,7 +20,8 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 "Bug Tracker" = "https://github.com/Project-Platypus/Platypus/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "mock"]
+optional = ["numpy"]
+test = ["pytest", "mock", "Platypus-Opt[optional]"]
 doc = ["sphinx", "numpydoc"]
 
 [tool.setuptools.dynamic]

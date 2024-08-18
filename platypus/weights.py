@@ -68,7 +68,7 @@ def pbi(solution, ideal_point, weights, theta):
     """
     try:
         import numpy as np
-    except:
+    except ImportError:
         print("The pbi function requires numpy.", file=sys.stderr)
         raise
 

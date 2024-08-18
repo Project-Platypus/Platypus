@@ -453,11 +453,11 @@ def check_eigensystem(n, C, diag, Q):
                 dd += Q[i][k] * Q[j][k]
 
             if abs(cc - C[i if i>j else j][j if i>j else i])/math.sqrt(C[i][i]*C[j][j]) > 1e-10 and abs(cc - C[i if i>j else j][j if i>j else i]) > 1e-9:
-                print >> sys.stderr, "imprecise result detected", i, j, cc, C[i if i>j else j][j if i>j else i], (cc-C[i if i>j else j][j if i>j else i])
+                print("imprecise result detected", i, j, cc, C[i if i>j else j][j if i>j else i], (cc-C[i if i>j else j][j if i>j else i], file=sys.stderr)
                 res += 1
 
             if abs(dd - (1 if i==j else 0)) > 1e-10:
-                print >> sys.stderr, "imprecise result detected (Q not orthog.)", i, j, dd
+                print("imprecise result detected (Q not orthog.)", i, j, dd, file=sys.stderr)
                 res += 1
 
     return res
