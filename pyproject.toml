@@ -11,7 +11,7 @@ authors = [
 readme = "README.md"
 license = { file="COPYING" }
 requires-python = ">= 3.8"
-dependencies = ["matplotlib"]
+dependencies = []
 dynamic = ["version"]  # Version is read from platypus/__init__.py
 
 [project.urls]
@@ -22,7 +22,7 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 [project.optional-dependencies]
 test = ["pytest", "mock", "flake8", "numpy"]
 doc = ["sphinx"]
-full = ["mpi4py", "Platypus-Opt[test]", "Platypus-Opt[doc]"]
+full = ["mpi4py", "matplotlib", "Platypus-Opt[test]", "Platypus-Opt[doc]"]
 
 [tool.setuptools.dynamic]
 version = {attr = "platypus.__version__"}
