@@ -35,11 +35,11 @@ jobs:
       - name: Run examples
         run: |
           find examples/ -name '*.py' -not -name '*mpi*' | \
-            xargs -I {} sh -c "echo '{}': && python '{}' && echo ''"
+            xargs -I {} sh -c "echo '{}:' && python '{}' && echo ''"
 
       - name: Run MPI examples
         run: |
           lamboot
           find examples/ -name '*.py' -name '*mpi*' | \
-            xargs -I {} sh -c "echo '{}': && mpirun -np 2 --oversubscribe python '{}' && echo ''"
+            xargs -I {} sh -c "echo '{}:' && mpirun -np 2 --oversubscribe python '{}' && echo ''"
           lamhalt
