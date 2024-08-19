@@ -20,9 +20,9 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 "Bug Tracker" = "https://github.com/Project-Platypus/Platypus/issues"
 
 [project.optional-dependencies]
-optional = ["numpy"]
-test = ["pytest", "mock", "flake8", "Platypus-Opt[optional]"]
+test = ["pytest", "mock", "flake8", "numpy"]
 doc = ["sphinx"]
+full = ["mpi4py", "matplotlib", "Platypus-Opt[test]", "Platypus-Opt[doc]"]
 
 [tool.setuptools.dynamic]
 version = {attr = "platypus.__version__"}

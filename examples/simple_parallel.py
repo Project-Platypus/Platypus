@@ -4,7 +4,7 @@ from platypus import NSGAII, DTLZ2, ProcessPoolEvaluator
 class DTLZ2_Slow(DTLZ2):
 
     def evaluate(self, solution):
-        sum(range(1000000))
+        sum(range(100000))
         super().evaluate(solution)
 
 if __name__ == "__main__":
