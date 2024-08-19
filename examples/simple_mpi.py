@@ -15,7 +15,7 @@ class DTLZ2_Slow(DTLZ2):
 if __name__ == "__main__":
     # define the problem definition
     problem = DTLZ2_Slow()
-    
+
     with MPIPool() as pool:
         # only run the algorithm on the master process
         if not pool.is_master():
