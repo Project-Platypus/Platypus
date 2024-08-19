@@ -9,26 +9,24 @@ logging.basicConfig(level=logging.INFO)
 class DTLZ2_Slow(DTLZ2):
 
     def evaluate(self, solution):
-        sum(range(1000000))
+        sum(range(100000))
         super().evaluate(solution)
 
 if __name__ == "__main__":
     # define the problem definition
     problem = DTLZ2_Slow()
-    pool = MPIPool()
+    
+    with MPIPool() as pool:
+        # only run the algorithm on the master process
+        if not pool.is_master():
+            pool.wait()
+            sys.exit(0)
 
-    # only run the algorithm on the master process
-    if not pool.is_master():
-        pool.wait()
-        sys.exit(0)
+        # instantiate the optimization algorithm to run in parallel
+        with PoolEvaluator(pool) as evaluator:
+            algorithm = NSGAII(problem, evaluator=evaluator)
+            algorithm.run(10000)
 
-    # instantiate the optimization algorithm to run in parallel
-    with PoolEvaluator(pool) as evaluator:
-        algorithm = NSGAII(problem, evaluator=evaluator)
-        algorithm.run(10000)
-
-    # display the results
-    for solution in algorithm.result:
-        print(solution.objectives)
-
-    pool.close()
+        # display the results
+        for solution in algorithm.result:
+            print(solution.objectives)

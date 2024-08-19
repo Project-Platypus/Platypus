@@ -1,0 +1,46 @@
+name: Test Examples
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule: # Run tests once a week to detect regressions
+    - cron: '0 0 * * 1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          allow-prereleases: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install mpi mpich libmpich-dev libopenmpi-dev
+          pip install .[full]
+
+      - name: Run examples
+        run: |
+          find examples/ -name '*.py' -not -name '*mpi*' | \
+            xargs -I {} sh -c "echo '{}': && python '{}' && echo ''"
+
+      - name: Run MPI examples
+        run: |
+          lamboot
+          find examples/ -name '*.py' -name '*mpi*' | \
+            xargs -I {} sh -c "echo '{}': && mpirun -np 2 --oversubscribe python '{}' && echo ''"
+          lamhalt

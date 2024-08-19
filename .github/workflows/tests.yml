@@ -16,40 +16,41 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "pypy-3.10"]
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: "pip"
-        allow-prereleases: true
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          allow-prereleases: true
 
-    - name: Install dependencies
-      run: |
-        pip install .[test]
+      - name: Install dependencies
+        run: |
+          pip install .[test]
 
-    - name: Run flake8
-      run: |
-        # Ignore existing issues, but we should eventually fix these...
-        #    E127 - Continuation line over-indented for visual indent
-        #    E128 - Continuation line under-indented for visual indent
-        #    E129 - Visually indented line with same indent as next logical line
-        #    E201 - Whitespace after '('
-        #    E202 - Whitespace before ')'
-        #    E203 - Whitespace before ':'
-        #    E225 - Missing whitespace around operator
-        #    E251 - Unexpected spaces around keyword / parameter equals
-        #    E302 - Expected 2 blank lines, found N
-        #    E501 - Line too long (N > 79 characters)
-        #    E741 - Do not use variables named 'I', 'O', or 'l'
-        #    F401 - Module imported but unused
-        #    F403 - 'from module import *' used; unable to detect undefined names
-        #    F405 - Name may be undefined, or defined from star imports: module
-        flake8 --extend-ignore=E127,E128,E129,E201,E202,E203,E225,E251,E302,E501,E741 \
-            --per-file-ignores="__init__.py:F401,F403 examples/*:E305,F403,F405 */tests/*:F403,F405" \
-            platypus/ examples/ example.py
+      - name: Run flake8
+        run: |
+          # Ignore existing issues, but we should eventually fix these...
+          #    E127 - Continuation line over-indented for visual indent
+          #    E128 - Continuation line under-indented for visual indent
+          #    E129 - Visually indented line with same indent as next logical line
+          #    E201 - Whitespace after '('
+          #    E202 - Whitespace before ')'
+          #    E203 - Whitespace before ':'
+          #    E225 - Missing whitespace around operator
+          #    E251 - Unexpected spaces around keyword / parameter equals
+          #    E302 - Expected 2 blank lines, found N
+          #    E501 - Line too long (N > 79 characters)
+          #    E741 - Do not use variables named 'I', 'O', or 'l'
+          #    F401 - Module imported but unused
+          #    F403 - 'from module import *' used; unable to detect undefined names
+          #    F405 - Name may be undefined, or defined from star imports: module
+          flake8 --extend-ignore=E127,E128,E129,E201,E202,E203,E225,E251,E302,E501,E741 \
+              --per-file-ignores="__init__.py:F401,F403 examples/*:E305,F403,F405 */tests/*:F403,F405" \
+              platypus/ examples/ example.py
 
-    - name: Run tests
-      run: |
-        python -m pytest -rA -Werror
+      - name: Run tests
+        run: |
+          python -m pytest -rA -Werror
