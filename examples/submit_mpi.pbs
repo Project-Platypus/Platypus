@@ -6,6 +6,5 @@
 
 cd $PBS_O_WORKDIR
 
-module load python-2.7.5
+module load python-3.12.5
 mpirun python simple_mpi.py
-
