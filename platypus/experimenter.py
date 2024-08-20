@@ -17,17 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import time
 import datetime
 import functools
 from collections import OrderedDict
 from .core import PlatypusError
 from .evaluator import Job
-
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 class ExperimentJob(Job):
 
@@ -43,16 +39,14 @@ class ExperimentJob(Job):
     def run(self):
         if self.display_stats:
             start_time = time.time()
-            print("Running seed", self.seed, "of", self.algorithm_name, "on",
-                    self.problem_name)
+            print(f"Running seed {self.seed} of {self.algorithm_name} on {self.problem_name}")
 
         self.instance.run(self.nfe)
 
         if self.display_stats:
             end_time = time.time()
-            print("Finished seed", self.seed, "of", self.algorithm_name, "on",
-                    self.problem_name, ":",
-                    datetime.timedelta(seconds=round(end_time-start_time)))
+            print(f"Finished seed {self.seed} of {self.algorithm_name} on {self.problem_name} in "
+                    f"{datetime.timedelta(seconds=round(end_time-start_time))}")
 
 class IndicatorJob(Job):
 
@@ -232,16 +226,16 @@ def calculate(results,
 
     return results
 
-def display(results, ndigits=None):
+def display(results, ndigits=None, file=sys.stdout):
     for algorithm in results.keys():
-        print(algorithm)
+        print(f"{algorithm}:", file=file)
         for problem in results[algorithm].keys():
             if isinstance(results[algorithm][problem], dict):
-                print("   ", problem)
+                print(f"    {problem}:")
                 for indicator in results[algorithm][problem].keys():
                     if ndigits:
-                        print("       ", indicator, ":", list(map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator])))
+                        print(f"        {indicator}: {list(map(functools.partial(round, ndigits=ndigits), results[algorithm][problem][indicator]))}", file=file)
                     else:
-                        print("       ", indicator, ":", results[algorithm][problem][indicator])
+                        print(f"        {indicator}: {results[algorithm][problem][indicator]}", file=file)
             else:
-                print("   ", problem, ":", results[algorithm][problem])
+                print(f"    {problem}: {results[algorithm][problem]}", file=file)

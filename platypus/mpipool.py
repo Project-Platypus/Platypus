@@ -117,7 +117,7 @@ class MPIPool:
                 return
             if self.debug:
                 print("Worker {} sending answer {} with tag {}."
-                      .format(self.rank, result, status.tag))
+                      .format(, result, status.tag))
             self.comm.send(result, dest=0, tag=status.tag)
 
     def map(self, function, tasks, callback=None):

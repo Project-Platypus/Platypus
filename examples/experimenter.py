@@ -5,7 +5,7 @@ if __name__ == "__main__":
     problems = [DTLZ2(3)]
 
     # run the experiment
-    results = experiment(algorithms, problems, nfe=10000, seeds=10)
+    results = experiment(algorithms, problems, nfe=10000, seeds=10, display_stats=True)
 
     # calculate the hypervolume indicator
     hyp = Hypervolume(minimum=[0, 0, 0], maximum=[1, 1, 1])
