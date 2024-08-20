@@ -39,9 +39,7 @@ def _chunks(items, n):
         if len(result) > 0:
             yield result
 
-class Job:
-
-    __metaclass__ = ABCMeta
+class Job(metaclass=ABCMeta):
 
     def __init__(self):
         super().__init__()
@@ -54,9 +52,7 @@ def run_job(job):
     job.run()
     return job
 
-class Evaluator:
-
-    __metaclass__ = ABCMeta
+class Evaluator(metaclass=ABCMeta):
 
     def __init__(self):
         super().__init__()

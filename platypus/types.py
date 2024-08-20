@@ -23,7 +23,7 @@ import random
 from abc import ABCMeta, abstractmethod
 from .tools import bin2gray, bin2int, int2bin, gray2bin
 
-class Type:
+class Type(metaclass=ABCMeta):
     """The type of a decision variable.
 
     The type of a decision variable defines its bounds, provides a mechanism to
@@ -39,8 +39,6 @@ class Type:
     readable representation of the type.  The current standard is to
     return "TypeName(Arg1, Arg2, ...)".
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         super().__init__()

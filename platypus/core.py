@@ -208,10 +208,8 @@ class Problem:
         solution.objectives[:] = objs
         solution.constraints[:] = constrs
 
-class Generator:
+class Generator(metaclass=ABCMeta):
     """Abstract class for generating initial populations."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         super().__init__()
@@ -220,10 +218,8 @@ class Generator:
     def generate(self, problem):
         raise NotImplementedError("method not implemented")
 
-class Variator:
+class Variator(metaclass=ABCMeta):
     """Abstract class for variation operators (crossover and mutation)."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, arity):
         super().__init__()
@@ -233,10 +229,8 @@ class Variator:
     def evolve(self, parents):
         raise NotImplementedError("method not implemented")
 
-class Mutation(Variator):
+class Mutation(Variator, metaclass=ABCMeta):
     """Variator for mutation, which requires only one parent."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         super().__init__(1)
@@ -251,9 +245,7 @@ class Mutation(Variator):
     def mutate(self, parent):
         raise NotImplementedError("method not implemented")
 
-class Selector:
-
-    __metaclass__ = ABCMeta
+class Selector(metaclass=ABCMeta):
 
     def __init__(self):
         super().__init__()
@@ -265,10 +257,8 @@ class Selector:
     def select_one(self, population):
         raise NotImplementedError("method not implemented")
 
-class TerminationCondition:
+class TerminationCondition(metaclass=ABCMeta):
     """Abstract class for defining termination conditions."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         super().__init__()
@@ -349,9 +339,7 @@ class _EvaluateJob(Job):
     def run(self):
         self.solution.evaluate()
 
-class Algorithm:
-
-    __metaclass__ = ABCMeta
+class Algorithm(metaclass=ABCMeta):
 
     def __init__(self,
                  problem,
@@ -539,10 +527,8 @@ class Solution:
 
         return result
 
-class Dominance:
+class Dominance(metaclass=ABCMeta):
     """Compares two solutions for dominance."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         super().__init__()
@@ -1248,9 +1234,7 @@ def normalize(solutions, minimum=None, maximum=None):
 
     return minimum, maximum
 
-class FitnessEvaluator:
-
-    __metaclass__ = ABCMeta
+class FitnessEvaluator(metaclass=ABCMeta):
 
     def __init__(self, kappa = 0.05):
         super().__init__()
@@ -1343,9 +1327,7 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
             else:
                 return self.hypervolume(solution1, solution2, d-1)*(self.rho-a)/self.rho
 
-class Indicator:
-
-    __metaclass = ABCMeta
+class Indicator(metaclass=ABCMeta):
 
     def __init__(self):
         super().__init__()

@@ -411,9 +411,7 @@ def _WFG4_shape(t_p):
     h = [_concave(x, m) for m in range(1, len(t_p)+1)]
     return _WFG_calculate_f(x, h)
 
-class WFG(Problem):
-
-    __metaclass__ = ABCMeta
+class WFG(Problem, metaclass=ABCMeta):
 
     def __init__(self, k, l, m):
         super().__init__(k+l, m)
@@ -1599,9 +1597,7 @@ class CF10(Problem):
 # ZDT Problems
 ################################################################################
 
-class ZDT(Problem):
-
-    __metaclass__ = ABCMeta
+class ZDT(Problem, metaclass=ABCMeta):
 
     def __init__(self, nvars):
         super().__init__(nvars, 2)

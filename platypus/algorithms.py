@@ -39,9 +39,7 @@ from .tools import DistanceMatrix, choose, point_line_dist, lsolve, \
 from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import default_variator, default_mutator
 
-class AbstractGeneticAlgorithm(Algorithm):
-
-    __metaclass__ = ABCMeta
+class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
 
     def __init__(self, problem,
                  population_size = 100,
@@ -68,9 +66,7 @@ class AbstractGeneticAlgorithm(Algorithm):
     def iterate(self):
         raise NotImplementedError("method not implemented")
 
-class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm):
-
-    __metaclass__ = ABCMeta
+class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, metaclass=ABCMeta):
 
     def __init__(self, problem,
                  population_size = 100,
@@ -779,9 +775,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
         nondominated_sort(offspring)
         self.population = self._reference_point_truncate(offspring, self.population_size)
 
-class ParticleSwarm(Algorithm):
-
-    __metaclass__ = ABCMeta
+class ParticleSwarm(Algorithm, metaclass=ABCMeta):
 
     def __init__(self, problem,
                  swarm_size = 100,
@@ -1495,9 +1489,7 @@ class PESA2(AbstractGeneticAlgorithm):
         else:
             return parent
 
-class PeriodicAction(Algorithm):
-
-    __metaclass__ = ABCMeta
+class PeriodicAction(Algorithm, metaclass=ABCMeta):
 
     def __init__(self,
                  algorithm,
