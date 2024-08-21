@@ -123,7 +123,10 @@ class TestRunning(unittest.TestCase):
         self._run_test()
 
     def _run_test(self):
-        self.algorithm.run(100)
+        self.algorithm.run(500)
+        self.assertGreaterEqual(self.algorithm.nfe, 500)
+        self.assertLess(self.algorithm.nfe, 600)
+        self.assertIsNotNone(self.algorithm.result)
         self.post_checks()
 
 class TestMaximizationGuard(unittest.TestCase):

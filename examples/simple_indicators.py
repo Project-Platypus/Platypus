@@ -1,10 +1,10 @@
 import math
 from platypus import *
 
-# Define the problem definition.
+# Select the problem.
 problem = DTLZ2()
 
-# Instantiate the optimization algorithm.
+# Create the optimization algorithm.
 algorithm = NSGAII(problem)
 
 # Optimize the problem using 10,000 function evaluations.
