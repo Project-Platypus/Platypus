@@ -49,7 +49,7 @@ class TestConfig(unittest.TestCase):
 
         PlatypusConfig.default_mutator[Real] = PM()
         self.assertIsInstance(default_mutator(self.problem), PM)
-        
+
         PlatypusConfig.default_mutator[Real] = originalMutator
 
     def test_default_evaluator(self):
