@@ -8,10 +8,9 @@ class DTLZ2_Slow(DTLZ2):
         super().evaluate(solution)
 
 if __name__ == "__main__":
-    # define the problem definition
     problem = DTLZ2_Slow()
 
-    # instantiate the optimization algorithm to run in parallel
+    # supply an evaluator to run in parallel
     with ProcessPoolEvaluator(4) as evaluator:
         algorithm = NSGAII(problem, evaluator=evaluator)
         algorithm.run(10000)
