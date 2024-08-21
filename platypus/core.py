@@ -1219,12 +1219,11 @@ def normalize(solutions, minimum=None, maximum=None):
     problem = solutions[0].problem
     feasible = [s for s in solutions if s.constraint_violation == 0.0]
 
-    if minimum is None or maximum is None:
-        if minimum is None:
-            minimum = [min([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
+    if minimum is None:
+        minimum = [min([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
 
-        if maximum is None:
-            maximum = [max([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
+    if maximum is None:
+        maximum = [max([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
 
     if any([maximum[i]-minimum[i] < EPSILON for i in range(problem.nobjs)]):
         raise PlatypusError("objective with empty range")
