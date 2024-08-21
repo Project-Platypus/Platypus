@@ -17,15 +17,47 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-from .core import *
-from .algorithms import *
-from .evaluator import *
-from .experimenter import *
-from .indicators import *
-from .operators import *
-from .problems import *
-from .tools import *
-from .types import *
-from .weights import *
+from .core import PlatypusError, FixedLengthArray, Problem, Generator, \
+    Variator, Mutation, Selector, TerminationCondition, MaxEvaluations, \
+    MaxTime, Algorithm, Constraint, Solution, Dominance, ParetoDominance, \
+    EpsilonDominance, AttributeDominance, Archive, AdaptiveGridArchive, \
+    FitnessArchive, EpsilonBoxArchive, unique, nondominated, \
+    nondominated_cmp, nondominated_sort, crowding_distance, \
+    nondominated_split, nondominated_prune, nondominated_truncate, \
+    truncate_fitness, normalize, FitnessEvaluator, \
+    HypervolumeFitnessEvaluator, Indicator
+
+from .config import PlatypusConfig, default_variator, default_mutator
+
+from .algorithms import AbstractGeneticAlgorithm, SingleObjectiveAlgorithm, \
+    GeneticAlgorithm, EvolutionaryStrategy, NSGAII, EpsMOEA, GDE3, SPEA2, \
+    MOEAD, NSGAIII, ParticleSwarm, OMOPSO, SMPSO, CMAES, IBEA, PAES, \
+    RegionBasedSelector, PESA2, PeriodicAction, AdaptiveTimeContinuation, \
+    EpsilonProgressContinuation, EpsNSGAII
+
+from .evaluator import Job, Evaluator, MapEvaluator, SubmitEvaluator, \
+    ApplyEvaluator, PoolEvaluator, MultiprocessingEvaluator, \
+    ProcessPoolEvaluator
+
+from .experimenter import ExperimentJob, IndicatorJob, experiment, calculate, \
+    display
+
+from .indicators import GenerationalDistance, InvertedGenerationalDistance, \
+    EpsilonIndicator, Spacing, Hypervolume
+
+from .operators import RandomGenerator, InjectedPopulation, \
+    TournamentSelector, PM, SBX, GAOperator, CompoundMutation, \
+    CompoundOperator, DifferentialEvolution, UniformMutation, \
+    NonUniformMutation, UM, PCX, UNDX, SPX, BitFlip, HUX, Swap, PMX, \
+    Insertion, Replace, SSX, Multimethod
+
+from .problems import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ7, WFG, WFG1, WFG2, \
+    WFG3, WFG4, WFG5, WFG6, WFG7, WFG8, WFG9, UF1, UF2, UF3, UF4, UF5, UF6, \
+    UF7, UF8, UF9, UF10, UF11, UF12, UF13, CF1, CF2, CF3, CF4, CF5, CF6, CF7, \
+    CF8, CF9, CF10, ZDT, ZDT1, ZDT2, ZDT3, ZDT4, ZDT5, ZDT6
+
+from .types import Type, Real, Binary, Integer, Permutation, Subset
+
+from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
 
 __version__ = "1.2.0"
