@@ -1234,6 +1234,21 @@ def normalize(solutions, minimum=None, maximum=None):
 
     return minimum, maximum
 
+def objectives_normalized_values(solutions, minimum=None, maximum=None):
+    
+    """Normalizes the solution objectives.
+
+    Normalizes the objectives of each solution within the minimum and maximum
+    bounds.  If the list of minimum and maximum bounds for objectives are not provided, then the
+    bounds are computed based on the bounds of the solutions.
+    """
+
+    normalize(solutions, minimum=None, maximum=None)
+
+    normalized_values = [s.normalized_objectives for s in solutions]
+
+    return normalized_values
+
 class FitnessEvaluator(metaclass=ABCMeta):
 
     def __init__(self, kappa = 0.05):
