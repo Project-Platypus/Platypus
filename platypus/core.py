@@ -380,7 +380,7 @@ class Algorithm(metaclass=ABCMeta):
                 unevaluated[i].feasible = result.solution.feasible
                 unevaluated[i].evaluated = result.solution.evaluated
 
-        self.nfe += len(unevaluated)
+        self.nfe += len(solutions)
 
     def run(self, condition, callback=None):
         if isinstance(condition, int):
