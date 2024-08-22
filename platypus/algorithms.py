@@ -32,10 +32,12 @@ from .core import Algorithm, ParetoDominance, AttributeDominance, \
     HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key, \
     crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive, \
     PlatypusError, Problem
+from .distance import DistanceMatrix
 from .operators import TournamentSelector, RandomGenerator, \
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation, UM
-from .tools import DistanceMatrix, choose, point_line_dist, lsolve, \
-    tred2, tql2, check_eigensystem, remove_keys, only_keys_for
+from ._math import choose, lsolve, tred2, tql2, check_eigensystem, \
+    point_line_dist
+from ._tools import remove_keys, only_keys_for
 from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import default_variator, default_mutator
 
