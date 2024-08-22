@@ -18,7 +18,7 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import functools
-from ..math import *
+from .._math import *
 
 
 class TestVectorAlgebra(unittest.TestCase):

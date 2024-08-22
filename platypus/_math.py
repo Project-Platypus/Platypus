@@ -53,13 +53,11 @@ def project(u, v):
 def orthogonalize(u, vs):
     for v in vs:
         u = subtract(u, project(u, v))
-
     return u
 
 def normalize(u):
     if is_zero(u):
         raise ValueError("can not normalize a zero vector")
-
     return multiply(1.0 / magnitude(u), u)
 
 def random_vector(n, rng=functools.partial(random.gauss, 0.0, 1.0)):
