@@ -26,6 +26,9 @@ from functools import reduce
 from .core import EPSILON, PlatypusError
 
 
+def clip(value, min_value, max_value):
+    return max(min_value, min(value, max_value))
+
 def point_line_dist(point, line):
     return magnitude(subtract(multiply(float(dot(line, point))/float(dot(line, line)), line), point))
 
