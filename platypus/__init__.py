@@ -1,4 +1,4 @@
-# Copyright 2015-2023 David Hadka
+# Copyright 2015-2024 David Hadka
 #
 # This file is part of Platypus, a Python module for designing and using
 # evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
@@ -60,4 +60,4 @@ from .types import Type, Real, Binary, Integer, Permutation, Subset
 
 from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"

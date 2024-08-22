@@ -1,4 +1,4 @@
-# Copyright 2015-2023 David Hadka
+# Copyright 2015-2024 David Hadka
 #
 # This file is part of Platypus, a Python module for designing and using
 # evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
@@ -20,56 +20,6 @@ import unittest
 import functools
 from ..tools import *
 from .test_core import createSolution
-
-
-class TestBinary(unittest.TestCase):
-
-    EXPECTED = {
-        0 : {"binary" : (0, 0, 0, 0), "gray" : (0, 0, 0, 0)},
-        1 : {"binary" : (0, 0, 0, 1), "gray" : (0, 0, 0, 1)},
-        2 : {"binary" : (0, 0, 1, 0), "gray" : (0, 0, 1, 1)},
-        3 : {"binary" : (0, 0, 1, 1), "gray" : (0, 0, 1, 0)},
-        4 : {"binary" : (0, 1, 0, 0), "gray" : (0, 1, 1, 0)},
-        5 : {"binary" : (0, 1, 0, 1), "gray" : (0, 1, 1, 1)},
-        6 : {"binary" : (0, 1, 1, 0), "gray" : (0, 1, 0, 1)},
-        7 : {"binary" : (0, 1, 1, 1), "gray" : (0, 1, 0, 0)},
-        8 : {"binary" : (1, 0, 0, 0), "gray" : (1, 1, 0, 0)},
-        9 : {"binary" : (1, 0, 0, 1), "gray" : (1, 1, 0, 1)},
-        10 : {"binary" : (1, 0, 1, 0), "gray" : (1, 1, 1, 1)},
-        11 : {"binary" : (1, 0, 1, 1), "gray" : (1, 1, 1, 0)},
-        12 : {"binary" : (1, 1, 0, 0), "gray" : (1, 0, 1, 0)},
-        13 : {"binary" : (1, 1, 0, 1), "gray" : (1, 0, 1, 1)},
-        14 : {"binary" : (1, 1, 1, 0), "gray" : (1, 0, 0, 1)},
-        15 : {"binary" : (1, 1, 1, 1), "gray" : (1, 0, 0, 0)},
-    }
-
-    def assertBinEqual(self, b1, b2):
-        self.assertEqual(len(b1), len(b2))
-
-        for i in range(len(b1)):
-            self.assertEqual(bool(b1[i]), bool(b2[i]))
-
-    def test_int2bin(self):
-        self.assertBinEqual([], int2bin(0, 0))
-        self.assertBinEqual([0], int2bin(0, 1))
-
-        for i in range(16):
-            self.assertBinEqual(self.EXPECTED[i]["binary"], int2bin(i, 4))
-
-    def test_bin2int(self):
-        self.assertEqual(0, bin2int([]))
-        self.assertEqual(0, bin2int([0]))
-
-        for i in range(16):
-            self.assertEqual(i, bin2int(self.EXPECTED[i]["binary"]))
-
-    def test_bin2gray(self):
-        for i in range(16):
-            self.assertBinEqual(self.EXPECTED[i]["gray"], bin2gray(int2bin(i, 4)))
-
-    def test_gray2bin(self):
-        for i in range(16):
-            self.assertBinEqual(self.EXPECTED[i]["binary"], gray2bin(self.EXPECTED[i]["gray"]))
 
 
 class TestVectorAlgebra(unittest.TestCase):

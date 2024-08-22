@@ -1,4 +1,4 @@
-# Copyright 2015-2023 David Hadka
+# Copyright 2015-2024 David Hadka
 #
 # This file is part of Platypus, a Python module for designing and using
 # evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
@@ -21,7 +21,6 @@ import copy
 import math
 import random
 from abc import ABCMeta, abstractmethod
-from .tools import bin2gray, bin2int, int2bin, gray2bin
 
 class Type(metaclass=ABCMeta):
     """The type of a decision variable.
@@ -217,3 +216,64 @@ class Subset(Type):
 
     def __str__(self):
         return "Subset(%d, %d)" % (len(self.elements), self.size)
+
+
+# Modified from RosettaCode.org (http://rosettacode.org/wiki/Gray_code#Python)
+def int2bin(n, nbits):
+    """Converts an integer into a binary string.
+
+    Parameters
+    ----------
+    n : int
+        The integer value.
+    nbits:
+        The number of bits used to encode the value.
+    """
+    bits = []
+
+    while n:
+        n, remainder = divmod(n, 2)
+        bits.insert(0, bool(remainder))
+
+    while len(bits) < nbits:
+        bits.insert(0, False)
+
+    return bits
+
+def bin2int(bits):
+    """Converts a binary string into its integer value.
+
+    Parameters
+    ----------
+    bits : list or tuple of bool
+        The binary string as a list of True/False values.
+    """
+    i = 0
+
+    for bit in bits:
+        i = i * 2 + bit
+
+    return i
+
+def bin2gray(bits):
+    """Converts a binary string into a gray-encoded binary string.
+
+    Parameters
+    ----------
+    bits : list or tuple of bool
+        The binary string as a list of True/False values.
+    """
+    return bits[:1] + [i ^ ishift for i, ishift in zip(bits[:-1], bits[1:])]
+
+def gray2bin(bits):
+    """Converts a gray-encoded binary string into a binary string.
+
+    Parameters
+    ----------
+    bits : list or tuple of bool
+        The gray-encoded binary string as a list of True/False values.
+    """
+    b = [bits[0]]
+    for nextb in bits[1:]:
+        b.append(b[-1] ^ nextb)
+    return b

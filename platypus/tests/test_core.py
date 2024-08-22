@@ -1,4 +1,4 @@
-# Copyright 2015-2023 David Hadka
+# Copyright 2015-2024 David Hadka
 #
 # This file is part of Platypus, a Python module for designing and using
 # evolutionary algorithms (EAs) and multiobjective evolutionary algorithms
@@ -22,7 +22,7 @@ import unittest
 from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
         POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
-        EpsilonBoxArchive
+        EpsilonBoxArchive, PlatypusError
 
 def createSolution(*args):
     problem = Problem(0, len(args))
@@ -88,6 +88,22 @@ class TestConstraint(unittest.TestCase):
         self.assertNotEqual(0.0, constraint(0.0))
         self.assertEqual(0.0, constraint(1.0))
         self.assertEqual(0.0, constraint(-1.0))
+
+    def test_invalid_bad_operator(self):
+        with self.assertRaises(PlatypusError):
+            Constraint("=!0")
+
+    def test_invalid_missing_operator(self):
+        with self.assertRaises(PlatypusError):
+            Constraint("0")
+
+    def test_invalid_missing_value(self):
+        with self.assertRaises(PlatypusError):
+            Constraint("<=")
+
+    def test_invalid_empty_string(self):
+        with self.assertRaises(PlatypusError):
+            Constraint("")
 
 class TestParetoDominance(unittest.TestCase):
 
