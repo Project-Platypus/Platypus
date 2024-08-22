@@ -142,7 +142,6 @@ class DTLZ4(Problem):
         solution.evaluate()
         return solution
 
-
 class DTLZ7(Problem):
 
     def __init__(self, nobjs = 2):

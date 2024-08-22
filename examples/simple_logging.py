@@ -4,10 +4,10 @@ import logging
 # set log level so all messages are displayed
 logging.basicConfig(level=logging.DEBUG)
 
-# define the problem definition
+# select the problem
 problem = DTLZ2()
 
-# instantiate the optimization algorithm
+# create the optimization algorithm
 algorithm = NSGAII(problem)
 
 # optimize the problem using 10,000 function evaluations

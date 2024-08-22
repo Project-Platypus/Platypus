@@ -1,16 +1,16 @@
 from platypus import NSGAII, DTLZ2
 import matplotlib.pyplot as plt
 
-# define the problem definition
+# Select the problem.
 problem = DTLZ2()
 
-# instantiate the optimization algorithm
+# Create the optimization algorithm.
 algorithm = NSGAII(problem)
 
-# optimize the problem using 10,000 function evaluations
+# Optimize the problem using 10,000 function evaluations
 algorithm.run(10000)
 
-# plot the results using matplotlib
+# Plot the results using matplotlib
 plt.scatter([s.objectives[0] for s in algorithm.result],
             [s.objectives[1] for s in algorithm.result])
 plt.xlim([0, 1.1])
