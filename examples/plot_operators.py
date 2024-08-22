@@ -61,7 +61,7 @@ axarr[0, 1].annotate("",
                                      connectionstyle="arc3",
                                      color="0.75"))
 axarr[0, 1].annotate("",
-                     xy=[solution2.variables[i] + (solution3.variables[i] - solution1.variables[i]) for in in range(2)], xycoords='data',
+                     xy=[solution2.variables[i] + (solution3.variables[i] - solution1.variables[i]) for i in range(2)], xycoords='data',
                      xytext=solution2.variables, textcoords='data',
                      arrowprops=dict(arrowstyle="fancy",
                                      connectionstyle="arc3",
