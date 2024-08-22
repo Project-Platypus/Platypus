@@ -1233,20 +1233,28 @@ def normalize(solutions, minimum=None, maximum=None):
 
     return minimum, maximum
 
-def objectives_normalized_values(solutions, minimum=None, maximum=None):
+def normalize_objective(solutions, minimum=None, maximum=None):
     
-    """Normalizes the solution objectives.
-
-    Normalizes the objectives of each solution within the minimum and maximum
-    bounds.  If the list of minimum and maximum bounds for objectives are not provided, then the
-    bounds are computed based on the bounds of the solutions.
     """
+    Normalizes the objective values of feasible solutions within the provided minimum and maximum bounds.
+    If the minimum and maximum bounds are not provided, they are automatically computed based on the range
+    of the feasible solutions.
 
-    normalize(solutions, minimum=None, maximum=None)
+    Returns:
+        tuple: A tuple containing three elements:
+            - A list of minimum bounds for each objective.
+            - A list of maximum bounds for each objective.
+            - A dictionary where the keys are the feasible solutions, and the values are the corresponding 
+              normalized objective values.
+    """
+    
+    feasible = [s for s in unique(solutions) if s.feasible]
 
-    normalized_values = [s.normalized_objectives for s in solutions]
+    min_bounds, max_bounds = normalize(feasible, minimum=minimum, maximum=maximum)
 
-    return normalized_values
+    normalized_values = [s.normalized_objectives for s in feasible]
+
+    return min_bounds, max_bounds, dict(zip(feasible, normalized_values))
 
 class FitnessEvaluator(metaclass=ABCMeta):
 
