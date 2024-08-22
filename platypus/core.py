@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import sys
 import copy
 import math
@@ -465,10 +466,15 @@ class Constraint:
             self.function = op
         else:
             self.op = op
-            if op[1] == '=':
-                self.function = functools.partial(Constraint.OPERATORS[op[0:2]], y=float(op[2:]))
-            else:
-                self.function = functools.partial(Constraint.OPERATORS[op[0:1]], y=float(op[1:]))
+            match = re.match(r"^([<>=!]+)\s*([^\s<>=!]+)$", op)
+
+            try:
+                if match:
+                    self.function = functools.partial(Constraint.OPERATORS[match.group(1)], y=float(match.group(2)))
+                else:
+                    raise PlatypusError(f"{op} is not a valid constraint, unable to parse expression")
+            except Exception as e:
+                raise PlatypusError(f"{op} is not a valid constraint", e)
 
     def __call__(self, value):
         return self.function(value)
@@ -1204,13 +1210,16 @@ def normalize(solutions, minimum=None, maximum=None):
     bounds.  If the minimum and maximum bounds are not provided, then the
     bounds are computed based on the bounds of the solutions.
 
+    Returns the minimum and maximum bounds used for normalization along with
+    setting the 'normalized_objectives' attribute on each solution.
+
     Parameters
     ----------
     solutions : iterable
         The solutions to be normalized.
-    minimum : int list
+    minimum : float list
         The minimum values used to normalize the objectives.
-    maximum : int list
+    maximum : float list
         The maximum values used to normalize the objectives.
     """
     if len(solutions) == 0:
@@ -1225,7 +1234,7 @@ def normalize(solutions, minimum=None, maximum=None):
     if maximum is None:
         maximum = [max([s.objectives[i] for s in feasible]) for i in range(problem.nobjs)]
 
-    if any([maximum[i]-minimum[i] < EPSILON for i in range(problem.nobjs)]):
+    if any([abs(maximum[i]-minimum[i]) < EPSILON for i in range(problem.nobjs)]):
         raise PlatypusError("objective with empty range")
 
     for s in feasible:
