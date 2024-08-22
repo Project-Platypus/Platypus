@@ -1,7 +1,8 @@
 import random
 import matplotlib.pyplot as plt
-from platypus import (NSGAII, DTLZ2, Solution, EpsilonBoxArchive, GenerationalDistance, InvertedGenerationalDistance,
-                      Hypervolume, EpsilonIndicator, Spacing)
+from platypus import NSGAII, DTLZ2, Solution, EpsilonBoxArchive, \
+    GenerationalDistance, InvertedGenerationalDistance, Hypervolume, \
+    EpsilonIndicator, Spacing
 
 # create the problem
 problem = DTLZ2(3)

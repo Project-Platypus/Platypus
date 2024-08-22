@@ -1,4 +1,5 @@
-from platypus import *
+from platypus import NSGAII, NSGAIII, DTLZ2, ProcessPoolEvaluator, \
+    Hypervolume, experiment, calculate, display
 
 if __name__ == "__main__":
     algorithms = [NSGAII, (NSGAIII, {"divisions_outer": 12})]

@@ -42,14 +42,12 @@ jobs:
           #    E225 - Missing whitespace around operator
           #    E251 - Unexpected spaces around keyword / parameter equals
           #    E302 - Expected 2 blank lines, found N
+          #    E305 - Expected 2 blank lines after class or function definition, found N
           #    E501 - Line too long (N > 79 characters)
           #    E741 - Do not use variables named 'I', 'O', or 'l'
           #    F401 - Module imported but unused
-          #    F403 - 'from module import *' used; unable to detect undefined names
-          #    F405 - Name may be undefined, or defined from star imports: module
-          flake8 --extend-ignore=E127,E128,E129,E201,E202,E203,E225,E251,E302,E501,E741 \
-              --per-file-ignores="__init__.py:F401 examples/*:E305,F403,F405 */tests/*:F403,F405" \
-              platypus/ examples/ example.py
+          flake8 --extend-ignore=E127,E128,E129,E201,E202,E203,E225,E251,E302,E305,E501,E741 \
+              --per-file-ignores="__init__.py:F401" platypus/ examples/ example.py
 
       - name: Run tests
         run: |

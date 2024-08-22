@@ -19,9 +19,11 @@
 import pickle
 import unittest
 import functools
+from ..core import Problem, PlatypusError
 from ..problems import DTLZ2
-from ..algorithms import *
-from ..weights import *
+from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
+    SMPSO, SPEA2, EpsMOEA
+from ..weights import normal_boundary_weights, pbi
 
 class TestPickling(unittest.TestCase):
 

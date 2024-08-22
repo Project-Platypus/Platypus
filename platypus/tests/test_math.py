@@ -18,7 +18,8 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import functools
-from .._math import *
+from .._math import dot, add, subtract, multiply, magnitude, choose, lsolve, \
+    point_line_dist, SingularError
 
 
 class TestVectorAlgebra(unittest.TestCase):
@@ -27,6 +28,9 @@ class TestVectorAlgebra(unittest.TestCase):
         self.assertEqual(0, dot([0, 0, 0], [1, 1, 1]))
         self.assertEqual(1, dot([1, 0, 1], [0, 1, 1]))
         self.assertEqual(2, dot([1, 0, 1], [1, 1, 1]))
+
+    def test_add(self):
+        self.assertEqual([1, 2, 3], add([1, 1, 1], [0, 1, 2]))
 
     def test_subtract(self):
         self.assertEqual([1, 0, -1], subtract([1, 1, 1], [0, 1, 2]))

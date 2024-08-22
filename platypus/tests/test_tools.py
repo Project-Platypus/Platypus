@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from .._tools import *
+from .._tools import remove_keys, only_keys, only_keys_for
 
 
 class TestDictMethods(unittest.TestCase):

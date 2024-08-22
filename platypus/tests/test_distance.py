@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from ..distance import *
+from ..distance import euclidean_dist, manhattan_dist, DistanceMatrix
 from .test_core import createSolution
 
 

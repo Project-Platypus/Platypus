@@ -1,5 +1,7 @@
 import math
-from platypus import *
+from platypus import NSGAII, DTLZ2, Solution, Hypervolume, \
+    GenerationalDistance, InvertedGenerationalDistance, EpsilonIndicator, \
+    Spacing
 
 # Select the problem.
 problem = DTLZ2()
