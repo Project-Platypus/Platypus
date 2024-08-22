@@ -18,25 +18,9 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-from .core import Solution, Problem, Indicator, normalize, POSITIVE_INFINITY
-from .tools import euclidean_dist
+from .core import Problem, Indicator, normalize, POSITIVE_INFINITY
+from .distance import manhattan_dist, distance_to_nearest
 
-def normalized_euclidean_dist(x, y):
-    return euclidean_dist(x.normalized_objectives, y.normalized_objectives)
-
-def manhattan_dist(x, y):
-    if isinstance(x, Solution):
-        x = x.objectives
-    if isinstance(y, Solution):
-        y = y.objectives
-
-    return math.sqrt(sum([abs(x[i]-y[i]) for i in range(len(x))]))
-
-def distance_to_nearest(solution, set):
-    if len(set) == 0:
-        return POSITIVE_INFINITY
-
-    return min([normalized_euclidean_dist(solution, s) for s in set])
 
 class GenerationalDistance(Indicator):
 
