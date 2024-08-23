@@ -18,7 +18,8 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 from abc import ABCMeta, abstractmethod
-from ..types import Real, Binary, Integer, Permutation, bin2gray, bin2int, int2bin, gray2bin
+from ..types import Real, Binary, Integer, Permutation, Subset, \
+    bin2gray, bin2int, int2bin, gray2bin
 
 
 class TypeTestCase(unittest.TestCase, metaclass=ABCMeta):
@@ -45,6 +46,7 @@ class TypeTestCase(unittest.TestCase, metaclass=ABCMeta):
             decoded = self.variable.decode(val)
             encoded = self.variable.encode(decoded)
             self.assertEqual(val, encoded)
+
 
 class TestReal(TypeTestCase):
 
@@ -111,6 +113,16 @@ class TestPermutationElements(TypeTestCase):
         for e in self.elements:
             self.assertIn(e, val)
 
+
+class TestSubset(TypeTestCase):
+
+    def createInstance(self):
+        return Subset(range(10), 2)
+
+    def assertValidValue(self, val):
+        self.assertEqual(2, len(val))
+        for v in val:
+            self.assertIn(v, range(10))
 
 class TestGrayCode(unittest.TestCase):
 
