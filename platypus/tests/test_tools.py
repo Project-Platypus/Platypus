@@ -25,14 +25,14 @@ class TestDictMethods(unittest.TestCase):
     def test_remove_keys(self):
         self.assertEqual({}, remove_keys({}))
         self.assertEqual({}, remove_keys({}, "a", "b"))
-        self.assertEqual({}, remove_keys({"a" : "remove"}, "a", "b"))
-        self.assertEqual({"c" : "keep"}, remove_keys({"a" : "remove", "c" : "keep"}, "a", "b"))
-        self.assertEqual({"a" : "keep"}, remove_keys({"a" : "keep"}))
+        self.assertEqual({}, remove_keys({"a": "remove"}, "a", "b"))
+        self.assertEqual({"c": "keep"}, remove_keys({"a": "remove", "c": "keep"}, "a", "b"))
+        self.assertEqual({"a": "keep"}, remove_keys({"a": "keep"}))
 
     def test_only_keys(self):
         self.assertEqual({}, only_keys({}))
         self.assertEqual({}, only_keys({}, "a", "b"))
-        self.assertEqual({"a" : "keep"}, only_keys({"a" : "keep", "b" : "remove"}, "a"))
+        self.assertEqual({"a": "keep"}, only_keys({"a": "keep", "b": "remove"}, "a"))
 
     def _test_func_pos(self, a):
         pass
@@ -42,6 +42,6 @@ class TestDictMethods(unittest.TestCase):
 
     def test_keys_for(self):
         self.assertEqual({}, only_keys_for({}, self._test_func_pos))
-        self.assertEqual({"a" : "keep"}, only_keys_for({"a" : "keep", "b" : "remove"}, self._test_func_pos))
+        self.assertEqual({"a": "keep"}, only_keys_for({"a": "keep", "b": "remove"}, self._test_func_pos))
         self.assertEqual({}, only_keys_for({}, self._test_func_def))
-        self.assertEqual({"a" : "keep"}, only_keys_for({"a" : "keep", "b" : "remove"}, self._test_func_def))
+        self.assertEqual({"a": "keep"}, only_keys_for({"a": "keep", "b": "remove"}, self._test_func_def))

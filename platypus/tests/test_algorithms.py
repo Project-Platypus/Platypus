@@ -68,7 +68,7 @@ class TestRunning(unittest.TestCase):
 
     def setUp(self):
         self.problem = DTLZ2()
-        self.post_checks = lambda : True
+        self.post_checks = lambda: True
 
     def test_NSGAII(self):
         self.algorithm = NSGAII(self.problem)
@@ -92,12 +92,12 @@ class TestRunning(unittest.TestCase):
 
     def test_MOEAD_default(self):
         self.algorithm = MOEAD(self.problem)
-        self.post_checks = lambda : self.assertEqual(100, self.algorithm.population_size)
+        self.post_checks = lambda: self.assertEqual(100, self.algorithm.population_size)
         self._run_test()
 
     def test_MOEAD_random_weights(self):
         self.algorithm = MOEAD(self.problem, population_size=50)
-        self.post_checks = lambda : self.assertEqual(50, self.algorithm.population_size)
+        self.post_checks = lambda: self.assertEqual(50, self.algorithm.population_size)
         self._run_test()
 
     def test_MOEAD_normal_boundary_weights(self):

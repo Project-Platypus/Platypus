@@ -27,15 +27,15 @@ class _PlatypusConfig:
     def __init__(self):
         super().__init__()
 
-        self.default_variator = {Real : GAOperator(SBX(), PM()),
-                                 Binary : GAOperator(HUX(), BitFlip()),
-                                 Permutation : CompoundOperator(PMX(), Insertion(), Swap()),
-                                 Subset : GAOperator(SSX(), Replace())}
+        self.default_variator = {Real: GAOperator(SBX(), PM()),
+                                 Binary: GAOperator(HUX(), BitFlip()),
+                                 Permutation: CompoundOperator(PMX(), Insertion(), Swap()),
+                                 Subset: GAOperator(SSX(), Replace())}
 
-        self.default_mutator = {Real : PM(),
-                                Binary : BitFlip(),
-                                Permutation : CompoundMutation(Insertion(), Swap()),
-                                Subset : Replace()}
+        self.default_mutator = {Real: PM(),
+                                Binary: BitFlip(),
+                                Permutation: CompoundMutation(Insertion(), Swap()),
+                                Subset: Replace()}
 
         self.default_evaluator = MapEvaluator()
 

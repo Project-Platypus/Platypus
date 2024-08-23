@@ -1150,7 +1150,7 @@ class CMAES(Algorithm):
     def test_and_correct_numerics(self):
         # flat fitness, test if function values are identical
         if len(self.population) > 0:
-            self.population = sorted(self.population, key=lambda x : x.objectives[0])
+            self.population = sorted(self.population, key=lambda x: x.objectives[0])
 
             if self.population[0].objectives[0] == self.population[min(self.offspring_size-1, self.offspring_size/2 + 1) - 1].objectives[0]:
                 print("flat fitness landscape, consider reformulation of fitness, step size increased", file=sys.stderr)
@@ -1239,7 +1239,7 @@ class CMAES(Algorithm):
         artmp = [0.0]*self.problem.nvars
 
         if self.problem.nobjs == 1:
-            self.population = sorted(self.population, key=lambda x : x.objectives[0])
+            self.population = sorted(self.population, key=lambda x: x.objectives[0])
         else:
             if self.fitness_evaluator is None:
                 self.population = sorted(self.population, key=functools.cmp_to_key(nondominated_cmp))

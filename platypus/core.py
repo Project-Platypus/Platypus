@@ -435,13 +435,13 @@ def _constraint_gt(x, y, delta=0.0001):
 class Constraint:
 
     OPERATORS = {
-             "==" : _constraint_eq,
-             "<=" : _constraint_leq,
-             ">=" : _constraint_geq,
-             "!=" : _constraint_neq,
-             "<"  : _constraint_lt,
-             ">"  : _constraint_gt,
-             }
+        "==": _constraint_eq,
+        "<=": _constraint_leq,
+        ">=": _constraint_geq,
+        "!=": _constraint_neq,
+        "<": _constraint_lt,
+        ">": _constraint_gt
+    }
 
     EQUALS_ZERO = "==0"
     LEQ_ZERO = "<=0"

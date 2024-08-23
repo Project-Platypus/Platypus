@@ -66,7 +66,7 @@ class DistanceMatrix:
                 if i != j:
                     distances_i.append((j, distance_fun(solutions[i], solutions[j])))
 
-            self.distances.append(sorted(distances_i, key=lambda x : x[1]))
+            self.distances.append(sorted(distances_i, key=lambda x: x[1]))
 
     def find_most_crowded(self):
         """Finds the most crowded solution.
