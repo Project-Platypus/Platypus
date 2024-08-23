@@ -610,7 +610,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
         self.variator = variator
 
         self.population_size = choose(problem.nobjs + divisions_outer - 1, divisions_outer) + \
-                (0 if divisions_inner == 0 else choose(problem.nobjs + divisions_inner - 1, divisions_inner))
+            (0 if divisions_inner == 0 else choose(problem.nobjs + divisions_inner - 1, divisions_inner))
         self.population_size = int(math.ceil(self.population_size / 4.0)) * 4
 
         self.ideal_point = [POSITIVE_INFINITY]*problem.nobjs
@@ -908,14 +908,14 @@ class OMOPSO(ParticleSwarm):
                  max_iterations = 100,
                  **kwargs):
         super().__init__(problem,
-                                     swarm_size=swarm_size,
-                                     leader_size=leader_size,
-                                     generator = generator,
-                                     leader_comparator = AttributeDominance(crowding_distance_key),
-                                     dominance = ParetoDominance(),
-                                     fitness = crowding_distance,
-                                     fitness_getter = crowding_distance_key,
-                                     **kwargs)
+                         swarm_size=swarm_size,
+                         leader_size=leader_size,
+                         generator = generator,
+                         leader_comparator = AttributeDominance(crowding_distance_key),
+                         dominance = ParetoDominance(),
+                         fitness = crowding_distance,
+                         fitness_getter = crowding_distance_key,
+                         **kwargs)
         self.max_iterations = max_iterations
         self.archive = Archive(EpsilonDominance(epsilons))
         self.uniform_mutation = UniformMutation(mutation_probability,
@@ -960,15 +960,15 @@ class SMPSO(ParticleSwarm):
                  mutate = None,
                  **kwargs):
         super().__init__(problem,
-                                    swarm_size=swarm_size,
-                                    leader_size=leader_size,
-                                    generator = generator,
-                                    leader_comparator = AttributeDominance(crowding_distance_key),
-                                    dominance = ParetoDominance(),
-                                    fitness = crowding_distance,
-                                    fitness_getter = crowding_distance_key,
-                                    mutate = mutate,
-                                    **kwargs)
+                         swarm_size=swarm_size,
+                         leader_size=leader_size,
+                         generator = generator,
+                         leader_comparator = AttributeDominance(crowding_distance_key),
+                         dominance = ParetoDominance(),
+                         fitness = crowding_distance,
+                         fitness_getter = crowding_distance_key,
+                         mutate = mutate,
+                         **kwargs)
         self.max_iterations = max_iterations
         self.maximum_velocity = [(t.max_value - t.min_value)/2.0 for t in problem.types]
         self.minimum_velocity = [-(t.max_value - t.min_value)/2.0 for t in problem.types]
@@ -993,9 +993,9 @@ class SMPSO(ParticleSwarm):
 
             for j in range(self.problem.nvars):
                 self.velocities[i][j] = self._constriction(C1, C2) * \
-                        (W * self.velocities[i][j] +
-                        C1*r1*(local_best[j] - particle[j]) +
-                        C2*r2*(leader[j] - particle[j]))
+                    (W * self.velocities[i][j] +
+                     C1*r1*(local_best[j] - particle[j]) +
+                     C2*r2*(leader[j] - particle[j]))
 
                 self.velocities[i][j] = clip(self.velocities[i][j],
                                              self.minimum_velocity[j],
@@ -1417,7 +1417,7 @@ class RegionBasedSelector(Selector):
 
         if entry1[0] != entry2[0]:
             if (self.archive.density[entry2[0]] < self.archive.density[entry1[0]] or
-                (self.archive.density[entry2[0]] == self.archive.density[entry1[0]] and random.getrandbits(1))):
+               (self.archive.density[entry2[0]] == self.archive.density[entry1[0]] and random.getrandbits(1))):
                 selection = entry2
 
         return selection[1][random.randrange(len(selection[1]))]
@@ -1497,8 +1497,7 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
                  algorithm,
                  frequency = 10000,
                  by_nfe = True):
-        super().__init__(algorithm.problem,
-                                             algorithm.evaluator)
+        super().__init__(algorithm.problem, algorithm.evaluator)
         self.algorithm = algorithm
         self.frequency = frequency
         self.by_nfe = by_nfe
@@ -1543,8 +1542,8 @@ class AdaptiveTimeContinuation(PeriodicAction):
                  max_population_size = 10000,
                  mutator = UM(1.0)):
         super().__init__(algorithm,
-                                                       frequency = window_size,
-                                                       by_nfe = False)
+                         frequency = window_size,
+                         by_nfe = False)
         self.window_size = window_size
         self.max_window_size = max_window_size
         self.population_ratio = population_ratio
@@ -1608,12 +1607,12 @@ class EpsilonProgressContinuation(AdaptiveTimeContinuation):
                  max_population_size = 10000,
                  mutator = UM(1.0)):
         super().__init__(algorithm,
-                                                          window_size,
-                                                          max_window_size,
-                                                          population_ratio,
-                                                          min_population_size,
-                                                          max_population_size,
-                                                          mutator)
+                         window_size,
+                         max_window_size,
+                         population_ratio,
+                         min_population_size,
+                         max_population_size,
+                         mutator)
         self.last_improvements = 0
 
     def check(self):

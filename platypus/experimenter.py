@@ -46,7 +46,7 @@ class ExperimentJob(Job):
         if self.display_stats:
             end_time = time.time()
             print(f"Finished seed {self.seed} of {self.algorithm_name} on {self.problem_name} in "
-                    f"{datetime.timedelta(seconds=round(end_time-start_time))}")
+                  f"{datetime.timedelta(seconds=round(end_time-start_time))}")
 
 class IndicatorJob(Job):
 
@@ -115,11 +115,11 @@ def evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats):
 
             for k in range(seeds):
                 yield ExperimentJob(algorithm(problem, **kwargs),
-                                  nfe,
-                                  algorithm_name,
-                                  problem_name,
-                                  k,
-                                  display_stats)
+                                    nfe,
+                                    algorithm_name,
+                                    problem_name,
+                                    k,
+                                    display_stats)
 
 def experiment(algorithms = [],
                problems = [],
