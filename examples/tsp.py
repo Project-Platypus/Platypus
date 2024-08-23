@@ -33,4 +33,4 @@ problem.directions[0] = Problem.MINIMIZE
 problem.function = tsp
 
 algorithm = GeneticAlgorithm(problem)
-algorithm.run(100000, callback = lambda a: print(a.nfe, unique(nondominated(algorithm.result))[0].objectives[0]))
+algorithm.run(100000, callback=lambda a: print(a.nfe, unique(nondominated(algorithm.result))[0].objectives[0]))

@@ -48,7 +48,7 @@ def objective_key(x, index=0):
 
 class FixedLengthArray:
 
-    def __init__(self, size, default_value = None, convert = None):
+    def __init__(self, size, default_value=None, convert=None):
         super().__init__()
         self._size = size
         if convert is not None:
@@ -121,7 +121,7 @@ class Problem:
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, nvars, nobjs, nconstrs = 0, function=None):
+    def __init__(self, nvars, nobjs, nconstrs=0, function=None):
         """Create a new problem.
 
         Problems can be constructed by either subclassing and overriding the
@@ -773,7 +773,7 @@ class AttributeDominance(Dominance):
 class Archive:
     """An archive only containing non-dominated solutions."""
 
-    def __init__(self, dominance = ParetoDominance()):
+    def __init__(self, dominance=ParetoDominance()):
         super().__init__()
         self._dominance = dominance
         self._contents = []
@@ -823,7 +823,7 @@ class Archive:
 
 class AdaptiveGridArchive(Archive):
 
-    def __init__(self, capacity, nobjs, divisions, dominance = ParetoDominance()):
+    def __init__(self, capacity, nobjs, divisions, dominance=ParetoDominance()):
         super().__init__(dominance)
         self.capacity = capacity
         self.nobjs = nobjs
@@ -948,7 +948,7 @@ class AdaptiveGridArchive(Archive):
 
 class FitnessArchive(Archive):
 
-    def __init__(self, fitness, dominance = ParetoDominance(), larger_preferred=True, getter=fitness_key):
+    def __init__(self, fitness, dominance=ParetoDominance(), larger_preferred=True, getter=fitness_key):
         super().__init__(dominance)
         self.fitness = fitness
         self.larger_preferred = larger_preferred
@@ -1124,7 +1124,7 @@ def nondominated_split(solutions, size):
     rank = 0
 
     while len(result) < size:
-        front = [x for x in solutions if x.rank==rank]
+        front = [x for x in solutions if x.rank == rank]
 
         if len(front) == 0:
             break
@@ -1244,7 +1244,7 @@ def normalize(solutions, minimum=None, maximum=None):
 
 class FitnessEvaluator(metaclass=ABCMeta):
 
-    def __init__(self, kappa = 0.05):
+    def __init__(self, kappa=0.05):
         super().__init__()
         self.kappa = kappa
 
@@ -1296,10 +1296,10 @@ class FitnessEvaluator(metaclass=ABCMeta):
 class HypervolumeFitnessEvaluator(FitnessEvaluator):
 
     def __init__(self,
-                 kappa = 0.05,
-                 rho = 2.0,
-                 dominance = ParetoDominance()):
-        super().__init__(kappa = kappa)
+                 kappa=0.05,
+                 rho=2.0,
+                 dominance=ParetoDominance()):
+        super().__init__(kappa=kappa)
         self.rho = rho
         self.dominance = dominance
 

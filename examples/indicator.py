@@ -50,7 +50,7 @@ ax.scatter([s.objectives[0] for s in algorithm.result],
            [s.objectives[2] for s in algorithm.result],
            c="blue",
            edgecolors="none",
-           label = "NSGA-II Result")
+           label="NSGA-II Result")
 ax.set_title("Reference Set")
 ax.set_xlim([0, 1.1])
 ax.set_ylim([0, 1.1])

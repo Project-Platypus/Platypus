@@ -121,12 +121,12 @@ def evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats):
                                     k,
                                     display_stats)
 
-def experiment(algorithms = [],
-               problems = [],
-               seeds = 10,
+def experiment(algorithms=[],
+               problems=[],
+               seeds=10,
                nfe=10000,
-               evaluator = None,
-               display_stats = False):
+               evaluator=None,
+               display_stats=False):
     """Run experiments.
 
     Used to run experiments where one or more algorithms are tested on one or
@@ -195,8 +195,8 @@ def calculate_job_generator(results, indicators):
                 yield IndicatorJob(algorithm, problem, result_set, indicators)
 
 def calculate(results,
-              indicators = [],
-              evaluator = None):
+              indicators=[],
+              evaluator=None):
     if not isinstance(indicators, list):
         indicators = [indicators]
 

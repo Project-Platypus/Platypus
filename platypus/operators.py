@@ -58,7 +58,7 @@ class InjectedPopulation(Generator):
 
 class TournamentSelector(Selector):
 
-    def __init__(self, tournament_size = 2, dominance = ParetoDominance()):
+    def __init__(self, tournament_size=2, dominance=ParetoDominance()):
         super().__init__()
         self.tournament_size = tournament_size
         self.dominance = dominance
@@ -77,7 +77,7 @@ class TournamentSelector(Selector):
 
 class PM(Mutation):
 
-    def __init__(self, probability = 1, distribution_index = 20.0):
+    def __init__(self, probability=1, distribution_index=20.0):
         super().__init__()
         self.probability = probability
         self.distribution_index = distribution_index
@@ -121,7 +121,7 @@ class PM(Mutation):
 
 class SBX(Variator):
 
-    def __init__(self, probability = 1.0, distribution_index = 15.0):
+    def __init__(self, probability=1.0, distribution_index=15.0):
         super().__init__(2)
         self.probability = probability
         self.distribution_index = distribution_index
@@ -322,7 +322,7 @@ class NonUniformMutation(Mutation):
 class UM(Mutation):
     """Uniform mutation."""
 
-    def __init__(self, probability = 1):
+    def __init__(self, probability=1):
         super().__init__()
         self.probability = probability
 
@@ -349,7 +349,7 @@ class UM(Mutation):
 
 class PCX(Variator):
 
-    def __init__(self, nparents = 10, noffspring = 2, eta = 0.1, zeta = 0.1):
+    def __init__(self, nparents=10, noffspring=2, eta=0.1, zeta=0.1):
         super().__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
@@ -414,7 +414,7 @@ class PCX(Variator):
 
 class UNDX(Variator):
 
-    def __init__(self, nparents = 10, noffspring = 2, zeta = 0.5, eta = 0.35):
+    def __init__(self, nparents=10, noffspring=2, zeta=0.5, eta=0.35):
         super().__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
@@ -485,7 +485,7 @@ class UNDX(Variator):
 
 class SPX(Variator):
 
-    def __init__(self, nparents = 10, noffspring = 2, expansion = None):
+    def __init__(self, nparents=10, noffspring=2, expansion=None):
         super().__init__(nparents)
         self.nparents = nparents
         self.noffspring = noffspring
@@ -569,7 +569,7 @@ class BitFlip(Mutation):
 
 class HUX(Variator):
 
-    def __init__(self, probability = 1.0):
+    def __init__(self, probability=1.0):
         super().__init__(2)
         self.probability = probability
 
@@ -593,7 +593,7 @@ class HUX(Variator):
 
 class Swap(Mutation):
 
-    def __init__(self, probability = 0.3):
+    def __init__(self, probability=0.3):
         super().__init__()
         self.probability = probability
 
@@ -618,7 +618,7 @@ class Swap(Mutation):
 
 class PMX(Variator):
 
-    def __init__(self, probability = 1.0):
+    def __init__(self, probability=1.0):
         super().__init__(2)
         self.probability = probability
 
@@ -680,7 +680,7 @@ class PMX(Variator):
 
 class Insertion(Mutation):
 
-    def __init__(self, probability = 0.3):
+    def __init__(self, probability=0.3):
         super().__init__()
         self.probability = probability
 
@@ -715,7 +715,7 @@ class Insertion(Mutation):
 
 class Replace(Mutation):
 
-    def __init__(self, probability = 0.3):
+    def __init__(self, probability=0.3):
         super().__init__()
         self.probability = probability
 
@@ -739,7 +739,7 @@ class Replace(Mutation):
 
 class SSX(Variator):
 
-    def __init__(self, probability = 1.0):
+    def __init__(self, probability=1.0):
         super().__init__(2)
         self.probability = probability
 

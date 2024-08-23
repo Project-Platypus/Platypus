@@ -143,4 +143,4 @@ class TestMaximizationGuard(unittest.TestCase):
 
     def test_NSGAIII(self):
         with self.assertRaises(PlatypusError):
-            NSGAIII(self.problem, divisions_outer = 24)
+            NSGAIII(self.problem, divisions_outer=24)
