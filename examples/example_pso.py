@@ -8,7 +8,7 @@ problem = DTLZ2()
 swarm_size = 100
 max_iterations = 500
 
-algorithm = OMOPSO(problem, epsilons = [0.01], swarm_size = swarm_size, max_iterations = max_iterations)
+algorithm = OMOPSO(problem, epsilons=[0.01], swarm_size=swarm_size, max_iterations=max_iterations)
 algorithm.run(swarm_size * max_iterations)
 
 # display the results

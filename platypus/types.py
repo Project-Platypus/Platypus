@@ -102,7 +102,7 @@ class Binary(Type):
         return [random.choice([False, True]) for _ in range(self.nbits)]
 
     def __str__(self):
-        return "Binary(%d)" % self.nbits
+        return f"Binary({self.nbits})"
 
 class Integer(Binary):
     """Represents an integer value with min and max bounds.
@@ -148,7 +148,7 @@ class Integer(Binary):
         return self.min_value + value
 
     def __str__(self):
-        return "Integer(%d, %d)" % (self.min_value, self.max_value)
+        return f"Integer({self.min_value}, {self.max_value})"
 
 class Permutation(Type):
     """Represents a permutation.
@@ -215,7 +215,7 @@ class Subset(Type):
         return [self.elements[i] for i in indices[:self.size]]
 
     def __str__(self):
-        return "Subset(%d, %d)" % (len(self.elements), self.size)
+        return f"Subset({len(self.elements)}, {self.size})"
 
 
 # Modified from RosettaCode.org (http://rosettacode.org/wiki/Gray_code#Python)

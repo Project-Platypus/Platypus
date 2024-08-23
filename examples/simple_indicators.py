@@ -1,5 +1,7 @@
 import math
-from platypus import *
+from platypus import NSGAII, DTLZ2, Solution, Hypervolume, \
+    GenerationalDistance, InvertedGenerationalDistance, EpsilonIndicator, \
+    Spacing
 
 # Select the problem.
 problem = DTLZ2()
@@ -20,16 +22,16 @@ for i in range(100):
     ref_set.append(solution)
 
 # Calculate the performance metrics.
-hyp = Hypervolume(reference_set = ref_set)
+hyp = Hypervolume(reference_set=ref_set)
 print("Hypervolume:", hyp.calculate(algorithm.result))
 
-gd = GenerationalDistance(reference_set = ref_set)
+gd = GenerationalDistance(reference_set=ref_set)
 print("GD:", gd.calculate(algorithm.result))
 
-igd = InvertedGenerationalDistance(reference_set = ref_set)
+igd = InvertedGenerationalDistance(reference_set=ref_set)
 print("IGD:", igd.calculate(algorithm.result))
 
-aei = EpsilonIndicator(reference_set = ref_set)
+aei = EpsilonIndicator(reference_set=ref_set)
 print("Eps-Indicator:", aei.calculate(algorithm.result))
 
 spacing = Spacing()

@@ -1,7 +1,7 @@
 # Generates a plot showing the distributions of six real-valued operators.
 import matplotlib.pyplot as plt
-from platypus import *
-from platypus.tools import add, subtract
+from platypus import Problem, Solution, Real, GAOperator, SBX, PM, UM, \
+    DifferentialEvolution, PCX, UNDX, SPX
 
 problem = Problem(2, 0)
 problem.types[:] = Real(-1, 1)
@@ -62,7 +62,7 @@ axarr[0, 1].annotate("",
                                      connectionstyle="arc3",
                                      color="0.75"))
 axarr[0, 1].annotate("",
-                     xy=add(solution2.variables, subtract(solution3.variables, solution1.variables)), xycoords='data',
+                     xy=[solution2.variables[i] + (solution3.variables[i] - solution1.variables[i]) for i in range(2)], xycoords='data',
                      xytext=solution2.variables, textcoords='data',
                      arrowprops=dict(arrowstyle="fancy",
                                      connectionstyle="arc3",

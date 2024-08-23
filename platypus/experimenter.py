@@ -46,7 +46,7 @@ class ExperimentJob(Job):
         if self.display_stats:
             end_time = time.time()
             print(f"Finished seed {self.seed} of {self.algorithm_name} on {self.problem_name} in "
-                    f"{datetime.timedelta(seconds=round(end_time-start_time))}")
+                  f"{datetime.timedelta(seconds=round(end_time-start_time))}")
 
 class IndicatorJob(Job):
 
@@ -115,18 +115,18 @@ def evaluate_job_generator(algorithms, problems, seeds, nfe, display_stats):
 
             for k in range(seeds):
                 yield ExperimentJob(algorithm(problem, **kwargs),
-                                  nfe,
-                                  algorithm_name,
-                                  problem_name,
-                                  k,
-                                  display_stats)
+                                    nfe,
+                                    algorithm_name,
+                                    problem_name,
+                                    k,
+                                    display_stats)
 
-def experiment(algorithms = [],
-               problems = [],
-               seeds = 10,
+def experiment(algorithms=[],
+               problems=[],
+               seeds=10,
                nfe=10000,
-               evaluator = None,
-               display_stats = False):
+               evaluator=None,
+               display_stats=False):
     """Run experiments.
 
     Used to run experiments where one or more algorithms are tested on one or
@@ -195,8 +195,8 @@ def calculate_job_generator(results, indicators):
                 yield IndicatorJob(algorithm, problem, result_set, indicators)
 
 def calculate(results,
-              indicators = [],
-              evaluator = None):
+              indicators=[],
+              evaluator=None):
     if not isinstance(indicators, list):
         indicators = [indicators]
 

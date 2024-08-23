@@ -63,7 +63,7 @@ Platypus is also available via conda-forge.
     conda install platypus-opt
 ```
 
-For more information see the [feedstock](https://github.com/conda-forge/platypus-opt-feedstock) located here.
+For more information, see the [feedstock](https://github.com/conda-forge/platypus-opt-feedstock).
 
 ### License
 

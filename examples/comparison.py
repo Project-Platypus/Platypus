@@ -1,4 +1,6 @@
-from platypus import *
+from platypus import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
+    SMPSO, SPEA2, EpsMOEA, DTLZ2, ProcessPoolEvaluator, experiment, \
+    normal_boundary_weights
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':

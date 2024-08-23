@@ -19,9 +19,11 @@
 import pickle
 import unittest
 import functools
+from ..core import Problem, PlatypusError
 from ..problems import DTLZ2
-from ..algorithms import *
-from ..weights import *
+from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
+    SMPSO, SPEA2, EpsMOEA
+from ..weights import normal_boundary_weights, pbi
 
 class TestPickling(unittest.TestCase):
 
@@ -66,7 +68,7 @@ class TestRunning(unittest.TestCase):
 
     def setUp(self):
         self.problem = DTLZ2()
-        self.post_checks = lambda : True
+        self.post_checks = lambda: True
 
     def test_NSGAII(self):
         self.algorithm = NSGAII(self.problem)
@@ -90,12 +92,12 @@ class TestRunning(unittest.TestCase):
 
     def test_MOEAD_default(self):
         self.algorithm = MOEAD(self.problem)
-        self.post_checks = lambda : self.assertEqual(100, self.algorithm.population_size)
+        self.post_checks = lambda: self.assertEqual(100, self.algorithm.population_size)
         self._run_test()
 
     def test_MOEAD_random_weights(self):
         self.algorithm = MOEAD(self.problem, population_size=50)
-        self.post_checks = lambda : self.assertEqual(50, self.algorithm.population_size)
+        self.post_checks = lambda: self.assertEqual(50, self.algorithm.population_size)
         self._run_test()
 
     def test_MOEAD_normal_boundary_weights(self):
@@ -141,4 +143,4 @@ class TestMaximizationGuard(unittest.TestCase):
 
     def test_NSGAIII(self):
         with self.assertRaises(PlatypusError):
-            NSGAIII(self.problem, divisions_outer = 24)
+            NSGAIII(self.problem, divisions_outer=24)

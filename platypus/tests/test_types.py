@@ -18,7 +18,8 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 from abc import ABCMeta, abstractmethod
-from ..types import Real, Binary, Integer, Permutation, bin2gray, bin2int, int2bin, gray2bin
+from ..types import Real, Binary, Integer, Permutation, Subset, \
+    bin2gray, bin2int, int2bin, gray2bin
 
 
 class TypeTestCase(unittest.TestCase, metaclass=ABCMeta):
@@ -45,6 +46,7 @@ class TypeTestCase(unittest.TestCase, metaclass=ABCMeta):
             decoded = self.variable.decode(val)
             encoded = self.variable.encode(decoded)
             self.assertEqual(val, encoded)
+
 
 class TestReal(TypeTestCase):
 
@@ -112,25 +114,35 @@ class TestPermutationElements(TypeTestCase):
             self.assertIn(e, val)
 
 
+class TestSubset(TypeTestCase):
+
+    def createInstance(self):
+        return Subset(range(10), 2)
+
+    def assertValidValue(self, val):
+        self.assertEqual(2, len(val))
+        for v in val:
+            self.assertIn(v, range(10))
+
 class TestGrayCode(unittest.TestCase):
 
     EXPECTED = {
-        0 : {"binary" : (0, 0, 0, 0), "gray" : (0, 0, 0, 0)},
-        1 : {"binary" : (0, 0, 0, 1), "gray" : (0, 0, 0, 1)},
-        2 : {"binary" : (0, 0, 1, 0), "gray" : (0, 0, 1, 1)},
-        3 : {"binary" : (0, 0, 1, 1), "gray" : (0, 0, 1, 0)},
-        4 : {"binary" : (0, 1, 0, 0), "gray" : (0, 1, 1, 0)},
-        5 : {"binary" : (0, 1, 0, 1), "gray" : (0, 1, 1, 1)},
-        6 : {"binary" : (0, 1, 1, 0), "gray" : (0, 1, 0, 1)},
-        7 : {"binary" : (0, 1, 1, 1), "gray" : (0, 1, 0, 0)},
-        8 : {"binary" : (1, 0, 0, 0), "gray" : (1, 1, 0, 0)},
-        9 : {"binary" : (1, 0, 0, 1), "gray" : (1, 1, 0, 1)},
-        10 : {"binary" : (1, 0, 1, 0), "gray" : (1, 1, 1, 1)},
-        11 : {"binary" : (1, 0, 1, 1), "gray" : (1, 1, 1, 0)},
-        12 : {"binary" : (1, 1, 0, 0), "gray" : (1, 0, 1, 0)},
-        13 : {"binary" : (1, 1, 0, 1), "gray" : (1, 0, 1, 1)},
-        14 : {"binary" : (1, 1, 1, 0), "gray" : (1, 0, 0, 1)},
-        15 : {"binary" : (1, 1, 1, 1), "gray" : (1, 0, 0, 0)},
+        0: {"binary": (0, 0, 0, 0), "gray": (0, 0, 0, 0)},
+        1: {"binary": (0, 0, 0, 1), "gray": (0, 0, 0, 1)},
+        2: {"binary": (0, 0, 1, 0), "gray": (0, 0, 1, 1)},
+        3: {"binary": (0, 0, 1, 1), "gray": (0, 0, 1, 0)},
+        4: {"binary": (0, 1, 0, 0), "gray": (0, 1, 1, 0)},
+        5: {"binary": (0, 1, 0, 1), "gray": (0, 1, 1, 1)},
+        6: {"binary": (0, 1, 1, 0), "gray": (0, 1, 0, 1)},
+        7: {"binary": (0, 1, 1, 1), "gray": (0, 1, 0, 0)},
+        8: {"binary": (1, 0, 0, 0), "gray": (1, 1, 0, 0)},
+        9: {"binary": (1, 0, 0, 1), "gray": (1, 1, 0, 1)},
+        10: {"binary": (1, 0, 1, 0), "gray": (1, 1, 1, 1)},
+        11: {"binary": (1, 0, 1, 1), "gray": (1, 1, 1, 0)},
+        12: {"binary": (1, 1, 0, 0), "gray": (1, 0, 1, 0)},
+        13: {"binary": (1, 1, 0, 1), "gray": (1, 0, 1, 1)},
+        14: {"binary": (1, 1, 1, 0), "gray": (1, 0, 0, 1)},
+        15: {"binary": (1, 1, 1, 1), "gray": (1, 0, 0, 0)},
     }
 
     def assertBinEqual(self, b1, b2):
