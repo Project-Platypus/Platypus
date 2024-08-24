@@ -74,15 +74,16 @@ class _PlatypusConfig:
             base_type = problem.types[0].__class__
 
             if not all([isinstance(t, base_type) for t in problem.types]):
-                raise PlatypusError("must define variator for mixed types")
+                raise PlatypusError("must explicitly set variator for mixed types")
 
         if base_type in self._default_variator:
             return self._default_variator[base_type]
-        else:
-            for default_type in self._default_variator.keys():
-                if issubclass(base_type, default_type):
-                    return self._default_variator[default_type]
-            raise PlatypusError(f"no default variator for {base_type}")
+
+        for default_type in self._default_variator.keys():
+            if issubclass(base_type, default_type):
+                return self._default_variator[default_type]
+
+        raise PlatypusError(f"no default variator for {base_type}")
 
     def default_mutator(self, problem):
         """Returns the default mutator for the given type or problem.
@@ -104,15 +105,16 @@ class _PlatypusConfig:
             base_type = problem.types[0].__class__
 
             if not all([isinstance(t, base_type) for t in problem.types]):
-                raise PlatypusError("must define mutator for mixed types")
+                raise PlatypusError("must explicitly set mutator for mixed types")
 
         if base_type in self._default_mutator:
             return self._default_mutator[base_type]
-        else:
-            for default_type in self._default_mutator.keys():
-                if issubclass(base_type, default_type):
-                    return self._default_mutator[default_type]
-            raise PlatypusError(f"no default mutator for {base_type}")
+
+        for default_type in self._default_mutator.keys():
+            if issubclass(base_type, default_type):
+                return self._default_mutator[default_type]
+
+        raise PlatypusError(f"no default mutator for {base_type}")
 
 
 # Defaults are configured in __init__.py.
