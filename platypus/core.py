@@ -29,13 +29,12 @@ import functools
 import itertools
 from abc import ABCMeta, abstractmethod
 from .evaluator import Job
+from .errors import PlatypusError
+from .config import PlatypusConfig
 
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
-
-class PlatypusError(Exception):
-    pass
 
 def fitness_key(x):
     return x.fitness
@@ -217,7 +216,7 @@ class Generator(metaclass=ABCMeta):
 
     @abstractmethod
     def generate(self, problem):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class Variator(metaclass=ABCMeta):
     """Abstract class for variation operators (crossover and mutation)."""
@@ -228,7 +227,7 @@ class Variator(metaclass=ABCMeta):
 
     @abstractmethod
     def evolve(self, parents):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class Mutation(Variator, metaclass=ABCMeta):
     """Variator for mutation, which requires only one parent."""
@@ -244,7 +243,7 @@ class Mutation(Variator, metaclass=ABCMeta):
 
     @abstractmethod
     def mutate(self, parent):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class Selector(metaclass=ABCMeta):
 
@@ -256,7 +255,7 @@ class Selector(metaclass=ABCMeta):
 
     @abstractmethod
     def select_one(self, population):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class TerminationCondition(metaclass=ABCMeta):
     """Abstract class for defining termination conditions."""
@@ -293,7 +292,7 @@ class TerminationCondition(metaclass=ABCMeta):
         algorithm : Algorithm
             The algorithm being run.
         """
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class MaxEvaluations(TerminationCondition):
     """Termination condition based on the maximum number of function evaluations.
@@ -354,16 +353,14 @@ class Algorithm(metaclass=ABCMeta):
         self.nfe = 0
 
         if self.evaluator is None:
-            from .config import PlatypusConfig
             self.evaluator = PlatypusConfig.default_evaluator
 
         if self.log_frequency is None:
-            from .config import PlatypusConfig
             self.log_frequency = PlatypusConfig.default_log_frequency
 
     @abstractmethod
     def step(self):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     def evaluate_all(self, solutions):
         unevaluated = [s for s in solutions if not s.evaluated]
@@ -556,7 +553,7 @@ class Dominance(metaclass=ABCMeta):
         solution2 : Solution
             The second solution.
         """
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class ParetoDominance(Dominance):
     """Pareto dominance with constraints.
@@ -1250,7 +1247,7 @@ class FitnessEvaluator(metaclass=ABCMeta):
 
     @abstractmethod
     def calculate_indicator(self, solution1, solution2):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     def evaluate(self, solutions):
         if len(solutions) == 0:
@@ -1344,4 +1341,4 @@ class Indicator(metaclass=ABCMeta):
         return self.calculate(set)
 
     def calculate(self, set):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()

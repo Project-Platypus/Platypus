@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-from .core import PlatypusError, FixedLengthArray, Problem, Generator, \
-    Variator, Mutation, Selector, TerminationCondition, MaxEvaluations, \
-    MaxTime, Algorithm, Constraint, Solution, Dominance, ParetoDominance, \
+from .core import FixedLengthArray, Problem, Generator, Variator, \
+    Mutation, Selector, TerminationCondition, MaxEvaluations, MaxTime, \
+    Algorithm, Constraint, Solution, Dominance, ParetoDominance, \
     EpsilonDominance, AttributeDominance, Archive, AdaptiveGridArchive, \
     FitnessArchive, EpsilonBoxArchive, unique, nondominated, \
     nondominated_cmp, nondominated_sort, crowding_distance, \
@@ -27,7 +27,9 @@ from .core import PlatypusError, FixedLengthArray, Problem, Generator, \
     truncate_fitness, normalize, FitnessEvaluator, \
     HypervolumeFitnessEvaluator, Indicator
 
-from .config import PlatypusConfig, default_variator, default_mutator
+from .errors import PlatypusError
+
+from .config import PlatypusConfig
 
 from .algorithms import AbstractGeneticAlgorithm, SingleObjectiveAlgorithm, \
     GeneticAlgorithm, EvolutionaryStrategy, NSGAII, EpsMOEA, GDE3, SPEA2, \
@@ -59,5 +61,17 @@ from .problems import DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ7, WFG, WFG1, WFG2, \
 from .types import Type, Real, Binary, Integer, Permutation, Subset
 
 from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
+
+PlatypusConfig.register_default_variator(Real, GAOperator(SBX(), PM()))
+PlatypusConfig.register_default_variator(Binary, GAOperator(HUX(), BitFlip()))
+PlatypusConfig.register_default_variator(Permutation, CompoundOperator(PMX(), Insertion(), Swap()))
+PlatypusConfig.register_default_variator(Subset, GAOperator(SSX(), Replace()))
+
+PlatypusConfig.register_default_mutator(Real, PM())
+PlatypusConfig.register_default_mutator(Binary, BitFlip())
+PlatypusConfig.register_default_mutator(Permutation, CompoundMutation(Insertion(), Swap()))
+PlatypusConfig.register_default_mutator(Subset, Replace())
+
+PlatypusConfig.default_evaluator = MapEvaluator()
 
 __version__ = "1.3.0"

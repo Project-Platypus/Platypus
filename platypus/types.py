@@ -45,7 +45,7 @@ class Type(metaclass=ABCMeta):
     @abstractmethod
     def rand(self):
         """Produces a random but valid encoded value for this type."""
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     def encode(self, value):
         """Encodes a value into its internal representation."""

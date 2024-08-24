@@ -31,15 +31,16 @@ from .core import Algorithm, ParetoDominance, AttributeDominance, \
     Archive, EpsilonDominance, FitnessArchive, Solution, \
     HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key, \
     crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive, \
-    PlatypusError, Problem
+    Problem
 from .distance import DistanceMatrix
+from .errors import PlatypusError
 from .operators import TournamentSelector, RandomGenerator, \
     DifferentialEvolution, clip, UniformMutation, NonUniformMutation, UM
 from ._math import choose, lsolve, tred2, tql2, check_eigensystem, \
     point_line_dist
 from ._tools import remove_keys, only_keys_for
 from .weights import random_weights, chebyshev, normal_boundary_weights
-from .config import default_variator, default_mutator
+from .config import PlatypusConfig
 
 class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
 
@@ -66,7 +67,7 @@ class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
 
     @abstractmethod
     def iterate(self):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, metaclass=ABCMeta):
 
@@ -100,7 +101,7 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
         super().initialize()
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
         self.population = sorted(self.population, key=functools.cmp_to_key(self.comparator))
         self.fittest = self.population[0]
@@ -138,7 +139,7 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
         super().initialize()
 
         if self.variator is None:
-            self.variator = default_mutator(self.problem)
+            self.variator = PlatypusConfig.default_mutator(self.problem)
 
     def iterate(self):
         offspring = []
@@ -185,7 +186,7 @@ class NSGAII(AbstractGeneticAlgorithm):
             self.archive += self.population
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         offspring = []
@@ -231,7 +232,7 @@ class EpsMOEA(AbstractGeneticAlgorithm):
         self.archive += self.population
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         if len(self.archive) <= 1:
@@ -304,7 +305,7 @@ class GDE3(AbstractGeneticAlgorithm):
         super().initialize()
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         offspring = []
@@ -390,7 +391,7 @@ class SPEA2(AbstractGeneticAlgorithm):
         self._assign_fitness(self.population)
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         offspring = []
@@ -521,7 +522,7 @@ class MOEAD(AbstractGeneticAlgorithm):
 
         # set the default variator if one is not provided
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def _get_subproblems(self):
         """ Determines the subproblems to search.
@@ -762,7 +763,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
         super().initialize()
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         offspring = []
@@ -975,7 +976,7 @@ class SMPSO(ParticleSwarm):
         super().initialize()
 
         if self.mutate is None:
-            self.mutate = default_mutator(self.problem)
+            self.mutate = PlatypusConfig.default_mutator(self.problem)
 
     def _update_velocities(self):
         for i in range(self.swarm_size):
@@ -1313,7 +1314,7 @@ class IBEA(AbstractGeneticAlgorithm):
         self.fitness_evaluator.evaluate(self.population)
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         offspring = []
@@ -1366,7 +1367,7 @@ class PAES(AbstractGeneticAlgorithm):
         self.archive += self.population
 
         if self.variator is None:
-            self.variator = default_mutator(self.problem)
+            self.variator = PlatypusConfig.default_mutator(self.problem)
 
     def iterate(self):
         parent = self.population[0]
@@ -1448,7 +1449,7 @@ class PESA2(AbstractGeneticAlgorithm):
         self.archive += self.population
 
         if self.variator is None:
-            self.variator = default_variator(self.problem)
+            self.variator = PlatypusConfig.default_variator(self.problem)
 
     def iterate(self):
         self.population = []
@@ -1518,7 +1519,7 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
 
     @abstractmethod
     def do_action(self):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     def __getattr__(self, name):
         # Be careful to not interfere with multiprocessing's unpickling, where it may check for
@@ -1527,7 +1528,7 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
         if "algorithm" in self.__dict__:
             return getattr(self.algorithm, name)
         else:
-            raise AttributeError()
+            raise AttributeError(name="algorithm", object=self)
 
 class AdaptiveTimeContinuation(PeriodicAction):
 

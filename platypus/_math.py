@@ -23,7 +23,8 @@ import random
 import operator
 import functools
 from functools import reduce
-from .core import EPSILON, PlatypusError
+from .core import EPSILON
+from .errors import SingularError
 
 
 def clip(value, min_value, max_value):
@@ -68,9 +69,6 @@ def random_vector(n, rng=functools.partial(random.gauss, 0.0, 1.0)):
 
 def zeros(m, n):
     return [[0.0]*n for _ in range(m)]
-
-class SingularError(PlatypusError):
-    pass
 
 def lsolve(A, b):
     """Gaussian elimination with partial pivoting.

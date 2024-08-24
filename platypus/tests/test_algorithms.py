@@ -19,7 +19,8 @@
 import pickle
 import unittest
 import functools
-from ..core import Problem, PlatypusError
+from ..core import Problem
+from ..errors import PlatypusError
 from ..problems import DTLZ2
 from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
     SMPSO, SPEA2, EpsMOEA
