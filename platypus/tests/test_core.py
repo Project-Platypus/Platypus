@@ -22,7 +22,8 @@ import unittest
 from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
         POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
-        EpsilonBoxArchive, PlatypusError
+        EpsilonBoxArchive
+from ..errors import PlatypusError
 
 def createSolution(*args):
     problem = Problem(0, len(args))

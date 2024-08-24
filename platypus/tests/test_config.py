@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from ..config import default_mutator, default_variator, PlatypusConfig
+from ..config import PlatypusConfig
 from ..evaluator import MapEvaluator, SubmitEvaluator
 from ..operators import GAOperator, PM, SBX
 from ..problems import DTLZ2
@@ -29,28 +29,28 @@ class TestConfig(unittest.TestCase):
         self.problem = DTLZ2(2)
 
     def test_default_variator(self):
-        self.assertIsNotNone(default_variator(self.problem))
-        self.assertIsInstance(default_variator(self.problem), GAOperator)
+        self.assertIsNotNone(PlatypusConfig.default_variator(self.problem))
+        self.assertIsInstance(PlatypusConfig.default_variator(self.problem), GAOperator)
 
     def test_default_variator_reassigned(self):
-        originalVariator = PlatypusConfig.default_variator[Real]
+        originalVariator = PlatypusConfig.default_variator(Real)
 
-        PlatypusConfig.default_variator[Real] = SBX()
-        self.assertIsInstance(default_variator(self.problem), SBX)
+        PlatypusConfig.register_default_variator(Real, SBX())
+        self.assertIsInstance(PlatypusConfig.default_variator(self.problem), SBX)
 
-        PlatypusConfig.default_variator[Real] = originalVariator
+        PlatypusConfig.register_default_variator(Real, originalVariator)
 
     def test_default_mutator(self):
-        self.assertIsNotNone(default_mutator(self.problem))
-        self.assertIsInstance(default_mutator(self.problem), PM)
+        self.assertIsNotNone(PlatypusConfig.default_mutator(self.problem))
+        self.assertIsInstance(PlatypusConfig.default_mutator(self.problem), PM)
 
     def test_default_mutator_reassigned(self):
-        originalMutator = PlatypusConfig.default_mutator[Real]
+        originalMutator = PlatypusConfig.default_mutator(Real)
 
-        PlatypusConfig.default_mutator[Real] = PM()
-        self.assertIsInstance(default_mutator(self.problem), PM)
+        PlatypusConfig.register_default_mutator(Real, PM())
+        self.assertIsInstance(PlatypusConfig.default_mutator(self.problem), PM)
 
-        PlatypusConfig.default_mutator[Real] = originalMutator
+        PlatypusConfig.register_default_mutator(Real, originalMutator)
 
     def test_default_evaluator(self):
         self.assertIsNotNone(PlatypusConfig.default_evaluator)

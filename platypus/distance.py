@@ -130,7 +130,6 @@ class DistanceMatrix:
                 for i, d in self.distances[key[0]]:
                     if i == key[1]:
                         return d
-
                 raise ValueError("key not found")
         else:
             raise ValueError("key must be a tuple")

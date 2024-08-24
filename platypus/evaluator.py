@@ -46,7 +46,7 @@ class Job(metaclass=ABCMeta):
 
     @abstractmethod
     def run(self):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
 def run_job(job):
     job.run()
@@ -59,7 +59,7 @@ class Evaluator(metaclass=ABCMeta):
 
     @abstractmethod
     def evaluate_all(self, jobs, **kwargs):
-        raise NotImplementedError("method not implemented")
+        raise NotImplementedError()
 
     def close(self):
         pass

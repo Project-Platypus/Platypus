@@ -22,7 +22,8 @@ import time
 import datetime
 import functools
 from collections import OrderedDict
-from .core import PlatypusError
+from .config import PlatypusConfig
+from .errors import PlatypusError
 from .evaluator import Job
 
 class ExperimentJob(Job):
@@ -167,7 +168,6 @@ def experiment(algorithms=[],
 
     # process the jobs
     if evaluator is None:
-        from .config import PlatypusConfig
         evaluator = PlatypusConfig.default_evaluator
 
     job_results = evaluator.evaluate_all(generator)
@@ -201,7 +201,6 @@ def calculate(results,
         indicators = [indicators]
 
     if evaluator is None:
-        from .config import PlatypusConfig
         evaluator = PlatypusConfig.default_evaluator
 
     generator = calculate_job_generator(results, indicators)

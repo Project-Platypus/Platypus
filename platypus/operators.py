@@ -20,8 +20,9 @@
 import copy
 import math
 import random
-from .core import PlatypusError, Solution, ParetoDominance, Generator, \
-    Selector, Variator, Mutation, EPSILON
+from .core import Solution, ParetoDominance, Generator, Selector, Variator, \
+    Mutation, EPSILON
+from .errors import PlatypusError
 from .types import Real, Binary, Permutation, Subset
 from ._math import add, subtract, multiply, is_zero, magnitude, \
     orthogonalize, normalize, random_vector, zeros, roulette, clip
