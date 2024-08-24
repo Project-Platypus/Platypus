@@ -28,10 +28,9 @@ from abc import ABCMeta, abstractmethod
 from .core import Algorithm, ParetoDominance, AttributeDominance, \
     nondominated_sort, nondominated_prune, nondominated_truncate, \
     nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
-    Archive, EpsilonDominance, FitnessArchive, Solution, \
+    Archive, EpsilonDominance, FitnessArchive, Solution, Problem, \
     HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key, \
-    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive, \
-    Problem
+    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive
 from .distance import DistanceMatrix
 from .errors import PlatypusError
 from .operators import TournamentSelector, RandomGenerator, \
