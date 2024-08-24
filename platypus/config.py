@@ -31,12 +31,40 @@ class _PlatypusConfig:
         self.default_log_frequency = None
 
     def register_default_variator(self, type, operator):
+        """Registers or overwrites the default variator.
+
+        Parameters
+        ----------
+        type : Type
+            The type of decision variable.
+        operator : Variator
+            The default variator to associated with the type.
+        """
         self._default_variator[type] = operator
 
     def register_default_mutator(self, type, operator):
+        """Registers or overwrites the default mutator.
+
+        Parameters
+        ----------
+        type : Type
+            The type of decision variable.
+        operator : Mutation
+            The default mutator to associated with the type.
+        """
         self._default_mutator[type] = operator
 
     def default_variator(self, problem):
+        """Returns the default variator for the given type or problem.
+
+        Variators must first be registered by :func:`register_default_variator`
+        to be discovered by this method.
+
+        Parameters
+        ----------
+        problem : Type or Problem
+            The type or problem used to select the default variator.
+        """
         if inspect.isclass(problem) and issubclass(problem, Type):
             base_type = problem
         else:
@@ -57,6 +85,16 @@ class _PlatypusConfig:
             raise PlatypusError(f"no default variator for {base_type}")
 
     def default_mutator(self, problem):
+        """Returns the default mutator for the given type or problem.
+
+        Mutators must first be registered by :func:`register_default_mutator`
+        to be discovered by this method.
+
+        Parameters
+        ----------
+        problem : Type or Problem
+            The type or problem used to select the default mutator.
+        """
         if inspect.isclass(problem) and issubclass(problem, Type):
             base_type = problem
         else:
@@ -77,4 +115,5 @@ class _PlatypusConfig:
             raise PlatypusError(f"no default mutator for {base_type}")
 
 
+# Defaults are configured in __init__.py.
 PlatypusConfig = _PlatypusConfig()
