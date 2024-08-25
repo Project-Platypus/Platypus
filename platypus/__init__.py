@@ -21,15 +21,18 @@ from .core import FixedLengthArray, Problem, Generator, Variator, \
     Mutation, Selector, TerminationCondition, MaxEvaluations, MaxTime, \
     Algorithm, Constraint, Solution, Dominance, ParetoDominance, \
     EpsilonDominance, AttributeDominance, Archive, AdaptiveGridArchive, \
-    FitnessArchive, EpsilonBoxArchive, unique, nondominated, \
-    nondominated_cmp, nondominated_sort, crowding_distance, \
-    nondominated_split, nondominated_prune, nondominated_truncate, \
-    truncate_fitness, normalize, FitnessEvaluator, \
-    HypervolumeFitnessEvaluator, Indicator
+    FitnessArchive, EpsilonBoxArchive, nondominated, crowding_distance, \
+    nondominated_sort_cmp, nondominated_sort, nondominated_split, \
+    nondominated_prune, nondominated_truncate, truncate_fitness, \
+    normalize, FitnessEvaluator, HypervolumeFitnessEvaluator, Indicator
 
 from .errors import PlatypusError
 
 from .config import PlatypusConfig
+
+from .filters import unique, truncate, prune, feasible, infeasible, \
+    objectives_key, variables_key, fitness_key, rank_key, \
+    crowding_distance_key
 
 from .algorithms import AbstractGeneticAlgorithm, SingleObjectiveAlgorithm, \
     GeneticAlgorithm, EvolutionaryStrategy, NSGAII, EpsMOEA, GDE3, SPEA2, \
