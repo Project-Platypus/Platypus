@@ -539,6 +539,7 @@ class Dominance(metaclass=ABCMeta):
     def __call__(self, solution1, solution2):
         return self.compare(solution1, solution2)
 
+    @abstractmethod
     def compare(self, solution1, solution2):
         """Compare two solutions.
 
@@ -1340,5 +1341,6 @@ class Indicator(metaclass=ABCMeta):
     def __call__(self, set):
         return self.calculate(set)
 
+    @abstractmethod
     def calculate(self, set):
         raise NotImplementedError()
