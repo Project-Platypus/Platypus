@@ -19,7 +19,7 @@
 import unittest
 from abc import ABCMeta, abstractmethod
 from .test_core import createSolution
-from ..filters import unique, group, truncate, filter
+from ..filters import unique, group, truncate, matches
 
 def iterator(*args):
     return iter(args)
@@ -114,4 +114,4 @@ class TestFilter(FilterTestCase):
         self.multiple_item_result = [self.s1, self.s3]
 
     def filter(self, solutions):
-        return filter(solutions, 1.0, key=lambda x: x.objectives[1])
+        return matches(solutions, 1.0, key=lambda x: x.objectives[1])

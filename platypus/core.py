@@ -31,7 +31,7 @@ from abc import ABCMeta, abstractmethod
 from .config import PlatypusConfig
 from .evaluator import Job
 from .errors import PlatypusError
-from .filters import unique, truncate, filter, fitness_key, rank_key, \
+from .filters import unique, truncate, matches, fitness_key, rank_key, \
     crowding_distance_key, objective_value_at_index
 
 LOGGER = logging.getLogger("Platypus")
@@ -1087,7 +1087,7 @@ def nondominated_split(solutions, size):
     rank = 0
 
     while len(result) < size:
-        front = filter(solutions, rank, key=rank_key)
+        front = matches(solutions, rank, key=rank_key)
 
         if len(front) == 0:
             break

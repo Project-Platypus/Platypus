@@ -117,23 +117,22 @@ def truncate(solutions, size, key=objectives_key, reverse=False):
     """
     return sorted(solutions, key=key, reverse=reverse)[:size]
 
-def _filter(solutions, value, key=objectives_key):
+def _matches(solutions, value, key=objectives_key):
     for solution in solutions:
         kval = key(solution)
         if kval == value:
             yield solution
 
-def filter(solutions, value, key=objectives_key):
-    """Filters the population to only those solutions matching the value.
+def matches(solutions, value, key=objectives_key):
+    """Returns only those solutions matching the given value.
 
     Parameters
     ----------
     solutions : iterable
         The collectioin of solutions being filtered.
     value : object
-        The target key, such that the returned solutons have keys equaling
-        this value.
+        The value being matched.
     key : callable
         Returns the key used for filtering.
     """
-    return list(_filter(solutions, value, key=key))
+    return list(_matches(solutions, value, key=key))
