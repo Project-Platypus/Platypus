@@ -84,7 +84,7 @@ class TestUnique(FilterTestCase):
         self.multiple_item_result = [self.s1, self.s2]
 
     def filter(self, solutions):
-        return list(unique(solutions))
+        return unique(solutions)
 
 class TestGroup(FilterTestCase):
 
@@ -104,7 +104,7 @@ class TestTruncate(FilterTestCase):
         self.multiple_item_result = [self.s2]
 
     def filter(self, solutions):
-        return list(truncate(solutions, 1, key=lambda x: x.objectives[1]))
+        return truncate(solutions, 1, key=lambda x: x.objectives[1])
 
 class TestPrune(FilterTestCase):
 
@@ -114,4 +114,4 @@ class TestPrune(FilterTestCase):
         self.multiple_item_result = [self.s2]
 
     def filter(self, solutions):
-        return list(prune(solutions, 1, key=lambda x: x.objectives[1]))
+        return prune(solutions, 1, key=lambda x: x.objectives[1])
