@@ -106,7 +106,7 @@ class TestTruncate(FilterTestCase):
     def filter(self, solutions):
         return truncate(solutions, 1, key=lambda x: x.objectives[1])
 
-class TestFilter(FilterTestCase):
+class TestMatches(FilterTestCase):
 
     def setUp(self):
         self.empty_result = []
