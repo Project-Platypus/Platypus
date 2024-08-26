@@ -116,32 +116,3 @@ def truncate(solutions, size, key=objectives_key, reverse=False):
         If True, reverse the ordering to truncate the smallest keys first.
     """
     return sorted(solutions, key=key, reverse=reverse)[:size]
-
-def _prune(solutions, size, key=objectives_key, reverse=False):
-    remaining = list(solutions)
-
-    while size > 0 and len(remaining) > 0:
-        # TODO: Optimize by replacing sorting with a linear scan
-        remaining.sort(key=key, reverse=reverse)
-        item = remaining.pop(0)
-        size = size - 1
-        yield item
-
-def prune(solutions, size, key=objectives_key, reverse=False):
-    """Prunes the population down to the given size.
-
-    Similar to `truncate` except the key is re-evaluated after each solution
-    is removed from the population.
-
-    Parameters
-    ----------
-    solutions: iterable
-        The collection of solutions being pruned.
-    size: int
-        The number of solutions to return.
-    key: callable
-        Returns the key used for pruning.
-    reverse: bool
-        If True, reverse the ordering to prune the smallest keys first.
-    """
-    return list(_prune(solutions, size, key, reverse))

@@ -31,8 +31,8 @@ from abc import ABCMeta, abstractmethod
 from .config import PlatypusConfig
 from .evaluator import Job
 from .errors import PlatypusError
-from .filters import unique, truncate, prune, fitness_key, \
-    crowding_distance_key, objective_value_at_index
+from .filters import unique, truncate, fitness_key, crowding_distance_key, \
+    objective_value_at_index
 
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
@@ -1115,7 +1115,11 @@ def nondominated_prune(solutions, size):
         The size of the truncated result
     """
     result, remaining = nondominated_split(solutions, size)
-    remaining = prune(remaining, size - len(result), key=crowding_distance_key, reverse=True)
+
+    while len(result) + len(remaining) > size:
+        crowding_distance(remaining)
+        remaining = truncate(remaining, len(remaining)-1, key=crowding_distance_key, reverse=True)
+
     return result + remaining
 
 def nondominated_truncate(solutions, size):

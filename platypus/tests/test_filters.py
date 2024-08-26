@@ -19,7 +19,7 @@
 import unittest
 from abc import ABCMeta, abstractmethod
 from .test_core import createSolution
-from ..filters import unique, group, truncate, prune
+from ..filters import unique, group, truncate
 
 def iterator(*args):
     return iter(args)
@@ -105,13 +105,3 @@ class TestTruncate(FilterTestCase):
 
     def filter(self, solutions):
         return truncate(solutions, 1, key=lambda x: x.objectives[1])
-
-class TestPrune(FilterTestCase):
-
-    def setUp(self):
-        self.empty_result = []
-        self.single_item_result = [self.s1]
-        self.multiple_item_result = [self.s2]
-
-    def filter(self, solutions):
-        return prune(solutions, 1, key=lambda x: x.objectives[1])

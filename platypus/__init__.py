@@ -30,9 +30,8 @@ from .errors import PlatypusError
 
 from .config import PlatypusConfig
 
-from .filters import unique, truncate, prune, feasible, infeasible, \
-    objectives_key, variables_key, fitness_key, rank_key, \
-    crowding_distance_key
+from .filters import unique, truncate, feasible, infeasible, objectives_key, \
+    variables_key, fitness_key, rank_key, crowding_distance_key
 
 from .algorithms import AbstractGeneticAlgorithm, SingleObjectiveAlgorithm, \
     GeneticAlgorithm, EvolutionaryStrategy, NSGAII, EpsMOEA, GDE3, SPEA2, \
