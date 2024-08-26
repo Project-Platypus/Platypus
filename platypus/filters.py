@@ -71,7 +71,7 @@ def unique(solutions, key=objectives_key):
     ----------
     solutions : iterable
         The list of solutions.
-    key: callable
+    key : callable
         Returns the key used to identify unique solutions.
     """
     return list(_unique(solutions, key))
@@ -84,9 +84,9 @@ def group(solutions, key=objectives_key):
 
     Parameters
     ----------
-    solutions: iterable
+    solutions : iterable
         The collection of solutions being grouped.
-    key: callable
+    key : callable
         Returns the key used for grouping, where solutions with identical
         values are grouped together.
     """
@@ -106,13 +106,34 @@ def truncate(solutions, size, key=objectives_key, reverse=False):
 
     Parameters
     ----------
-    solutions: iterable
+    solutions : iterable
         The collection of solutions being truncated.
-    size: int
+    size : int
         The number of solutions to return.
-    key: callable
+    key : callable
         Returns the key used for truncation.
-    reverse: bool
+    reverse : bool
         If True, reverse the ordering to truncate the smallest keys first.
     """
     return sorted(solutions, key=key, reverse=reverse)[:size]
+
+def _filter(solutions, value, key=objectives_key):
+    for solution in solutions:
+        kval = key(solution)
+        if kval == value:
+            yield solution
+
+def filter(solutions, value, key=objectives_key):
+    """Filters the population to only those solutions matching the value.
+
+    Parameters
+    ----------
+    solutions : iterable
+        The collectioin of solutions being filtered.
+    value : object
+        The target key, such that the returned solutons have keys equaling
+        this value.
+    key : callable
+        Returns the key used for filtering.
+    """
+    return list(_filter(solutions, value, key=key))
