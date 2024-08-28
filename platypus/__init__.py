@@ -65,6 +65,8 @@ from .types import Type, Real, Binary, Integer, Permutation, Subset
 
 from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
 
+from .io import save_objectives, load_objectives
+
 PlatypusConfig.register_default_variator(Real, GAOperator(SBX(), PM()))
 PlatypusConfig.register_default_variator(Binary, GAOperator(HUX(), BitFlip()))
 PlatypusConfig.register_default_variator(Permutation, CompoundOperator(PMX(), Insertion(), Swap()))
