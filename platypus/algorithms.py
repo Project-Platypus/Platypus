@@ -29,7 +29,7 @@ from .core import Algorithm, ParetoDominance, AttributeDominance, \
     nondominated_sort, nondominated_prune, nondominated_truncate, \
     nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
     Archive, EpsilonDominance, FitnessArchive, Solution, Problem, \
-    HypervolumeFitnessEvaluator, nondominated_cmp, fitness_key, \
+    HypervolumeFitnessEvaluator, nondominated_sort_cmp, fitness_key, \
     crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive
 from .distance import DistanceMatrix
 from .errors import PlatypusError
@@ -1240,7 +1240,7 @@ class CMAES(Algorithm):
             self.population = sorted(self.population, key=lambda x: x.objectives[0])
         else:
             if self.fitness_evaluator is None:
-                self.population = sorted(self.population, key=functools.cmp_to_key(nondominated_cmp))
+                self.population = sorted(self.population, key=functools.cmp_to_key(nondominated_sort_cmp))
             else:
                 self.population = sorted(self.population, key=functools.cmp_to_key(self.fitness_comparator.compare))
 

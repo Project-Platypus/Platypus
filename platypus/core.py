@@ -28,22 +28,15 @@ import operator
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
+from .config import PlatypusConfig
 from .evaluator import Job
 from .errors import PlatypusError
-from .config import PlatypusConfig
+from .filters import unique, truncate, matches, fitness_key, rank_key, \
+    crowding_distance_key, objective_value_at_index
 
 LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
-
-def fitness_key(x):
-    return x.fitness
-
-def crowding_distance_key(x):
-    return x.crowding_distance
-
-def objective_key(x, index=0):
-    return x.objectives[index]
 
 class FixedLengthArray:
 
@@ -982,41 +975,13 @@ class EpsilonBoxArchive(Archive):
 
             return True
 
-def unique(solutions, objectives=True):
-    """Returns the unique solutions.
-
-    Parameters
-    ----------
-    solutions : list of Solution
-        The list of solutions.
-    objectives: bool
-        If True, then only compare solutions using their objectives.  If False,
-        the compare solutions using their decision variables.
-    """
-    unique_ids = set()
-    result = []
-
-    for solution in solutions:
-        problem = solution.problem
-
-        if objectives:
-            id = tuple(solution.objectives[:])
-        else:
-            id = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
-
-        if id not in unique_ids:
-            unique_ids.add(id)
-            result.append(solution)
-
-    return result
-
 def nondominated(solutions):
     """Returns the non-dominated solutions."""
     archive = Archive()
     archive += solutions
     return archive._contents
 
-def nondominated_cmp(x, y):
+def nondominated_sort_cmp(x, y):
     if x.rank == y.rank:
         if -x.crowding_distance < -y.crowding_distance:
             return -1
@@ -1087,7 +1052,7 @@ def crowding_distance(solutions):
         nobjs = solutions[0].problem.nobjs
 
         for i in range(nobjs):
-            sorted_solutions = sorted(solutions, key=functools.partial(objective_key, index=i))
+            sorted_solutions = sorted(solutions, key=objective_value_at_index(i))
             min_value = sorted_solutions[0].objectives[i]
             max_value = sorted_solutions[-1].objectives[i]
 
@@ -1122,7 +1087,7 @@ def nondominated_split(solutions, size):
     rank = 0
 
     while len(result) < size:
-        front = [x for x in solutions if x.rank == rank]
+        front = matches(solutions, rank, key=rank_key)
 
         if len(front) == 0:
             break
@@ -1153,8 +1118,7 @@ def nondominated_prune(solutions, size):
 
     while len(result) + len(remaining) > size:
         crowding_distance(remaining)
-        remaining = sorted(remaining, key=crowding_distance_key)
-        del remaining[0]
+        remaining = truncate(remaining, len(remaining)-1, key=crowding_distance_key, reverse=True)
 
     return result + remaining
 
@@ -1172,8 +1136,7 @@ def nondominated_truncate(solutions, size):
     size: int
         The size of the truncated result
     """
-    result = sorted(solutions, key=functools.cmp_to_key(nondominated_cmp))
-    return result[:size]
+    return truncate(solutions, size, key=functools.cmp_to_key(nondominated_sort_cmp))
 
 def truncate_fitness(solutions, size, larger_preferred=True, getter=fitness_key):
     """Truncates a population based on a fitness value.
@@ -1194,12 +1157,7 @@ def truncate_fitness(solutions, size, larger_preferred=True, getter=fitness_key)
     getter : callable (default :code:`attrgetter("fitness")`)
         Retrieves the fitness value from a solution
     """
-    result = sorted(solutions, key=getter)
-
-    if larger_preferred:
-        result.reverse()
-
-    return result[:size]
+    return truncate(solutions, size, key=getter, reverse=larger_preferred)
 
 def normalize(solutions, minimum=None, maximum=None):
     """Normalizes the solution objectives.
