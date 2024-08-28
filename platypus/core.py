@@ -763,7 +763,7 @@ class AttributeDominance(Dominance):
 
 class Archive:
     """An archive only containing non-dominated solutions.
-    
+
     Parameters
     ----------
     dominance : Dominance

@@ -21,7 +21,7 @@ from .core import Solution
 
 def load_objectives(file, problem):
     """Loads objective values from a file.
-    
+
     Parameters
     ----------
     file : str
@@ -43,10 +43,10 @@ def load_objectives(file, problem):
             result.append(solution)
 
     return result
-    
+
 def save_objectives(file, solutions):
     """Saves objective values to a file.
-    
+
     Parameters
     ----------
     file : str
