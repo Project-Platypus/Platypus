@@ -762,7 +762,13 @@ class AttributeDominance(Dominance):
             return 0
 
 class Archive:
-    """An archive only containing non-dominated solutions."""
+    """An archive only containing non-dominated solutions.
+
+    Parameters
+    ----------
+    dominance : Dominance
+        The dominance criteria (default is Pareto dominance).
+    """
 
     def __init__(self, dominance=ParetoDominance()):
         super().__init__()

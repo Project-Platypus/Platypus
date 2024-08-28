@@ -1,7 +1,5 @@
-import math
-from platypus import NSGAII, DTLZ2, Solution, Hypervolume, \
-    GenerationalDistance, InvertedGenerationalDistance, EpsilonIndicator, \
-    Spacing
+from platypus import NSGAII, DTLZ2, Hypervolume, GenerationalDistance, \
+    InvertedGenerationalDistance, EpsilonIndicator, Spacing, load_objectives
 
 # Select the problem.
 problem = DTLZ2()
@@ -12,14 +10,8 @@ algorithm = NSGAII(problem)
 # Optimize the problem using 10,000 function evaluations.
 algorithm.run(10000)
 
-# Create the reference set.  For 2-objective DTLZ2, the reference set
-# solutions must satisfy the equation x^2 + y^2 = 1.
-ref_set = []
-
-for i in range(100):
-    solution = Solution(problem)
-    solution.objectives[:] = [i / 100.0, math.sqrt(1.0 - (i / 100.0)**2)]
-    ref_set.append(solution)
+# Load the reference set.
+ref_set = load_objectives("examples/DTLZ2.2D.pf", problem)
 
 # Calculate the performance metrics.
 hyp = Hypervolume(reference_set=ref_set)
