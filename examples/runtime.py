@@ -8,7 +8,7 @@ algorithm = NSGAII(problem)
 runtime = {}
 algorithm.run(10000, callback=lambda a: runtime.update({a.nfe: a.result}))
 
-# Compute the hypervolume for each generation.
+# Compute the hypervolume at each generation.
 hypervolume = {}
 ref_set = load_objectives("examples/DTLZ2.2D.pf", problem)
 hyp = Hypervolume(reference_set=ref_set)
@@ -16,7 +16,7 @@ hyp = Hypervolume(reference_set=ref_set)
 for nfe, result in runtime.items():
     hypervolume[nfe] = hyp.calculate(result)
 
-# Plot the results using matplotlib
+# Plot the results using matplotlib.
 plt.plot(hypervolume.keys(), hypervolume.values())
 plt.xlabel("NFE")
 plt.ylabel("Hypervolume")
