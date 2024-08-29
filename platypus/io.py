@@ -18,17 +18,17 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from .core import Algorithm, Archive, FixedLengthArray, Solution
+from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
 
-def load_objectives(file, problem):
+def load_objectives(file, problem=None):
     """Loads objective values from a file.
 
     Parameters
     ----------
     file : str
         The file name.
-    problem : Problem
-        The problem definition.
+    problem : Problem, optional
+        The problem definition.  If :code:`None`, a placeholder is used.
     """
     result = []
 
@@ -39,8 +39,13 @@ def load_objectives(file, problem):
             if not line:
                 continue
 
+            values = list(map(float, line.split()))
+
+            if problem is None:
+                problem = Problem(0, len(values))
+
             solution = Solution(problem)
-            solution.objectives[:] = list(map(float, line.split()))
+            solution.objectives[:] = values
             result.append(solution)
 
     return result
@@ -82,11 +87,44 @@ class PlatypusJSONEncoder(json.JSONEncoder):
                     "constraints": obj.constraints}
         return super().default(obj)
 
+class PlatypusJSONDecoder(json.JSONDecoder):
+
+    def __init__(self, problem=None, *args, **kwargs):
+        super().__init__(object_hook=self.object_hook, *args, **kwargs)
+        self.problem = problem
+
+    def object_hook(self, d):
+        if "problem" in d and "result" in d:
+            if self.problem is None:
+                self.problem = Problem(int(d["problem"]["nvars"]),
+                                       int(d["problem"]["nobjs"]),
+                                       int(d["problem"]["nconstrs"]))
+                self.problem.directions[:] = d["problem"]["directions"]
+                self.problem.constraints[:] = d["problem"]["constraints"]
+
+            return d["result"]
+
+        if "variables" in d and "objectives" in d and "constraints" in d:
+            if self.problem is None:
+                self.problem = Problem(len(d["variables"]),
+                                       len(d["objectives"]),
+                                       len(d["constraints"]))
+
+            solution = Solution(self.problem)
+            solution.variables[:] = d["variables"]
+            solution.objectives[:] = d["objectives"]
+            solution.constraints[:] = d["constraints"]
+
+            solution.constraint_violation = sum([abs(f(x)) for (f, x) in zip(solution.problem.constraints, solution.constraints)])
+            solution.feasible = solution.constraint_violation == 0.0
+            solution.evaluated = True
+
+            return solution
+
+        return d
+
 def save_json(file, solutions, **kwargs):
     """Converts the solutions to JSON and saves to a file.
-
-    WARNING: This is a one-way operation!  The exported JSON can not be loaded
-    back into Platypus.  Consider using the :mod:`pickle` module instead.
 
     Parameters
     ----------
@@ -100,3 +138,18 @@ def save_json(file, solutions, **kwargs):
     """
     with open(file, "w") as f:
         json.dump(solutions, f, cls=PlatypusJSONEncoder, **kwargs)
+
+def load_json(file, problem=None, **kwargs):
+    """Converts the solutions to JSON and saves to a file.
+
+    Parameters
+    ----------
+    file : str
+        The file name.
+    problem : Problem, optional
+        The problem definition.  If :code:`None`, a placeholder is used.
+    **kwargs : dict
+        Additional arguments passed to the JSON library.
+    """
+    with open(file, "r") as f:
+        return json.load(f, cls=PlatypusJSONDecoder, problem=problem, **kwargs)

@@ -77,6 +77,11 @@ class FixedLengthArray:
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, other):
+        if isinstance(other, FixedLengthArray):
+            return self._size == other._size and self._data == other._data
+        return NotImplemented
+
 def _convert_constraint(x):
     if isinstance(x, Constraint):
         return x
