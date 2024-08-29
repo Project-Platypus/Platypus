@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import json
 from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
 
@@ -25,14 +26,14 @@ def load_objectives(file, problem=None):
 
     Parameters
     ----------
-    file : str
-        The file name.
+    file : str, bytes, or :class:`os.PathLike`
+        The file.
     problem : Problem, optional
         The problem definition.  If :code:`None`, a placeholder is used.
     """
     result = []
 
-    with open(file, "r") as f:
+    with open(os.fspath(file), "r") as f:
         for line in f:
             line = line.strip()
 
@@ -55,12 +56,12 @@ def save_objectives(file, solutions):
 
     Parameters
     ----------
-    file : str
-        The file name.
+    file : str, bytes, or :class:`os.PathLike`
+        The file.
     solutions : iterable of Solution
         The solutions to save.
     """
-    with open(file, "w") as f:
+    with open(os.fspath(file), "w") as f:
         for solution in solutions:
             f.write(" ".join(map(str, solution.objectives)))
             f.write("\n")
@@ -123,32 +124,64 @@ class PlatypusJSONDecoder(json.JSONDecoder):
 
         return d
 
-def save_json(file, solutions, **kwargs):
-    """Converts the solutions to JSON and saves to a file.
+def dump(obj, fp, indent=None):
+    """Dumps the object to JSON.
+
+    This overrides :meth:`json.dump` to convert Platypus types to JSON.  Use
+    the corresponding :meth:`load` method in this module to load the JSON back
+    into memory.
 
     Parameters
     ----------
-    file : str
-        The file name.
+    obj : object
+        The object to dump to JSON.
+    fp : file-like
+        A file-like object, typically created by :meth:`open`.
+    indent:
+        Controls the formatting of the JSON fle, see :meth:`json.dump`.
+    """
+    json.dump(obj, fp, cls=PlatypusJSONEncoder, indent=indent)
+
+def load(fp, problem=None):
+    """Loads the JSON data.
+
+    Parameters
+    ----------
+    fp : file-like
+        A file-like object, typically created by :meth:`open`.
+    problem : Problem, optional
+        Optional problem definition.  If not set, a placeholder is used.
+    """
+    return json.load(fp, cls=PlatypusJSONDecoder, problem=problem)
+
+def save_json(file, solutions, indent=None):
+    """Converts the solutions to JSON and saves to a file.
+
+    If given an :class:`Algorithm` object, extra information about the
+    algorithm state and problem are stored in the JSON; however, this
+    is for informational purposes only and can not be read back.
+
+    Parameters
+    ----------
+    file : str, bytes, or :class:`os.PathLike`
+        The file.
     solutions : object
         The solutions, archive, or algorithm.
-    **kwargs
-        Additional keyword arguments passed to the JSON library.
+    indent:
+        Controls the formatting of the JSON fle, see :meth:`json.dump`.
     """
-    with open(file, "w") as f:
-        json.dump(solutions, f, cls=PlatypusJSONEncoder, **kwargs)
+    with open(os.fspath(file), "w") as f:
+        dump(solutions, f, indent=indent)
 
-def load_json(file, problem=None, **kwargs):
+def load_json(file, problem=None):
     """Loads the solutions stored in a JSON file.
 
     Parameters
     ----------
-    file : str
-        The file name.
+    file : str, bytes, or :class:`os.PathLike`
+        The file.
     problem : Problem, optional
         The problem definition.  If :code:`None`, a placeholder is used.
-    **kwargs
-        Additional keyword arguments passed to the JSON library.
     """
-    with open(file, "r") as f:
-        return json.load(f, cls=PlatypusJSONDecoder, problem=problem, **kwargs)
+    with open(os.fspath(file), "r") as f:
+        return load(f, problem=problem)
