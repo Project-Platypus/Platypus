@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-from .core import Solution
+import json
+from .core import Algorithm, Archive, FixedLengthArray, Solution
 
 def load_objectives(file, problem):
     """Loads objective values from a file.
@@ -58,3 +59,44 @@ def save_objectives(file, solutions):
         for solution in solutions:
             f.write(" ".join(map(str, solution.objectives)))
             f.write("\n")
+
+class SolutionJSONEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, (Archive, FixedLengthArray)):
+            return list(obj)
+        if isinstance(obj, Algorithm):
+            return {"algorithm": {"name": type(obj).__name__,
+                                  "nfe": obj.nfe},
+                    "problem": {"name": type(obj.problem).__name__,
+                                "nvars": obj.problem.nvars,
+                                "nobjs": obj.problem.nobjs,
+                                "nconstrs": obj.problem.nconstrs,
+                                "function": obj.problem.function,
+                                "directions": obj.problem.directions,
+                                "constraints": obj.problem.constraints},
+                    "result": obj.result}
+        if isinstance(obj, Solution):
+            return {"variables": obj.variables,
+                    "objectives": obj.objectives,
+                    "constraints": obj.constraints}
+        return super().default(obj)
+
+def save_json(file, solutions, **kwargs):
+    """Converts the solutions to JSON and saves to a file.
+
+    WARNING: This is a one-way operation!  The exported JSON can not be loaded
+    back into Platypus.  Consider using the :mod:`pickle` module instead.
+
+    Parameters
+    ----------
+    file : str
+        The file name.
+    solutions : object
+        The solutions, archive, or algorithm.
+    **kwargs : dict
+        Additional arguments passed to the JSON library, such as formatting
+        options.
+    """
+    with open(file, "w") as f:
+        json.dump(solutions, f, cls=SolutionJSONEncoder, **kwargs)
