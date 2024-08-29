@@ -132,15 +132,14 @@ def save_json(file, solutions, **kwargs):
         The file name.
     solutions : object
         The solutions, archive, or algorithm.
-    **kwargs : dict
-        Additional arguments passed to the JSON library, such as formatting
-        options.
+    **kwargs
+        Additional keyword arguments passed to the JSON library.
     """
     with open(file, "w") as f:
         json.dump(solutions, f, cls=PlatypusJSONEncoder, **kwargs)
 
 def load_json(file, problem=None, **kwargs):
-    """Converts the solutions to JSON and saves to a file.
+    """Loads the solutions stored in a JSON file.
 
     Parameters
     ----------
@@ -148,8 +147,8 @@ def load_json(file, problem=None, **kwargs):
         The file name.
     problem : Problem, optional
         The problem definition.  If :code:`None`, a placeholder is used.
-    **kwargs : dict
-        Additional arguments passed to the JSON library.
+    **kwargs
+        Additional keyword arguments passed to the JSON library.
     """
     with open(file, "r") as f:
         return json.load(f, cls=PlatypusJSONDecoder, problem=problem, **kwargs)
