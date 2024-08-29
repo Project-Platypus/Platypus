@@ -60,7 +60,7 @@ def save_objectives(file, solutions):
             f.write(" ".join(map(str, solution.objectives)))
             f.write("\n")
 
-class SolutionJSONEncoder(json.JSONEncoder):
+class PlatypusJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, (Archive, FixedLengthArray)):
@@ -99,4 +99,4 @@ def save_json(file, solutions, **kwargs):
         options.
     """
     with open(file, "w") as f:
-        json.dump(solutions, f, cls=SolutionJSONEncoder, **kwargs)
+        json.dump(solutions, f, cls=PlatypusJSONEncoder, **kwargs)
