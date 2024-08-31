@@ -19,7 +19,8 @@
 import unittest
 from abc import ABCMeta, abstractmethod
 from .test_core import createSolution
-from ..filters import unique, group, truncate, matches
+from ..filters import unique, group, truncate, matches, objectives_key, \
+    objective_value_at_index
 
 def iterator(*args):
     return iter(args)
@@ -29,6 +30,17 @@ def generator(*args):
 
 def view(*args):
     return {x: x for x in args}.keys()
+
+class TestKeys(unittest.TestCase):
+
+    def test_objectives(self):
+        s = createSolution(0.0, 1.0)
+        self.assertEqual((0.0, 1.0), objectives_key(s))
+
+    def test_objective_value_at_index(self):
+        s = createSolution(0.0, 1.0)
+        self.assertEqual(0.0, objective_value_at_index(0)(s))
+        self.assertEqual(1.0, objective_value_at_index(1)(s))
 
 class FilterTestCase(unittest.TestCase, metaclass=ABCMeta):
 

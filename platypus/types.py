@@ -27,7 +27,7 @@ class Type(metaclass=ABCMeta):
 
     The type of a decision variable defines its bounds, provides a mechanism to
     produce a random value within those bounds, and defines any encoding /
-    decoding to convert between the "value" and the internal representation.
+    decoding to convert between the value and the internal representation.
 
     An example of the value differing from the internal representation
     is binary integers, where the value is an integer (e.g., 27) but its
@@ -60,9 +60,9 @@ class Real(Type):
 
     Attributes
     ----------
-    min_value : int
+    min_value : float
         The minimum value (inclusive)
-    max_value: int
+    max_value: float
         The maximum value (inclusive)
     """
 
@@ -124,8 +124,6 @@ class Integer(Binary):
         The minimum value (inclusive)
     max_value: int
         The maximum value (inclusive)
-    nbits: int
-        The number of bits used by the underlying representation.
     """
 
     def __init__(self, min_value, max_value):
