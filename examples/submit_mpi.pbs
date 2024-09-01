@@ -1,10 +1,10 @@
-#PBS -N simple_mpi
+#PBS -N parallel_mpi
 #PBS -l nodes=1:ppn=16
 #PBS -l walltime=1:00:00
 #PBS -j oe
-#PBS -o simple_mpi.out
+#PBS -o parallel_mpi.out
 
 cd $PBS_O_WORKDIR
 
 module load python-3.12.5
-mpirun python simple_mpi.py
+mpirun python parallel_mpi.py
