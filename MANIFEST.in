@@ -1,5 +1,5 @@
 include COPYING example.py
 recursive-include docs *
-recursive-include examples *.py *.pbs
+recursive-include examples *.py *.pbs *.pf
 recursive-include platypus/tests *.py
 prune dist
