@@ -114,8 +114,12 @@ jobs:
           pip install --upgrade pip
           pip install --upgrade build wheel setuptools
 
+      - name: Validate links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          file-path: README.md
+
       - name: Build distributions
-        shell: bash -l {0}
         run: python -m build
 
       - name: Publish package
