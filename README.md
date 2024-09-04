@@ -65,6 +65,12 @@ Platypus is also available via conda-forge.
 
 For more information, see the [feedstock](https://github.com/conda-forge/platypus-opt-feedstock).
 
+### Citation
+
+If you use this software in your work, please cite it as follows (APA style):
+
+> Hadka, D. (2024). Platypus: A Framework for Evolutionary Computing in Python (Version 1.3.0) [Computer software].  Retrieved from https<span>://</span>github.com/Project-Platypus/Platypus.
+
 ### License
 
 Platypus is released under the GNU General Public License.
