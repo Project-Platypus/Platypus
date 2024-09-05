@@ -26,3 +26,7 @@ full = ["mpi4py", "matplotlib", "Platypus-Opt[test]", "Platypus-Opt[doc]"]
 
 [tool.setuptools.dynamic]
 version = {attr = "platypus.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "-rA -Werror"
+testpaths = ["platypus"]

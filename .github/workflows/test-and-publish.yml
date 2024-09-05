@@ -46,7 +46,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -rA -Werror
+          pytest
 
   # ------------------------------------------------------------
   # Run all examples (targeting minimum Python version).
