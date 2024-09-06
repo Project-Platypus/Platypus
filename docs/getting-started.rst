@@ -20,7 +20,7 @@ A Simple Example
 As an initial example, we will solve the well-known two objective DTLZ2 problem
 using the NSGA-II algorithm:
 
-.. literalinclude:: ../examples/simple.py
+.. literalinclude:: ../examples/print_results.py
    :language: python
 
 The output shows on each line the objectives for a Pareto optimal solution:
@@ -38,7 +38,7 @@ The output shows on each line the objectives for a Pareto optimal solution:
 If *matplotlib* is available, we can also plot the results.  Note that
 *matplotlib* must be installed separately.  Running the following code
 
-.. literalinclude:: ../examples/simple_plot.py
+.. literalinclude:: ../examples/plot_results.py
    :language: python
 
 produce a plot similar to:
@@ -82,7 +82,7 @@ Schaffer problem, defined by
 
 can be programmed as follows:
 
-.. literalinclude:: ../examples/custom_problem_1.py
+.. literalinclude:: ../examples/custom_problem_function.py
    :language: python
 
 When creating the ``Problem`` class, we provide two arguments: the number
@@ -100,7 +100,7 @@ An equivalent but more reusable way to define this problem is extending the
 ``Problem`` class.  The types are defined in the ``__init__`` method, and the
 actual evaluation is performed in the ``evaluate`` method.
 
-.. literalinclude:: ../examples/custom_problem_2.py
+.. literalinclude:: ../examples/custom_problem_class.py
    :language: python
 
 Defining Constrained Problems
@@ -126,7 +126,7 @@ is:
 
 Then, we program this problem within Platypus as follows:
 
-.. literalinclude:: ../examples/constrained_problem_1.py
+.. literalinclude:: ../examples/constrained_problem_function.py
    :language: python
 
 First, we call ``Problem(2, 2, 2)`` to create a problem with two decision
@@ -159,7 +159,7 @@ the ``Problem`` class.  Like before, we move the type and constraint
 declarations to the ``__init__`` method and assign the solution's
 ``constraints`` attribute in the ``evaluate`` method.
 
-.. literalinclude:: ../examples/constrained_problem_2.py
+.. literalinclude:: ../examples/constrained_problem_class.py
    :language: python
 
 In these examples, we have assumed that the objectives are being minimized.

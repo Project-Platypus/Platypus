@@ -85,7 +85,7 @@ supported algorithms on the DTLZ2 problem and display the results visually.
 Note that several algorithms, such as NSGA-III, CMAES, OMOPSO, and EpsMOEA,
 require additional parameters.
 
-.. literalinclude:: ../examples/comparison.py
+.. literalinclude:: ../examples/experimenter_plot.py
    :language: python
 
 Running this script produces the figure below:
