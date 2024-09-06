@@ -16,7 +16,7 @@ Binary
 ------
 
 Binary variables store a "binary string".  Traditionally, this is
-represented as ``0``s and ``1``s, but in Platypus, it is stored as an
+represented as ``0`` and ``1``, but in Platypus, it is stored as an
 array of ``False`` and ``True`` values.  The knapsack problem demonstrates
 the binary representation, where an item is selected when the binary
 value is ``True``.  The goal, then, is to maximize the profit of the
