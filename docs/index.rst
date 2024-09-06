@@ -14,5 +14,3 @@ optimization.
    getting-started
    types
    experimenter
-
-
