@@ -56,16 +56,8 @@ decision variables and selected the Simulated Binary Crossover (SBX) and
 Polynomial Mutation (PM) operators.  One can easily switch to using different
 operators, such as Parent-Centric Crossover (PCX):
 
-.. code:: python
-
-    from platypus.algorithms import NSGAII
-    from platypus.problems import DTLZ2
-    from platypus.operators import PCX
-
-    problem = DTLZ2()
-
-    algorithm = NSGAII(problem, variator = PCX())
-    algorithm.run(10000)
+.. literalinclude:: ../examples/customize_variator.py
+   :language: python
 
 Defining Unconstrained Problems
 -------------------------------
