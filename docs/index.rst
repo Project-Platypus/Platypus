@@ -12,6 +12,7 @@ optimization.
    :maxdepth: 2
 
    getting-started
+   types
    experimenter
 
 
