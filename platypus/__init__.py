@@ -81,4 +81,4 @@ PlatypusConfig.register_default_mutator(Subset, Replace())
 
 PlatypusConfig.default_evaluator = MapEvaluator()
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
