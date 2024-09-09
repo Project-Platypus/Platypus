@@ -67,6 +67,8 @@ from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
 
 from .io import save_objectives, load_objectives, save_json, load_json, dump, load
 
+from .deprecated import default_variator, default_mutator, nondominated_cmp
+
 PlatypusConfig.register_default_variator(Real, GAOperator(SBX(), PM()))
 PlatypusConfig.register_default_variator(Binary, GAOperator(HUX(), BitFlip()))
 PlatypusConfig.register_default_variator(Permutation, CompoundOperator(PMX(), Insertion(), Swap()))
