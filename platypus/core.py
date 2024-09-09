@@ -290,7 +290,7 @@ class TerminationCondition(metaclass=ABCMeta):
         algorithm : Algorithm
             The algorithm being run.
         """
-        raise NotImplementedError()
+        return False
 
 class MaxEvaluations(TerminationCondition):
     """Termination condition based on the maximum number of function evaluations.
@@ -358,7 +358,17 @@ class Algorithm(metaclass=ABCMeta):
 
     @abstractmethod
     def step(self):
-        raise NotImplementedError()
+        """Performs one logical step of the algorithm.
+
+        In most contexts, the first invocation to `step` should initialize
+        the algorithm, usually generating an initial population randomly.  All
+        subsequent calls to `step` evolve the population one "generation".
+
+        Each step is expected to geneate and evaluate at least one solution in
+        order to avoid looping indenfinitely.  Any termination conditions and
+        callbacks are called after each step.
+        """
+        pass
 
     def evaluate_all(self, solutions):
         unevaluated = [s for s in solutions if not s.evaluated]
@@ -1312,4 +1322,12 @@ class Indicator(metaclass=ABCMeta):
 
     @abstractmethod
     def calculate(self, set):
+        """Calculates and returns the indicator value.
+
+        Parameters
+        ----------
+        set : Iterable of Solution
+            The collection of solutions against which the indicator value is
+            computed.
+        """
         raise NotImplementedError()

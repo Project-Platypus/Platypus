@@ -46,7 +46,7 @@ class Job(metaclass=ABCMeta):
 
     @abstractmethod
     def run(self):
-        raise NotImplementedError()
+        pass
 
 def run_job(job):
     job.run()

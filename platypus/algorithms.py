@@ -66,7 +66,17 @@ class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
 
     @abstractmethod
     def iterate(self):
-        raise NotImplementedError()
+        """Performs one iteration of the algorithm.
+
+        The definition of an iteration depends on the specific algorithm,
+        which could mean evolving the entire population (generational)
+        or a single solution.
+
+        At a minimum, this method must produce and evaluate at least one
+        offspring (to avoid an infinite loop).  If the offspring is selected
+        to survive to the next iteration, update the `population`.
+        """
+        pass
 
 class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, metaclass=ABCMeta):
 
@@ -1518,7 +1528,8 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
 
     @abstractmethod
     def do_action(self):
-        raise NotImplementedError()
+        """Performs the action."""
+        pass
 
     def __getattr__(self, name):
         # Be careful to not interfere with multiprocessing's unpickling, where it may check for
