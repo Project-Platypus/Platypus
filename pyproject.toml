@@ -20,7 +20,7 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 "Bug Tracker" = "https://github.com/Project-Platypus/Platypus/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "mock", "flake8", "Flake8-pyproject", "numpy"]
+test = ["pytest", "mock", "flake8", "flake8-pyproject", "numpy"]
 doc = ["sphinx"]
 full = ["mpi4py", "matplotlib", "Platypus-Opt[test]", "Platypus-Opt[doc]"]
 
@@ -33,9 +33,9 @@ testpaths = ["platypus"]
 
 [tool.flake8]
 exclude = [
-    ".git",
-    "__pycache__",
-    "build",
+  ".git",
+  "__pycache__",
+  "build",
 ]
 extend-ignore = [
   "E302",  # Expected 2 blank lines, found N
