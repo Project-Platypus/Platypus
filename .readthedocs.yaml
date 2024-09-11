@@ -7,6 +7,9 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: latest
+  jobs:
+    post_create_environment:
+      - pip install .[docs]
 
 sphinx:
   configuration: docs/conf.py

@@ -21,7 +21,7 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 
 [project.optional-dependencies]
 test = ["pytest", "mock", "flake8", "flake8-pyproject", "numpy"]
-doc = ["sphinx", "sphinx-rtd-theme"]
+docs = ["sphinx", "sphinx-rtd-theme"]
 full = ["mpi4py", "matplotlib", "Platypus-Opt[test]", "Platypus-Opt[doc]"]
 
 [tool.setuptools.dynamic]
