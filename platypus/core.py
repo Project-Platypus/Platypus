@@ -392,7 +392,7 @@ class Algorithm(metaclass=ABCMeta):
 
     def evaluate_all(self, solutions):
         """Evaluates all of the given solutions.
-        
+
         Subclasses should prefer using this method to evaluate solutions,
         ideally providing an entire population to leverage parallelization,
         as it tracks NFE.
@@ -421,7 +421,7 @@ class Algorithm(metaclass=ABCMeta):
 
     def run(self, condition, callback=None):
         """Runs this algorithm until the termination condition is reached.
-        
+
         Parameters
         ----------
         condition : int or TerminationCondition
@@ -1056,7 +1056,7 @@ class EpsilonBoxArchive(Archive):
 
 def nondominated(solutions):
     """Filters the solutions to only include non-dominated.
-    
+
     Parameters
     ----------
     solutions : iterable of Solution

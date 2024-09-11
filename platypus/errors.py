@@ -19,7 +19,7 @@
 
 class PlatypusError(Exception):
     """An exception occurred in the Platypus library.
-    
+
     Exceptions raised by Platypus should extend from this type, unless a more
     standard exception type is available (e.g., :class:`ValueError` to
     indicate a parameter is invalid).

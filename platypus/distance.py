@@ -43,7 +43,7 @@ def normalized_euclidean_dist(x, y):
 
     The solutions must first be normalized using :meth:`normalize`, otherwise
     this method will fail.
-    
+
     Parameters
     ----------
     x : Solution
