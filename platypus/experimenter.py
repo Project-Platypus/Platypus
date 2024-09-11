@@ -133,6 +133,7 @@ def experiment(algorithms=[],
     Used to run experiments where one or more algorithms are tested on one or
     more problems.  Returns a dict containing the results.  The dict is of
     the form:
+    
         pareto_set = result["algorithm"]["problem"][seed_index]
 
     Parameters

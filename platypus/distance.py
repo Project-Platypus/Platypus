@@ -22,7 +22,15 @@ from .core import Solution, POSITIVE_INFINITY
 
 
 def euclidean_dist(x, y):
-    """Computes the Euclidean distance between two points."""
+    """Computes the Euclidean distance between two solutions.
+
+    Parameters
+    ----------
+    x : Solution
+        The first solution.
+    y : Solution
+        The second solution.
+    """
     if isinstance(x, Solution):
         x = x.objectives
     if isinstance(y, Solution):
@@ -31,9 +39,30 @@ def euclidean_dist(x, y):
     return math.sqrt(sum([math.pow(x[i]-y[i], 2.0) for i in range(len(x))]))
 
 def normalized_euclidean_dist(x, y):
+    """Computes the normalized Euclidean distance between two points.
+
+    The solutions must first be normalized using :meth:`normalize`, otherwise
+    this method will fail.
+    
+    Parameters
+    ----------
+    x : Solution
+        The first solution.
+    y : Solution
+        The second solution.
+    """
     return euclidean_dist(x.normalized_objectives, y.normalized_objectives)
 
 def manhattan_dist(x, y):
+    """Computes the Manhattan distance between two solutions.
+
+    Parameters
+    ----------
+    x : Solution
+        The first solution.
+    y : Solution
+        The second solution.
+    """
     if isinstance(x, Solution):
         x = x.objectives
     if isinstance(y, Solution):
@@ -42,6 +71,18 @@ def manhattan_dist(x, y):
     return sum([abs(x[i]-y[i]) for i in range(len(x))])
 
 def distance_to_nearest(solution, set):
+    """Finds the minimum distance from the solution to the set of solutions.
+
+    Note that this uses :meth:`normalized_euclidean_dist`, and hence the
+    solutions must be normalized before calling.
+
+    Parameters
+    ----------
+    x : Solution
+        The first solution.
+    y : Solution
+        The second solution.
+    """
     if len(set) == 0:
         return POSITIVE_INFINITY
 
@@ -103,7 +144,7 @@ class DistanceMatrix:
         Parameters
         ----------
         index : int
-            The index of the solution
+            The index of the solution.
         """
         del self.distances[index]
 
@@ -116,9 +157,9 @@ class DistanceMatrix:
         Parameters
         ----------
         i : int
-            The index of the solution
+            The index of the solution.
         k : int
-            Finds the k-th nearest neightbor distance
+            Finds the k-th nearest neightbor distance.
         """
         return self.distances[i][k][1]
 

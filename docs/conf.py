@@ -17,6 +17,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.imgmath',
+    'sphinx_rtd_theme',
 ]
 
 templates_path = ['_templates']
@@ -27,5 +28,11 @@ language = 'en'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+# The initial api/ contents were created with:
+#   sphinx-apidoc --separate --remove-old --no-toc -o docs/api platypus "*test*"
+#
+# Build these docs locally with:
+#   sphinx-build -M html . _build

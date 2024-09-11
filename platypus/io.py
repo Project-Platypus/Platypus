@@ -163,7 +163,7 @@ def save_json(file, solutions, indent=None):
 
     Parameters
     ----------
-    file : str, bytes, or :class:`os.PathLike`
+    file : str, bytes, or os.PathLike
         The file.
     solutions : object
         The solutions, archive, or algorithm.
@@ -178,7 +178,7 @@ def load_json(file, problem=None):
 
     Parameters
     ----------
-    file : str, bytes, or :class:`os.PathLike`
+    file : str, bytes, or os.PathLike
         The file.
     problem : Problem, optional
         The problem definition.  If :code:`None`, a placeholder is used.

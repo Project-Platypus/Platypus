@@ -338,6 +338,26 @@ class _EvaluateJob(Job):
         self.solution.evaluate()
 
 class Algorithm(metaclass=ABCMeta):
+    """Base class for all optimization algorithms.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem being optimized.
+    evaluator : Evaluator
+        The evalutor used to evaluate solutions.  If `None`, the default
+        evaluator defined in :attr:`PlatypusConfig` is selected.
+    log_frequency : int
+        The frequency to log evaluation progress.  If `None`, the default
+        log frequency defined in :attr:`PlatypusConfig` is selected.
+
+    Attributes
+    ----------
+    nfe : int
+        The current number of function evaluations (NFE)
+    result: list or Archive
+        The current result, which is updated after each iteration.
+    """
 
     def __init__(self,
                  problem,
@@ -371,6 +391,17 @@ class Algorithm(metaclass=ABCMeta):
         pass
 
     def evaluate_all(self, solutions):
+        """Evaluates all of the given solutions.
+        
+        Subclasses should prefer using this method to evaluate solutions,
+        ideally providing an entire population to leverage parallelization,
+        as it tracks NFE.
+
+        Parameters
+        ----------
+        solutions : list of Solution
+            The solutions to evaluate.
+        """
         unevaluated = [s for s in solutions if not s.evaluated]
 
         jobs = [_EvaluateJob(s) for s in unevaluated]
@@ -389,6 +420,17 @@ class Algorithm(metaclass=ABCMeta):
         self.nfe += len(solutions)
 
     def run(self, condition, callback=None):
+        """Runs this algorithm until the termination condition is reached.
+        
+        Parameters
+        ----------
+        condition : int or TerminationCondition
+            The termination condition.  Providing an integer value is converted
+            into the :class:`MaxEvaluations` condition.
+        callback : Callable, optional
+            Callback function that is invoked after every iteration.  The
+            callback is passed this algorithm instance.
+        """
         if isinstance(condition, int):
             condition = MaxEvaluations(condition)
 
@@ -438,6 +480,22 @@ def _constraint_gt(x, y, delta=0.0001):
     return 0 if x > y else abs(x - y) + delta
 
 class Constraint:
+    """Defines an constraint on an optimization problem.
+
+    A constraint can be defined in several ways.  First, with a given operator
+    and value::
+
+        Constraint("<=", 10)
+
+    Second, by providing a string with the operator and value together::
+
+        Constraint("<= 10")
+
+    Third, by providing a function to compute the constraint value, where any
+    non-zero value is considered a constraint violation::
+
+        Constraint(lambda x : 0 if x <= 10 else math.abs(10 - x))
+    """
 
     OPERATORS = {
         "==": _constraint_eq,
@@ -549,10 +607,10 @@ class Dominance(metaclass=ABCMeta):
 
     @abstractmethod
     def compare(self, solution1, solution2):
-        """Compare two solutions.
+        """Compare two solutions for dominance.
 
-        Returns -1 if the first solution dominates the second, 1 if the
-        second solution dominates the first, or 0 if the two solutions are
+        Returns `-1` if the first solution dominates the second, `1` if the
+        second solution dominates the first, or `0` if the two solutions are
         mutually non-dominated.
 
         Parameters
@@ -624,7 +682,7 @@ class EpsilonDominance(Dominance):
 
     Similar to Pareto dominance except if the two solutions are contained
     within the same epsilon-box, the solution closer to the optimal corner
-    or the box is preferred.
+    of the box is preferred.
     """
 
     def __init__(self, epsilons):
@@ -997,12 +1055,41 @@ class EpsilonBoxArchive(Archive):
             return True
 
 def nondominated(solutions):
-    """Returns the non-dominated solutions."""
+    """Filters the solutions to only include non-dominated.
+    
+    Parameters
+    ----------
+    solutions : iterable of Solution
+        The solutions to filter.
+
+    Returns
+    -------
+    list of Solution
+        The non-dominated solutions.
+    """
     archive = Archive()
     archive += solutions
     return archive._contents
 
 def nondominated_sort_cmp(x, y):
+    """Compares two solutions using nondominated sorting results.
+
+    After processing a population with :func:`nondominated_sort`, this
+    comparison function can be used to order solutions by their rank and
+    crowding distance.
+
+    Parameters
+    ----------
+    x : Solution
+        The first solution.
+    y : Solution
+        The second solution.
+
+    Returns
+    -------
+    :code:`-1`, :code:`0`, or :code:`1` to indicate if :code:`x` is better,
+    equal, or worse than :code:`y` based on rank and crowding distance.
+    """
     if x.rank == y.rank:
         if -x.crowding_distance < -y.crowding_distance:
             return -1
@@ -1032,7 +1119,7 @@ def nondominated_sort(solutions):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The collection of solutions
     """
     rank = 0
@@ -1058,7 +1145,7 @@ def crowding_distance(solutions):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The collection of solutions
     """
     for solution in solutions:
@@ -1099,7 +1186,7 @@ def nondominated_split(solutions, size):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The collection of solutions that have been non-dominated sorted
     size : int
         The size of the truncated result

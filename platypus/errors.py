@@ -18,7 +18,14 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 class PlatypusError(Exception):
+    """An exception occurred in the Platypus library.
+    
+    Exceptions raised by Platypus should extend from this type, unless a more
+    standard exception type is available (e.g., :class:`ValueError` to
+    indicate a parameter is invalid).
+    """
     pass
 
 class SingularError(PlatypusError):
+    """The matrix is singular and the operation could not be performed."""
     pass

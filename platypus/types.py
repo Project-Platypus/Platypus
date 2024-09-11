@@ -32,11 +32,11 @@ class Type(metaclass=ABCMeta):
     An example of the value differing from the internal representation
     is binary integers, where the value is an integer (e.g., 27) but its
     internal representation is a binary string (e.g., "11011" or in Python
-    [True, True, False, True, True]).
+    :code:`[True, True, False, True, True]`).
 
-    Subclasses should override __repr__ and __str__ to provide a human
-    readable representation of the type.  The current standard is to
-    return "TypeName(Arg1, Arg2, ...)".
+    Subclasses should override :meth:`__repr__` and :meth:`__str__` to provide
+    a human readable representation of the type.  The current standard is to
+    return :code:`TypeName(Arg1, Arg2, ...)`.
     """
 
     def __init__(self):
@@ -58,7 +58,7 @@ class Type(metaclass=ABCMeta):
 class Real(Type):
     """Represents a floating-point value with min and max bounds.
 
-    Attributes
+    Parameters
     ----------
     min_value : float
         The minimum value (inclusive)
@@ -85,10 +85,10 @@ class Binary(Type):
     the Knapsack problem.
 
     Internally, in Python, the binary string is stored as a list of boolean
-    values, where False represents the 0 (off) bit and and True represents the
-    1 (on) bit.
+    values, where :code:`False` represents the 0 (off) bit and and :code:`True`
+    represents the 1 (on) bit.
 
-    Attributes
+    Parameters
     ----------
     nbits : int
         The number of bits.
@@ -109,16 +109,15 @@ class Integer(Binary):
 
     Integers extend the Binary representation and encodes the integer as a
     gray-encoded binary value.  The gray-encoding ensures that adjacent
-    integers (e.g., i and i+1) differ only by one bit.
+    integers (e.g., :code:`i` and :code:`i+1`) differ only by one bit.
 
-    Given max_value and min_value, the underlying representation chooses the
-    minimum number of bits required to store the integer in a binary string.
-    If max_value-min_value is a power of 2, that each binary string maps to
-    an integer value.  If max_value-min_value is not a power of 2, then some
-    integers will have two binary strings mapping to the value, meaning those
-    values have a slightly higher probability of occurrence.
+    Given the bounds, the underlying representation chooses the minimum number
+    of bits required to store the integer in a binary string.  If the range is
+    a power of 2, then each binary string maps to a single integer value.
+    Otherwise, the mapping "wraps" around, causing some values to have a
+    slightly higher probability of occurrence.
 
-    Attributes
+    Parameters
     ----------
     min_value : int
         The minimum value (inclusive)
@@ -156,15 +155,15 @@ class Permutation(Type):
     to represent the traversal through a graph, such as for the Traveling
     Salesman Problem.
 
-    Examples
-    --------
-        # A permutation of integers 0 through 9.
+    Most commonly, a permutation is created using integers::
+
         Permutation(range(10))
 
-        # A permutation of tuples.
+    But any collection of objects can be used.  Here we create tuples::
+
         Permutation([(a1, a2), (b1, b2), (c1, c2), (d1, d2)])
 
-    Attributes
+    Parameters
     ----------
     elements : list of objects
         The list of elements that appear in the permutation.
@@ -185,16 +184,19 @@ class Permutation(Type):
 class Subset(Type):
     """Represents a fixed-size subset.
 
-    Use a subset when you must select K elements from a collection of N items.
-    Use a binary string when you can select any number of elements (0
-    through N) from a collection of N items.
+    Use a subset when you must select K elements from a collection of N items,
+    where K <= N.
 
-    Examples
-    --------
-        # Pick any two numbers between 0 and 9, without repeats.
+    Binary representation are also often used to represent a subset of items.
+    The key difference is a subset is guaranteed to select exactly K items,
+    whereas a binary representation can choose any number of items.
+
+    Similar to a permutation, the elements are typically integers but can be
+    any object::
+
         Subset(range(10), 2)
 
-    Attributes
+    Parameters
     ----------
     elements : list of objects
         The set of elements.
