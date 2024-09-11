@@ -25,7 +25,7 @@ from .distance import manhattan_dist, distance_to_nearest
 
 class GenerationalDistance(Indicator):
     """Generational distance (GD) performance indicator.
-    
+
     Parameters
     ----------
     reference_set : iterable of Solution
@@ -51,7 +51,7 @@ class GenerationalDistance(Indicator):
 
 class InvertedGenerationalDistance(Indicator):
     """Inverged generational distance (IGD) performance indicator.
-    
+
     Parameters
     ----------
     reference_set : iterable of Solution
@@ -73,7 +73,7 @@ class InvertedGenerationalDistance(Indicator):
 
 class EpsilonIndicator(Indicator):
     """Additive epsilon-indicator (AEI) performance indicator.
-    
+
     Parameters
     ----------
     reference_set : iterable of Solution
@@ -115,7 +115,7 @@ class Spacing(Indicator):
 
 class Hypervolume(Indicator):
     """Hypervolume performance indicator.
-    
+
     Parameters
     ----------
     reference_set : iterable of Solution, optional

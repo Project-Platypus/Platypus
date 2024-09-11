@@ -1402,6 +1402,7 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
                 return self.hypervolume(solution1, solution2, d-1)*(self.rho-a)/self.rho
 
 class Indicator(metaclass=ABCMeta):
+    """Abstract class for performance indicators."""
 
     def __init__(self):
         super().__init__()
@@ -1415,7 +1416,7 @@ class Indicator(metaclass=ABCMeta):
 
         Parameters
         ----------
-        set : Iterable of Solution
+        set : iterable of Solution
             The collection of solutions against which the indicator value is
             computed.
         """
