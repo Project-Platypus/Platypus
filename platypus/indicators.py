@@ -24,6 +24,15 @@ from .distance import manhattan_dist, distance_to_nearest
 
 
 class GenerationalDistance(Indicator):
+    """Generational distance (GD) performance indicator.
+    
+    Parameters
+    ----------
+    reference_set : iterable of Solution
+        The reference set used for normalization.
+    d : float, default=2.0
+        The power used when computing the distance.
+    """
 
     def __init__(self, reference_set, d=2.0):
         super().__init__()
@@ -41,6 +50,15 @@ class GenerationalDistance(Indicator):
         return math.pow(sum([math.pow(distance_to_nearest(s, self.reference_set), self.d) for s in feasible]), 1.0 / self.d) / len(feasible)
 
 class InvertedGenerationalDistance(Indicator):
+    """Inverged generational distance (IGD) performance indicator.
+    
+    Parameters
+    ----------
+    reference_set : iterable of Solution
+        The reference set used for normalization.
+    d : float, default=1.0
+        The power used when computing the distance.
+    """
 
     def __init__(self, reference_set, d=1.0):
         super().__init__()
@@ -54,6 +72,13 @@ class InvertedGenerationalDistance(Indicator):
         return math.pow(sum([math.pow(distance_to_nearest(s, feasible), self.d) for s in self.reference_set]), 1.0 / self.d) / len(self.reference_set)
 
 class EpsilonIndicator(Indicator):
+    """Additive epsilon-indicator (AEI) performance indicator.
+    
+    Parameters
+    ----------
+    reference_set : iterable of Solution
+        The reference set used for normalization.
+    """
 
     def __init__(self, reference_set):
         super().__init__()
@@ -70,6 +95,7 @@ class EpsilonIndicator(Indicator):
         return max([min([max([s2.normalized_objectives[k] - s1.normalized_objectives[k] for k in range(s2.problem.nobjs)]) for s2 in feasible]) for s1 in self.reference_set])
 
 class Spacing(Indicator):
+    """Spacing performance indicator."""
 
     def __init__(self):
         super().__init__()
@@ -88,6 +114,17 @@ class Spacing(Indicator):
         return math.sqrt(sum([math.pow(d - avg_distance, 2.0) for d in distances]) / (len(feasible)-1))
 
 class Hypervolume(Indicator):
+    """Hypervolume performance indicator.
+    
+    Parameters
+    ----------
+    reference_set : iterable of Solution, optional
+        The reference set used for normalization.
+    minimum : list of float, optional
+        The minimum bounds for normalization.
+    maximum : list of float, optional
+        The maximum bounds for normalization.
+    """
 
     def __init__(self, reference_set=None, minimum=None, maximum=None):
         if reference_set is not None:

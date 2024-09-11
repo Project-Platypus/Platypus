@@ -545,10 +545,13 @@ class Constraint:
 class Solution:
     """Class representing a solution to a problem.
 
-    Attributes
+    Parameters
     ----------
     problem: Problem
         The problem.
+
+    Attributes
+    ----------
     variables: FixedLengthArray of objects
         The values of the variables.
     objectives: FixedLengthArray of float
@@ -566,7 +569,6 @@ class Solution:
     """
 
     def __init__(self, problem):
-        """Creates a new solution for the given problem."""
         super().__init__()
         self.problem = problem
         self.variables = FixedLengthArray(problem.nvars)
