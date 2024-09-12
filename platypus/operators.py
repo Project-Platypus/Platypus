@@ -29,6 +29,7 @@ from ._math import add, subtract, multiply, is_zero, magnitude, \
 
 
 class RandomGenerator(Generator):
+    """Generator for producing random initial populatioins"""
 
     def __init__(self):
         super().__init__()
@@ -39,6 +40,16 @@ class RandomGenerator(Generator):
         return solution
 
 class InjectedPopulation(Generator):
+    """Generator for injecting solutions into the initial population.
+
+    Any remaining slots in the initial population will be filled with random
+    solutions generated in the same manner as :class:`RandomGenerator`.
+
+    Parameters
+    ----------
+    solutions : iterable of Solution
+        The solutions to inject into the pouplation.
+    """
 
     def __init__(self, solutions):
         super().__init__()
@@ -58,6 +69,15 @@ class InjectedPopulation(Generator):
             return solution
 
 class TournamentSelector(Selector):
+    """Tournament selection.
+
+    Parameters
+    ----------
+    tournament_size : int
+        The size of the tournament, typically 2.
+    dominance : Dominance
+        The dominance criteria for selecting the winner of the tournament.
+    """
 
     def __init__(self, tournament_size=2, dominance=ParetoDominance()):
         super().__init__()
@@ -77,6 +97,16 @@ class TournamentSelector(Selector):
         return winner
 
 class PM(Mutation):
+    """Polynomial mutation (PM).
+
+    Parameters
+    ----------
+    probability : float
+        Probability of applying this operator to a decision variable.
+    distribution_index : float
+        Controls the distribution of this operator.  Larger values tend to
+        produce offspring nearer the parent.
+    """
 
     def __init__(self, probability=1, distribution_index=20.0):
         super().__init__()
@@ -121,6 +151,16 @@ class PM(Mutation):
         return x
 
 class SBX(Variator):
+    """Simulated binary crossover (SBX).
+
+    Parameters
+    ----------
+    probability : float
+        Probability of applying this operator to a decision variable.
+    distribution_index : float
+        Controls the distribution of this operator.  Larger values tend to
+        produce offspring nearer the parent.
+    """
 
     def __init__(self, probability=1.0, distribution_index=15.0):
         super().__init__(2)
@@ -199,6 +239,15 @@ class SBX(Variator):
         return x1, x2
 
 class GAOperator(Variator):
+    """Genetic algorithm operator combining crossover and mutation.
+
+    Parameters
+    ----------
+    variation : Variator
+        The crossover operator.
+    mutation : Variator
+        The mutation operator.
+    """
 
     def __init__(self, variation, mutation):
         super().__init__(variation.arity)
@@ -209,6 +258,14 @@ class GAOperator(Variator):
         return list(map(self.mutation.evolve, self.variation.evolve(parents)))
 
 class CompoundMutation(Mutation):
+    """Combines two or more mutation operators.
+
+    Parameters
+    ----------
+    mutators : list of Mutation
+        The mutation operators to combine, which are applied sequentially in
+        the order provided.
+    """
 
     def __init__(self, *mutators):
         super().__init__()
@@ -223,6 +280,14 @@ class CompoundMutation(Mutation):
         return result
 
 class CompoundOperator(Variator):
+    """Combines two or more variation operators.
+
+    Parameters
+    ----------
+    variators : list of Variator
+        The variation operators to combine, which are applied sequentially in
+        the order provided.
+    """
 
     def __init__(self, *variators):
         super().__init__(variators[0].arity)
@@ -242,6 +307,15 @@ class CompoundOperator(Variator):
         return offspring
 
 class DifferentialEvolution(Variator):
+    """Differential evolution (DE) operator.
+
+    Parameters
+    ----------
+    crossover_rate : float
+        The crossover rate.
+    step_size : float
+        The step size.
+    """
 
     def __init__(self, crossover_rate=0.1, step_size=0.5):
         super().__init__(4)
@@ -268,6 +342,15 @@ class DifferentialEvolution(Variator):
         return [result]
 
 class UniformMutation(Mutation):
+    """Uniform mutation used by OMOPSO.
+
+    Parameters
+    ----------
+    probability : float
+        Probability of applying this operator.
+    perturbation : float
+        Controls the magnitude of the mutation.
+    """
 
     def __init__(self, probability, perturbation):
         super().__init__()
@@ -288,6 +371,20 @@ class UniformMutation(Mutation):
         return result
 
 class NonUniformMutation(Mutation):
+    """Non-uniform mutation used by OMOPSO.
+
+    Parameters
+    ----------
+    probability : float
+        Probability of applying this operator.
+    perturbation : float
+        Controls the magnitude of the mutation.
+    max_iterations : int
+        The maximum number of iterations that OMOPSO is expected to run, which
+        is used to decrease the magnitude of mutations over time.
+    algorithm : Algorithm
+        A reference to the OMOPSO instance.
+    """
 
     def __init__(self, probability, perturbation, max_iterations, algorithm):
         super().__init__()
@@ -321,7 +418,13 @@ class NonUniformMutation(Mutation):
         return result
 
 class UM(Mutation):
-    """Uniform mutation."""
+    """Uniform mutation (UM).
+
+    Parameters
+    ----------
+    probability : float
+        Probability of applying this operator to a decision variable.
+    """
 
     def __init__(self, probability=1):
         super().__init__()
@@ -349,6 +452,19 @@ class UM(Mutation):
         return random.uniform(lb, ub)
 
 class PCX(Variator):
+    """Parent-centric crossover (PCX).
+
+    Parameters
+    ----------
+    nparents : int
+        The number of parents.
+    noffspring : int
+        The number of offspring produced.
+    eta : float
+        Parameter controlling the shape of the resulting distribution.
+    zeta : float
+        Parameter controlling the shape of the resulting distribution.
+    """
 
     def __init__(self, nparents=10, noffspring=2, eta=0.1, zeta=0.1):
         super().__init__(nparents)
@@ -414,6 +530,19 @@ class PCX(Variator):
         return result
 
 class UNDX(Variator):
+    """Unimodal normal distribution crossover (UNDX).
+
+    Parameters
+    ----------
+    nparents : int
+        The number of parents.
+    noffspring : int
+        The number of offspring produced.
+    zeta : float
+        Parameter controlling the shape of the resulting distribution.
+    eta : float
+        Parameter controlling the shape of the resulting distribution.
+    """
 
     def __init__(self, nparents=10, noffspring=2, zeta=0.5, eta=0.35):
         super().__init__(nparents)
@@ -485,6 +614,17 @@ class UNDX(Variator):
         return result
 
 class SPX(Variator):
+    """Simplex crossover (SPX).
+
+    Parameters
+    ----------
+    nparents : int
+        The number of parents.
+    noffspring : int
+        The number of offspring produced.
+    expansion : float
+        Parameter controlling the shape of the resulting distribution.
+    """
 
     def __init__(self, nparents=10, noffspring=2, expansion=None):
         super().__init__(nparents)
@@ -536,16 +676,16 @@ class SPX(Variator):
         return result
 
 class BitFlip(Mutation):
+    """Bit-flip mutation for binary encodings.
+
+    Parameters
+    ----------
+    probability : int or float
+        The probability of flipping an individual bit.  If the value is an int,
+        then the probability is divided by the number of bits.
+    """
 
     def __init__(self, probability=1):
-        """Bit Flip Mutation for Binary Strings.
-
-        Parameters
-        ----------
-        probability : int or float
-            The probability of flipping an individual bit.  If the value is
-            an int, then the probability is divided by the number of bits.
-        """
         super().__init__()
         self.probability = probability
 
@@ -569,6 +709,13 @@ class BitFlip(Mutation):
         return result
 
 class HUX(Variator):
+    """Half-uniform crossover for binary encodings.
+
+    Parameters
+    ----------
+    probability : float
+        The probability of applying this operator.
+    """
 
     def __init__(self, probability=1.0):
         super().__init__(2)
@@ -593,6 +740,15 @@ class HUX(Variator):
         return [result1, result2]
 
 class Swap(Mutation):
+    """Swap mutation for permutations.
+
+    Randomly picks two indices in the permutation and swaps their values.
+
+    Parameters
+    ----------
+    probability : float
+        The probability of applying this operator.
+    """
 
     def __init__(self, probability=0.3):
         super().__init__()
@@ -618,6 +774,13 @@ class Swap(Mutation):
         return result
 
 class PMX(Variator):
+    """Partially mapped crossover (PMX) for permutations.
+
+    Parameters
+    ----------
+    probability : float
+        The probability of applying this operator.
+    """
 
     def __init__(self, probability=1.0):
         super().__init__(2)
@@ -680,6 +843,17 @@ class PMX(Variator):
         return [result1, result2]
 
 class Insertion(Mutation):
+    """Insertion mutation for permutations.
+
+    Removes the value at a random index and inserts it in a new, random
+    location.  This differs slighly from :class:`Swap` in that only one
+    element is relocated.
+
+    Parameters
+    ----------
+    probability : float
+        The probability of applying this operator.
+    """
 
     def __init__(self, probability=0.3):
         super().__init__()
@@ -715,6 +889,16 @@ class Insertion(Mutation):
         return result
 
 class Replace(Mutation):
+    """Replace mutation for subsets.
+
+    Selects a random element in the subset and replaces it with a different
+    element.
+
+    Parameters
+    ----------
+    probability : float
+        The probability of applying this operator.
+    """
 
     def __init__(self, probability=0.3):
         super().__init__()
@@ -739,6 +923,15 @@ class Replace(Mutation):
         return result
 
 class SSX(Variator):
+    """Subset crossover.
+
+    Randomly swaps elements from the two parent subsets.
+
+    Parameters
+    ----------
+    probability : float
+        The probability of applying this operator.
+    """
 
     def __init__(self, probability=1.0):
         super().__init__(2)
@@ -766,6 +959,23 @@ class SSX(Variator):
         return [result1, result2]
 
 class Multimethod(Variator):
+    """Multimethod variation.
+
+    Given a list of variation operators and their assigned probabilities,
+    picks an operator at random each time :meth:`evolve` is called.  The
+    probabilities initiall start out at :code:`1 / len(variators)`, but adapts
+    over time to favor operators producing more offspring that survive to
+    future generations.
+
+    Parameters
+    ----------
+    algorithm : Algorithm
+        The algorithm using this operator.
+    variators : list of Variator
+        The variators to include.
+    update_frequency : int
+        Controls how frequently the probabilities change.
+    """
 
     def __init__(self, algorithm, variators, update_frequency=100):
         super().__init__(max([v.arity for v in variators]))
