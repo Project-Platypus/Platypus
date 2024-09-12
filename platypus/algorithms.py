@@ -44,8 +44,7 @@ from .config import PlatypusConfig
 class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
     """Abstract class for genetic algorithms.
 
-    Generally speaking, optimization algorithms based on genetic algorithms
-    involve:
+    Generally speaking, genetic algorithms follow these steps:
 
     1. Initialization, where the population is filled with random solutions.
     2. Mating selection, where the parents for mating are selected using some
@@ -54,6 +53,21 @@ class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
        to produce offspring.
     4. Survival selection, where the content of the next generation is
        selected.
+
+    Subclasses can implement the :meth:`initialze` and :meth:`iterate`
+    methods.  However, when running an algorithm, users should simply call the
+    :meth:`run` method.
+
+    The :meth:`initialize` method is called exactly once on the first call to
+    :meth:`step` to initialize the population.  The default implementation
+    produces a random population, but can be extended to perform any other
+    required initialization.
+
+    The :meth:`iterate` method performs one iteration of the algorithm.
+    Typically this means performing mating selection, recombination and
+    survival selection, either for the entire population or a subset.  Each
+    invocation should produce and evaluate at least one offspring to ensure
+    forward progress (and avoid getting stuck in an infinite loop).
 
     Parameters
     ----------
@@ -83,27 +97,13 @@ class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
             self.result = self.population
 
     def initialize(self):
-        """Initializes the algorithm.
-
-        This method is called exactly once on the first call to :meth:`step`
-        to initialize the population.  Subclasses can use this perform any
-        other initialization required.
-        """
+        """Initializes the algorithm."""
         self.population = [self.generator.generate(self.problem) for _ in range(self.population_size)]
         self.evaluate_all(self.population)
 
     @abstractmethod
     def iterate(self):
-        """Performs one iteration of the algorithm.
-
-        The definition of an iteration depends on the specific algorithm,
-        which could mean evolving the entire population (generational)
-        or a single solution.
-
-        At a minimum, this method must produce and evaluate at least one
-        offspring (to avoid an infinite loop).  If the offspring is selected
-        to survive to the next iteration, update the `population`.
-        """
+        """Performs one iteration of the algorithm."""
         pass
 
 class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, metaclass=ABCMeta):

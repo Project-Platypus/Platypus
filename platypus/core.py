@@ -420,6 +420,11 @@ class _EvaluateJob(Job):
 class Algorithm(metaclass=ABCMeta):
     """Base class for all optimization algorithms.
 
+    For most use cases, use the :meth:`run` method to execute an algorithm
+    until the termination conditions are satisfied.  Internally, this invokes
+    the :meth:`step` method to perform each iteration of the algorithm.  An
+    termination conditions and callbacks are evaluated after each step.
+
     Parameters
     ----------
     problem : Problem
@@ -458,16 +463,7 @@ class Algorithm(metaclass=ABCMeta):
 
     @abstractmethod
     def step(self):
-        """Performs one logical step of the algorithm.
-
-        In most contexts, the first invocation to `step` should initialize
-        the algorithm, usually generating an initial population randomly.  All
-        subsequent calls to `step` evolve the population one "generation".
-
-        Each step is expected to geneate and evaluate at least one solution in
-        order to avoid looping indenfinitely.  Any termination conditions and
-        callbacks are called after each step.
-        """
+        """Performs one logical step of the algorithm."""
         pass
 
     def evaluate_all(self, solutions):
