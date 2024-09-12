@@ -9,8 +9,8 @@ build:
     python: latest
   jobs:
     post_create_environment:
-      - sudo apt update
-      - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install mpi mpich libmpich-dev libopenmpi-dev
+      - apt update
+      - DEBIAN_FRONTEND=noninteractive apt-get -y install mpi mpich libmpich-dev libopenmpi-dev
       - pip install .[full]
 
 sphinx:
