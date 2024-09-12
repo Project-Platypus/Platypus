@@ -3,8 +3,8 @@ from platypus import OMOPSO, DTLZ2
 # define the problem
 problem = DTLZ2()
 
-# OMOPSO and SMPSO use a non-uniform mutation operator that scales down the magnitude of the mutations
-# as the run progresses. Setting max_iterations controls how quickly the non-uniform mutation scales.
+# OMOPSO uses a non-uniform mutation operator that scales down the magnitude of the mutations
+# as the run progresses.  This requires passing in max_iterations.
 swarm_size = 100
 max_iterations = 500
 
