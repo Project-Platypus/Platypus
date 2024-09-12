@@ -107,8 +107,18 @@ class Evaluator(metaclass=ABCMeta):
 class MapEvaluator(Evaluator):
     """Evaluates jobs using a given map-like function.
 
-    When used with the built-in :meth:`map` function, jobs are essentially
-    run sequentially on the local machine.
+    A map-like function takes a callable and a list of inputs, applies the
+    function to each input, and returns a list of results.  The most common
+    example is the built-in :meth:`map` function.
+
+    However, to be formal, a map function must satisfy the signature::
+
+        def map(func: Callable[[T], R], inputs: list[T]) -> list[R]:
+            ...
+
+    where :code:`func` takes input of type :code:`T` and returns a result of
+    type :code:`R`.  In the context of an :class:`Evaluator`, both types will
+    be :class:`Job`.
 
     Parameters
     ----------

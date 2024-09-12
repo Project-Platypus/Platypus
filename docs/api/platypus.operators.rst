@@ -3,4 +3,4 @@ platypus.operators module
 
 .. automodule:: platypus.operators
    :members:
-   :undoc-members:
+   :exclude-members: mutate, evolve, generate, select

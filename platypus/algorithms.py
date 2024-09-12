@@ -1960,6 +1960,7 @@ class AdaptiveTimeContinuation(PeriodicAction):
         self.last_restart = 0
 
     def check(self):
+        """Checks if a restart is required."""
         population_size = len(self.algorithm.population)
         target_size = self.population_ratio * len(self.algorithm.archive)
 
@@ -1973,6 +1974,7 @@ class AdaptiveTimeContinuation(PeriodicAction):
             return False
 
     def restart(self):
+        """Performs the restart procedure."""
         archive = self.algorithm.archive
         population = archive[:]
 
