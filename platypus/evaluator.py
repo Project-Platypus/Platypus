@@ -309,7 +309,7 @@ class ProcessPoolEvaluator(SubmitEvaluator):
     """Evaluator using Python's ProcessPoolExecutor.
 
     Refer to the :mod:`concurrent.futures` module and
-    :class:`ProcessPoolExecutor`for any additional requirements.
+    :class:`ProcessPoolExecutor` for any additional requirements.
 
     Parameters
     ----------
