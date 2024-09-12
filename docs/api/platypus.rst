@@ -14,6 +14,7 @@ Platypus API
    platypus.filters
    platypus.indicators
    platypus.io
+   platypus.mpipool
    platypus.operators
    platypus.problems
    platypus.types
