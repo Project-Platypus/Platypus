@@ -52,11 +52,11 @@ class Job(metaclass=ABCMeta):
     """Abstract class for implementing a distributable job.
 
     The job should capture any inputs required by :meth:`run` along with any
-    outputs produced by the job.
+    outputs produced by the job as attributes.
 
     Also be aware that the specific :class:`Evaluator` used to run the jobs
     might mandate additional requirements.  For instance, evaluators that
-    distributed jobs across processes or machines typically need to
+    distribute jobs across processes or machines typically need to
     serialize or pickle Python objects to transmit them over a network.
     """
 

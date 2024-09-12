@@ -227,7 +227,8 @@ class Variator(metaclass=ABCMeta):
     """Abstract class for variation operators (crossover and mutation).
 
     Variation operators must not modify the parents!  Instead, create a copy
-    of the parents, set :code:`evaluated` to :code:False`, and modify the copy::
+    of the parents, set :code:`evaluated` to :code:`False`, and make any
+    modifications on the copy::
 
         child = copy.deepcopy(parent)
         child.evaluated = False
@@ -1057,6 +1058,28 @@ class Archive:
         return iter(self._contents)
 
 class AdaptiveGridArchive(Archive):
+    """A bounded archive using density to truncate solutions.
+
+    The objective space is partitioned into a grid containing
+    :code:`math.pow(divisions, nobjs)` cells.  Please note that this can
+    quickly result in a large internal array or an integer overflow as either
+    :code:`divisions` or :code:`nobjs` grows.
+    
+    The density of each cell is measured by counting the number of solutions
+    within the cell.  When the archive exceeds the desired capacity, a solution
+    is removed from the densest cell(s).
+
+    Parameters
+    ----------
+    capacity : int
+        The maximum capacity of this archive.
+    nobjs : int
+        The number of objectives.
+    divisions : int
+        The number of divisions in objective space
+    dominance : Dominance
+        The dominance criteria (default is Pareto dominance).
+    """
 
     def __init__(self, capacity, nobjs, divisions, dominance=ParetoDominance()):
         super().__init__(dominance)
@@ -1119,6 +1142,7 @@ class AdaptiveGridArchive(Archive):
         return removed
 
     def adapt_grid(self):
+        """Adapts the grid by updating the bounds and density."""
         self.minimum = [POSITIVE_INFINITY]*self.nobjs
         self.maximum = [-POSITIVE_INFINITY]*self.nobjs
         self.density = [0.0]*(self.divisions**self.nobjs)
@@ -1132,6 +1156,7 @@ class AdaptiveGridArchive(Archive):
             self.density[self.find_index(solution)] += 1
 
     def find_index(self, solution):
+        """Returns the grid cell index of the given solution."""
         index = 0
 
         for i in range(self.nobjs):
@@ -1155,6 +1180,7 @@ class AdaptiveGridArchive(Archive):
         return index
 
     def find_densest(self):
+        """Finds the grid cell index with the highest density."""
         index = -1
         value = -1
 
@@ -1169,6 +1195,7 @@ class AdaptiveGridArchive(Archive):
         return index
 
     def pick_from_densest(self):
+        """Picks a solution from the densest grid cell(s)."""
         solution = None
         value = -1
 

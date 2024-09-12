@@ -66,7 +66,7 @@ def save_objectives(file, solutions):
             f.write(" ".join(map(str, solution.objectives)))
             f.write("\n")
 
-class PlatypusJSONEncoder(json.JSONEncoder):
+class _PlatypusJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, (Archive, FixedLengthArray)):
@@ -88,7 +88,7 @@ class PlatypusJSONEncoder(json.JSONEncoder):
                     "constraints": obj.constraints}
         return super().default(obj)
 
-class PlatypusJSONDecoder(json.JSONDecoder):
+class _PlatypusJSONDecoder(json.JSONDecoder):
 
     def __init__(self, problem=None, *args, **kwargs):
         super().__init__(object_hook=self.object_hook, *args, **kwargs)
@@ -140,7 +140,7 @@ def dump(obj, fp, indent=None):
     indent:
         Controls the formatting of the JSON fle, see :meth:`json.dump`.
     """
-    json.dump(obj, fp, cls=PlatypusJSONEncoder, indent=indent)
+    json.dump(obj, fp, cls=_PlatypusJSONEncoder, indent=indent)
 
 def load(fp, problem=None):
     """Loads the JSON data.
@@ -152,7 +152,7 @@ def load(fp, problem=None):
     problem : Problem, optional
         Optional problem definition.  If not set, a placeholder is used.
     """
-    return json.load(fp, cls=PlatypusJSONDecoder, problem=problem)
+    return json.load(fp, cls=_PlatypusJSONDecoder, problem=problem)
 
 def save_json(file, solutions, indent=None):
     """Converts the solutions to JSON and saves to a file.

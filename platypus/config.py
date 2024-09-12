@@ -22,6 +22,7 @@ from .types import Type
 from .errors import PlatypusError
 
 class _PlatypusConfig:
+    """Global configuration options for Platypus."""
 
     def __init__(self):
         super().__init__()
