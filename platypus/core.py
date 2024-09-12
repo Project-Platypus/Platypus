@@ -214,10 +214,30 @@ class Generator(metaclass=ABCMeta):
 
     @abstractmethod
     def generate(self, problem):
+        """Generates a single, random solution for the problem.
+
+        Parameters
+        ----------
+        problem : Problem
+            The problem being optimized.
+        """
         raise NotImplementedError()
 
 class Variator(metaclass=ABCMeta):
-    """Abstract class for variation operators (crossover and mutation)."""
+    """Abstract class for variation operators (crossover and mutation).
+
+    Variation operators must not modify the parents!  Instead, create a copy
+    of the parents, set :code:`evaluated` to :code:`False`, and make any
+    modifications on the copy::
+
+        child = copy.deepcopy(parent)
+        child.evaluated = False
+
+    Parameters
+    ----------
+    arity : int
+        The operator arity, or number of required parents.
+    """
 
     def __init__(self, arity):
         super().__init__()
@@ -225,10 +245,25 @@ class Variator(metaclass=ABCMeta):
 
     @abstractmethod
     def evolve(self, parents):
+        """Evolves the parents to produce offspring.
+
+        Parameters
+        ----------
+        parents : list of Solution
+            The parent solutions.
+
+        Returns
+        -------
+        The offspring.
+        """
         raise NotImplementedError()
 
 class Mutation(Variator, metaclass=ABCMeta):
-    """Variator for mutation, which requires only one parent."""
+    """Abstract class for mutation operators.
+
+    Mutation is just a special :class:`Variator` with an arity of 1.  While
+    not required, mutation operators typically also produce a single offspring.
+    """
 
     def __init__(self):
         super().__init__(1)
@@ -241,18 +276,50 @@ class Mutation(Variator, metaclass=ABCMeta):
 
     @abstractmethod
     def mutate(self, parent):
+        """Mutates the given parent.
+
+        Parameters
+        ----------
+        parent : Solution
+            The parent to mutate.
+
+        Returns
+        -------
+        The offspring.
+        """
         raise NotImplementedError()
 
 class Selector(metaclass=ABCMeta):
+    """Abstract class for selection operators."""
 
     def __init__(self):
         super().__init__()
 
     def select(self, n, population):
+        """Selects N members from the population.
+
+        This default implementation operates "with replacement", meaning
+        solutions can be selected multiple times.  Subclasses are allowed to
+        modify this behavior.
+
+        Parameters
+        ----------
+        n : int
+            The number of solutions to select from the population.
+        population: list of Solution
+            The population of solutions.
+        """
         return list(map(self.select_one, itertools.repeat(population, n)))
 
     @abstractmethod
     def select_one(self, population):
+        """Selects a single member from the population.
+
+        Parameters
+        ----------
+        population: list of Solution
+            The population of solutions.
+        """
         raise NotImplementedError()
 
 class TerminationCondition(metaclass=ABCMeta):
@@ -267,13 +334,15 @@ class TerminationCondition(metaclass=ABCMeta):
     def initialize(self, algorithm):
         """Initializes this termination condition.
 
-        This method is used to collect any initial state, such as the current
-        NFE or current time, needed for calculating the termination criteria.
+        This method is called once at the start of a run, and should be used
+        to record any initial state.  Also consider that users can call
+        :code:`run` multiple times, where each invocation continues the
+        execution of the run from where it left off.
 
         Parameters
         ----------
         algorithm : Algorithm
-            The algorithm being run.
+            The algorithm instance.
         """
         pass
 
@@ -281,27 +350,32 @@ class TerminationCondition(metaclass=ABCMeta):
     def shouldTerminate(self, algorithm):
         """Checks if the algorithm should terminate.
 
-        Check the termination condition, returning True if the termination
-        condition is satisfied; False otherwise.  This method is called after
-        each iteration of the algorithm.
+        This method is called after each iteration.  The defintion of one
+        "iteration" in specific to each algorithm.  For example, a
+        generational algorithm typically produces and evaluates multiple
+        offspring each iteration.  Consequently, a run might not stop exactly
+        where the termination condition indicates.
 
         Parameters
         ----------
         algorithm : Algorithm
-            The algorithm being run.
+            The algorithm instance.
+
+        Returns
+        -------
+        :code:`True` if the termination condition is satisfied and the run
+        should stop; :code:`False` otherwise.
         """
         return False
 
 class MaxEvaluations(TerminationCondition):
-    """Termination condition based on the maximum number of function evaluations.
-
-    Note that since we check the termination condition after each iteration, it
-    is possible for the algorithm to exceed the max NFE.
+    """Termination condition based on the maximum number of function
+    evaluations.
 
     Parameters
     ----------
     nfe : int
-        The maximum number of function evaluations to execute.
+        The maximum number of function evaluations to run the algorithm.
     """
     def __init__(self, nfe):
         super().__init__()
@@ -315,7 +389,13 @@ class MaxEvaluations(TerminationCondition):
         return algorithm.nfe - self.starting_nfe >= self.nfe
 
 class MaxTime(TerminationCondition):
-    """Termination condition based on the maximum elapsed time."""
+    """Termination condition based on the maximum elapsed time.
+
+    Parameters
+    ----------
+    max_time : float
+        The duration, in seconds, to run the algorithm.
+    """
 
     def __init__(self, max_time):
         super().__init__()
@@ -338,6 +418,26 @@ class _EvaluateJob(Job):
         self.solution.evaluate()
 
 class Algorithm(metaclass=ABCMeta):
+    """Base class for all optimization algorithms.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem being optimized.
+    evaluator : Evaluator
+        The evalutor used to evaluate solutions.  If `None`, the default
+        evaluator defined in :attr:`PlatypusConfig` is selected.
+    log_frequency : int
+        The frequency to log evaluation progress.  If `None`, the default
+        log frequency defined in :attr:`PlatypusConfig` is selected.
+
+    Attributes
+    ----------
+    nfe : int
+        The current number of function evaluations (NFE)
+    result: list or Archive
+        The current result, which is updated after each iteration.
+    """
 
     def __init__(self,
                  problem,
@@ -371,6 +471,17 @@ class Algorithm(metaclass=ABCMeta):
         pass
 
     def evaluate_all(self, solutions):
+        """Evaluates all of the given solutions.
+
+        Subclasses should prefer using this method to evaluate solutions,
+        ideally providing an entire population to leverage parallelization,
+        as it tracks NFE.
+
+        Parameters
+        ----------
+        solutions : list of Solution
+            The solutions to evaluate.
+        """
         unevaluated = [s for s in solutions if not s.evaluated]
 
         jobs = [_EvaluateJob(s) for s in unevaluated]
@@ -389,6 +500,17 @@ class Algorithm(metaclass=ABCMeta):
         self.nfe += len(solutions)
 
     def run(self, condition, callback=None):
+        """Runs this algorithm until the termination condition is reached.
+
+        Parameters
+        ----------
+        condition : int or TerminationCondition
+            The termination condition.  Providing an integer value is converted
+            into the :class:`MaxEvaluations` condition.
+        callback : Callable, optional
+            Callback function that is invoked after every iteration.  The
+            callback is passed this algorithm instance.
+        """
         if isinstance(condition, int):
             condition = MaxEvaluations(condition)
 
@@ -438,6 +560,22 @@ def _constraint_gt(x, y, delta=0.0001):
     return 0 if x > y else abs(x - y) + delta
 
 class Constraint:
+    """Defines an constraint on an optimization problem.
+
+    A constraint can be defined in several ways.  First, with a given operator
+    and value::
+
+        Constraint("<=", 10)
+
+    Second, by providing a string with the operator and value together::
+
+        Constraint("<= 10")
+
+    Third, by providing a function to compute the constraint value, where any
+    non-zero value is considered a constraint violation::
+
+        Constraint(lambda x : 0 if x <= 10 else math.abs(10 - x))
+    """
 
     OPERATORS = {
         "==": _constraint_eq,
@@ -487,10 +625,13 @@ class Constraint:
 class Solution:
     """Class representing a solution to a problem.
 
-    Attributes
+    Parameters
     ----------
     problem: Problem
         The problem.
+
+    Attributes
+    ----------
     variables: FixedLengthArray of objects
         The values of the variables.
     objectives: FixedLengthArray of float
@@ -508,7 +649,6 @@ class Solution:
     """
 
     def __init__(self, problem):
-        """Creates a new solution for the given problem."""
         super().__init__()
         self.problem = problem
         self.variables = FixedLengthArray(problem.nvars)
@@ -549,11 +689,7 @@ class Dominance(metaclass=ABCMeta):
 
     @abstractmethod
     def compare(self, solution1, solution2):
-        """Compare two solutions.
-
-        Returns -1 if the first solution dominates the second, 1 if the
-        second solution dominates the first, or 0 if the two solutions are
-        mutually non-dominated.
+        """Compare two solutions for dominance.
 
         Parameters
         ----------
@@ -561,6 +697,12 @@ class Dominance(metaclass=ABCMeta):
             The first solution.
         solution2 : Solution
             The second solution.
+
+        Returns
+        -------
+        `-1` if the first solution dominates the second, `1` if the second
+        solution dominates the first, or `0` if the two solutions are mutually
+        non-dominated.
         """
         raise NotImplementedError()
 
@@ -624,7 +766,12 @@ class EpsilonDominance(Dominance):
 
     Similar to Pareto dominance except if the two solutions are contained
     within the same epsilon-box, the solution closer to the optimal corner
-    or the box is preferred.
+    of the box is preferred.
+
+    Parameters
+    ----------
+    epsilons : list of float
+        The epsilons that define the sizes of the epsilon-box.
     """
 
     def __init__(self, epsilons):
@@ -636,6 +783,20 @@ class EpsilonDominance(Dominance):
             self.epsilons = [epsilons]
 
     def same_box(self, solution1, solution2):
+        """Determines if the two solutions exist in the same epsilon-box.
+
+        Parameters
+        ----------
+        solution1 : Solution
+            The first solution.
+        solution2: Solution
+            The second solution.
+
+        Returns
+        -------
+        :code:`True` if the two solutions are in the same epsilon-box,
+        :code:`False` otherwise.
+        """
         problem = solution1.problem
 
         # first check constraint violation
@@ -661,7 +822,7 @@ class EpsilonDominance(Dominance):
                 o1 = -o1
                 o2 = -o2
 
-            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            epsilon = float(self.epsilons[i if i < len(self.epsilons) else -1])
             i1 = math.floor(o1 / epsilon)
             i2 = math.floor(o2 / epsilon)
 
@@ -707,7 +868,7 @@ class EpsilonDominance(Dominance):
                 o1 = -o1
                 o2 = -o2
 
-            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            epsilon = float(self.epsilons[i if i < len(self.epsilons) else -1])
             i1 = math.floor(o1 / epsilon)
             i2 = math.floor(o2 / epsilon)
 
@@ -734,7 +895,7 @@ class EpsilonDominance(Dominance):
                     o1 = -o1
                     o2 = -o2
 
-                epsilon = float(self.epsilons[i % len(self.epsilons)])
+                epsilon = float(self.epsilons[i if i < len(self.epsilons) else -1])
                 i1 = math.floor(o1 / epsilon)
                 i2 = math.floor(o2 / epsilon)
 
@@ -751,6 +912,17 @@ class EpsilonDominance(Dominance):
             return 1
 
 class AttributeDominance(Dominance):
+    """Dominance based on the value of an attribute.
+
+    The referenced attribute must be numeric, typically either an int or float.
+
+    Parameters
+    ----------
+    getter : Callable
+        Function that reads the value of the attribute from each solution.
+    larger_preferred : bool
+        Determines if larger or smaller values are preferred.
+    """
 
     def __init__(self, getter, larger_preferred=True):
         super().__init__()
@@ -777,7 +949,11 @@ class AttributeDominance(Dominance):
             return 0
 
 class Archive:
-    """An archive only containing non-dominated solutions.
+    """An archive containing only non-dominated solutions.
+
+    Since an archive stores non-dominated solutions, its size can potentially
+    grow unbounded.  Consider using one of the subclasses that provide
+    truncation.
 
     Parameters
     ----------
@@ -791,6 +967,26 @@ class Archive:
         self._contents = []
 
     def add(self, solution):
+        """Try adding a solution to this archive.
+
+        Three outcomes can occur when adding a solution:
+        1. The solution is non-dominated.  The new solution is added to the
+           archive.
+        2. The solution dominiates one or more members of the archive.  The
+           dominated solutions are removed and the new solution added.
+        3. The solution is dominated by one or more members of the archive.
+           The new solution is rejected and the archive is unchanged.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution to add.
+
+        Returns
+        -------
+        :code:`True` if the solution is non-dominated and added to the archive,
+        :code:`False` otherwise.
+        """
         flags = [self._dominance.compare(solution, s) for s in self._contents]
         dominates = [x > 0 for x in flags]
         nondominated = [x == 0 for x in flags]
@@ -802,13 +998,41 @@ class Archive:
             return True
 
     def append(self, solution):
+        """Append a solution to this archive.
+
+        This is similar to :meth:`add` except no result is returned.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution to append.
+        """
         self.add(solution)
 
     def extend(self, solutions):
+        """Appends a list of solutions to this archive.
+
+        Parameters
+        ----------
+        solutions : iterable of Solution
+            The solutions to append.
+        """
         for solution in solutions:
             self.append(solution)
 
     def remove(self, solution):
+        """Try removing the solution from this archive.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution to remove.
+
+        Returns
+        -------
+        :code:`True` if the solution was removed from this archive,
+        :code:`False` otherwise.
+        """
         try:
             self._contents.remove(solution)
             return True
@@ -834,6 +1058,28 @@ class Archive:
         return iter(self._contents)
 
 class AdaptiveGridArchive(Archive):
+    """A bounded archive using density to truncate solutions.
+
+    The objective space is partitioned into a grid containing
+    :code:`math.pow(divisions, nobjs)` cells.  Please note that this can
+    quickly result in a large internal array or an integer overflow as either
+    :code:`divisions` or :code:`nobjs` grows.
+
+    The density of each cell is measured by counting the number of solutions
+    within the cell.  When the archive exceeds the desired capacity, a solution
+    is removed from the densest cell(s).
+
+    Parameters
+    ----------
+    capacity : int
+        The maximum capacity of this archive.
+    nobjs : int
+        The number of objectives.
+    divisions : int
+        The number of divisions in objective space
+    dominance : Dominance
+        The dominance criteria (default is Pareto dominance).
+    """
 
     def __init__(self, capacity, nobjs, divisions, dominance=ParetoDominance()):
         super().__init__(dominance)
@@ -896,6 +1142,7 @@ class AdaptiveGridArchive(Archive):
         return removed
 
     def adapt_grid(self):
+        """Adapts the grid by updating the bounds and density."""
         self.minimum = [POSITIVE_INFINITY]*self.nobjs
         self.maximum = [-POSITIVE_INFINITY]*self.nobjs
         self.density = [0.0]*(self.divisions**self.nobjs)
@@ -909,6 +1156,7 @@ class AdaptiveGridArchive(Archive):
             self.density[self.find_index(solution)] += 1
 
     def find_index(self, solution):
+        """Returns the grid cell index of the given solution."""
         index = 0
 
         for i in range(self.nobjs):
@@ -932,6 +1180,7 @@ class AdaptiveGridArchive(Archive):
         return index
 
     def find_densest(self):
+        """Finds the grid cell index with the highest density."""
         index = -1
         value = -1
 
@@ -946,6 +1195,7 @@ class AdaptiveGridArchive(Archive):
         return index
 
     def pick_from_densest(self):
+        """Picks a solution from the densest grid cell(s)."""
         solution = None
         value = -1
 
@@ -959,6 +1209,31 @@ class AdaptiveGridArchive(Archive):
         return solution
 
 class FitnessArchive(Archive):
+    """A bounded archive that uses fitness to truncate solutions.
+
+    Fitness is a generic term, simply referring to numeric attributes assigned
+    to a solution.  For instance, below we use :meth:`crowding_distance` to
+    assign the :code:`crowding_distance` attribute, and
+    :meth:`crowding_distance_key` to read those values::
+
+        FitnessArchive(crowding_distance, getter=crowding_distance_key)
+
+    Refer to :meth:`truncate_fitness` for more details.
+
+    Parameters
+    ----------
+    fitness : Callable
+        Function for calculating and assigning a fitness attribute to all
+        members of the archive.
+    dominance : Dominance
+        The dominance criteria (default is Pareto dominance).
+    larger_preferred : bool
+        Determines if larger or smaller fitness values are preferred during
+        truncation.
+    getter : Callable
+        Function that reads the fitness attribute from a solution.  This should
+        match the attribute assigned by the :code:`fitness` function.
+    """
 
     def __init__(self, fitness, dominance=ParetoDominance(), larger_preferred=True, getter=fitness_key):
         super().__init__(dominance)
@@ -967,6 +1242,13 @@ class FitnessArchive(Archive):
         self.getter = getter
 
     def truncate(self, size):
+        """Truncates the archive to the given size.
+
+        Parameters
+        ----------
+        size : int
+            The desired size of this archive.
+        """
         self.fitness(self._contents)
         self._contents = truncate_fitness(self._contents,
                                           size,
@@ -974,6 +1256,23 @@ class FitnessArchive(Archive):
                                           getter=self.getter)
 
 class EpsilonBoxArchive(Archive):
+    """Archive based on epsilon-box dominance.
+
+    Uses :class:`EpsilonDominance` to limit the size of the archive.  This
+    avoids adding many non-dominated solutions that are similar to one
+    another, as controlled by the provided :code:`epsilons`.
+
+    Parameters
+    ----------
+    epsilons : list of float
+        The epsilons that control the size of the epsilon boxes.
+
+    Attributes
+    ----------
+    improvements : int
+        Tracks the number of epsilon-box improvements, which by definition
+        counts the number of new solutions accepted into this archive.
+    """
 
     def __init__(self, epsilons):
         super().__init__(EpsilonDominance(epsilons))
@@ -997,12 +1296,40 @@ class EpsilonBoxArchive(Archive):
             return True
 
 def nondominated(solutions):
-    """Returns the non-dominated solutions."""
+    """Filters the solutions to only include non-dominated.
+
+    Parameters
+    ----------
+    solutions : iterable of Solution
+        The solutions to filter.
+
+    Returns
+    -------
+    The non-dominated solutions.
+    """
     archive = Archive()
     archive += solutions
     return archive._contents
 
 def nondominated_sort_cmp(x, y):
+    """Compares two solutions using nondominated sorting results.
+
+    After processing a population with :func:`nondominated_sort`, this
+    comparison function can be used to order solutions by their rank and
+    crowding distance.
+
+    Parameters
+    ----------
+    x : Solution
+        The first solution.
+    y : Solution
+        The second solution.
+
+    Returns
+    -------
+    :code:`-1`, :code:`0`, or :code:`1` to indicate if :code:`x` is better,
+    equal, or worse than :code:`y` based on rank and crowding distance.
+    """
     if x.rank == y.rank:
         if -x.crowding_distance < -y.crowding_distance:
             return -1
@@ -1032,7 +1359,7 @@ def nondominated_sort(solutions):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The collection of solutions
     """
     rank = 0
@@ -1058,7 +1385,7 @@ def crowding_distance(solutions):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The collection of solutions
     """
     for solution in solutions:
@@ -1099,7 +1426,7 @@ def nondominated_split(solutions, size):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The collection of solutions that have been non-dominated sorted
     size : int
         The size of the truncated result
@@ -1313,6 +1640,7 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
                 return self.hypervolume(solution1, solution2, d-1)*(self.rho-a)/self.rho
 
 class Indicator(metaclass=ABCMeta):
+    """Abstract class for performance indicators."""
 
     def __init__(self):
         super().__init__()
@@ -1326,7 +1654,7 @@ class Indicator(metaclass=ABCMeta):
 
         Parameters
         ----------
-        set : Iterable of Solution
+        set : iterable of Solution
             The collection of solutions against which the indicator value is
             computed.
         """

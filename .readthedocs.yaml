@@ -7,6 +7,14 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: latest
+  apt_packages:
+    - mpi
+    - mpich
+    - libmpich-dev
+    - libopenmpi-dev
+  jobs:
+    post_create_environment:
+      - pip install .[full]
 
 sphinx:
   configuration: docs/conf.py
