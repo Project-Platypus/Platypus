@@ -1,5 +1,7 @@
 include COPYING example.py
+global-exclude */__pycache__/*
 recursive-include docs *
 recursive-include examples *.py *.pbs *.pf
 recursive-include platypus/tests *.py
 prune dist
+prune docs/_build
