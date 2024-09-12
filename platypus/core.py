@@ -1064,7 +1064,7 @@ class AdaptiveGridArchive(Archive):
     :code:`math.pow(divisions, nobjs)` cells.  Please note that this can
     quickly result in a large internal array or an integer overflow as either
     :code:`divisions` or :code:`nobjs` grows.
-    
+
     The density of each cell is measured by counting the number of solutions
     within the cell.  When the archive exceeds the desired capacity, a solution
     is removed from the densest cell(s).
