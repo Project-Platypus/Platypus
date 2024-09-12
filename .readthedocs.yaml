@@ -7,10 +7,13 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: latest
+  apt_packages:
+    - mpi
+    - mpich
+    - libmpich-dev
+    - libopenmpi-dev
   jobs:
     post_create_environment:
-      - apt update
-      - DEBIAN_FRONTEND=noninteractive apt-get -y install mpi mpich libmpich-dev libopenmpi-dev
       - pip install .[full]
 
 sphinx:
