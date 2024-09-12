@@ -5,5 +5,5 @@ platypus.algorithms module
    :members:
    :show-inheritance:
    :inherited-members: run
-   :exclude-members: evaluate_all, step
+   :exclude-members: evaluate_all, initialize, iterate, step
    
