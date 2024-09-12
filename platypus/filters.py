@@ -50,9 +50,23 @@ def objective_value_at_index(index):
     return lambda solution: solution.objectives[index]
 
 def feasible(solutions):
+    """Filters out any infeasible solutions, returninig only feasible solutions.
+
+    Parameters
+    ----------
+    solutions : iterable of Solution
+        The solutions to filter.
+    """
     return (x for x in solutions if x.feasible)
 
 def infeasible(solutions):
+    """Filters out any feasible solutions, returning only infeasible solutions.
+
+    Parameters
+    ----------
+    solutions : iterable of Solution
+        The solutions to filter.
+    """
     return (x for x in solutions if not x.feasible)
 
 def _unique(solutions, key=objectives_key):
@@ -69,7 +83,7 @@ def unique(solutions, key=objectives_key):
 
     Parameters
     ----------
-    solutions : iterable
+    solutions : iterable of Solution
         The list of solutions.
     key : callable
         Returns the key used to identify unique solutions.

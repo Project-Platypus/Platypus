@@ -61,6 +61,12 @@ class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
             self.result = self.population
 
     def initialize(self):
+        """Initializes the algorithm.
+
+        This method is called exactly once on the first call to :meth:`step`
+        to initialize the population.  Subclasses can use this perform any
+        other initialization required.
+        """
         self.population = [self.generator.generate(self.problem) for _ in range(self.population_size)]
         self.evaluate_all(self.population)
 
