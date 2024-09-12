@@ -66,16 +66,16 @@ One of the major advantages to using the experimenter is that it supports
 parallelization.  In Python, there are several standards for running parallel
 jobs, such as the map function.  Platypus abstracts these different standards
 using the ``Evaluator`` class.  The default evaluator is the ``MapEvaluator``,
-but parallel versions such as ``MultiprocessingEvaluator`` for Python 2 and
-``ProcessPoolEvaluator`` for Python 3.
-
-When using these evaluators, one must also follow any requirements of the
-underlying library.  For example, ``MultiprocessingEvaluator`` uses the
-``multiprocessing`` module available on Python 2, which requires the users to
-invoke ``freeze_support()`` first.
+but parallel versions including ``MultiprocessingEvaluator`` and
+``ProcessPoolEvaluator`` may be used.
 
 .. literalinclude:: ../examples/experimenter_parallel.py
    :language: python
+
+When using these evaluators, one must also follow any requirements of the
+underlying library.  For example, ``MultiprocessingEvaluator`` uses the
+``multiprocessing`` module, which requires the users to invoke
+``freeze_support()`` first.
 
 Comparing Algorithms Visually
 -----------------------------
@@ -91,6 +91,6 @@ require additional parameters.
 Running this script produces the figure below:
 
 .. image:: images/figure_2.png
-   :scale: 100 %
+   :scale: 60 %
    :alt: Comparing the Pareto fronts for different algorithms on DTLZ2
    :align: center

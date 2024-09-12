@@ -131,10 +131,7 @@ def experiment(algorithms=[],
     """Run experiments.
 
     Used to run experiments where one or more algorithms are tested on one or
-    more problems.  Returns a dict containing the results.  The dict is of
-    the form::
-
-        pareto_set = result["algorithm"]["problem"][seed_index]
+    more problems.
 
     Parameters
     ----------
@@ -152,11 +149,22 @@ def experiment(algorithms=[],
         problems must have unique names.  If a name is not provided, the type
         name is used.
     seeds : int
-        The number of replicates of each experiment to run
+        The number of replicates of each experiment to run.
     nfe : int
-        The number of function evaluations allotted to each experiment
+        The number of function evaluations to run each algorithm.
+    evaluator : Evaluator
+        The evaluator used to distribute individual jobs.
     display_stats : bool
-        If True, the progress of the experiments is output to the screen
+        If :code:`True`, the progress of the experiments is output to the
+        screen.
+
+    Returns
+    -------
+    A nested :code:`dict` containing the results from each individual run.
+    The levels are keyed by the algorithm name, problem name, and seed number.
+    For instance::
+
+        pareto_set = result["algorithm"]["problem"][seed]
     """
     if not isinstance(algorithms, list):
         algorithms = [algorithms]
@@ -198,6 +206,24 @@ def calculate_job_generator(results, indicators):
 def calculate(results,
               indicators=[],
               evaluator=None):
+    """
+    Calculate performance indicators on the results of an experiment.
+
+    Parameters
+    ----------
+    results : dict
+        The results produced by running :meth:`experiment`.
+    indicators : list of Indicator
+        The performance indicators to evaluate.
+    evaluator : Evaluator
+        The evaluator used to distribute individual jobs.
+
+    Returns
+    -------
+    A nested :code:`dict` containing the computed performance indicators.
+    The levels are keyed by the algorithm name, problem name, and indicator
+    name.
+    """
     if not isinstance(indicators, list):
         indicators = [indicators]
 
@@ -227,6 +253,17 @@ def calculate(results,
     return results
 
 def display(results, ndigits=None, file=sys.stdout):
+    """Pretty-prints the results.
+
+    Parameters
+    ----------
+    results : dict
+        The results produced by running :meth:`experiment`.
+    ndigits : int, optional
+        The number of digits to display.
+    file : file-like
+        The file to store the results.  The default prints to standard output.
+    """
     for algorithm in results.keys():
         print(f"{algorithm}:", file=file)
         for problem in results[algorithm].keys():
