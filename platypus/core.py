@@ -571,6 +571,16 @@ class Constraint:
     non-zero value is considered a constraint violation::
 
         Constraint(lambda x : 0 if x <= 10 else math.abs(10 - x))
+
+    Parameters
+    ----------
+    op : str or Callable
+        The operator, such as :code:`"<="`, the full constraint including the
+        value, such as :code:`"<=0"`, or a function to compute the constraint
+        value.
+    value : float, optional
+        The value of the constraint.  This is only required when passing an
+        operator without a value to :code:`op`.
     """
 
     OPERATORS = {
