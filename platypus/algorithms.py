@@ -42,6 +42,28 @@ from .weights import random_weights, chebyshev, normal_boundary_weights
 from .config import PlatypusConfig
 
 class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
+    """Abstract class for genetic algorithms.
+
+    Generally speaking, optimization algorithms based on genetic algorithms
+    involve:
+
+    1. Initialization, where the population is filled with random solutions.
+    2. Mating selection, where the parents for mating are selected using some
+       preference.
+    3. Recombination, where any crossover or mutation operators are applied
+       to produce offspring.
+    4. Survival selection, where the content of the next generation is
+       selected.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -85,6 +107,17 @@ class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
         pass
 
 class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, metaclass=ABCMeta):
+    """Abstract class for single-objective optimization algorithms.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -97,6 +130,40 @@ class SingleObjectiveAlgorithm(AbstractGeneticAlgorithm, metaclass=ABCMeta):
                                 "on problem with %d objectives" % problem.nobjs)
 
 class GeneticAlgorithm(SingleObjectiveAlgorithm):
+    """Single-objective genetic algorithm (GA).
+
+    A genetic algorithm is a generational algorithm that evolves a population
+    of solutions.  Each iteration, some number of offspring are produced by
+    applying the given selection and variation operators.  Then, the combined
+    population of parents and offspring are ranked according to the comparison
+    operator and truncated.
+
+    This implementation keeps track of the fittest individual in the population,
+    ensuring it always survives to the next generation.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    offspring_size : int
+        The number of offspring to generate each iteration.
+    generator : Generator
+        The method for generating the initial population.
+    selector : Selector
+        The method for selecting parents for mating.
+    comparator : Dominance
+        The dominance criteria for ranking solutions.
+    variator : Variator, optional
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+
+    Attributes
+    ----------
+    fittest : Solution
+        The fittest solution found thus far.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -137,6 +204,25 @@ class GeneticAlgorithm(SingleObjectiveAlgorithm):
         self.fittest = self.population[0]
 
 class EvolutionaryStrategy(SingleObjectiveAlgorithm):
+    """Single-objective evolutionary strategy (ES).
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    offspring_size : int
+        The number of offspring to generate each iteration.
+    generator : Generator
+        The method for generating the initial population.
+    comparator : Dominance
+        The dominance criteria for ranking solutions.
+    variator : Variator, optional
+        The variator used during mating to produce offspring.  Must have an
+        arity of :code:`1`.  If :code:`None`, the default mutation configured
+        in :code:`PlatypusConfig` is selected.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -170,6 +256,32 @@ class EvolutionaryStrategy(SingleObjectiveAlgorithm):
         self.population = offspring[:self.population_size]
 
 class NSGAII(AbstractGeneticAlgorithm):
+    """Non-dominated sorting genetic algorithm (NSGA-II).
+
+    Most notably, NSGA-II uses non-dominated sorting during survival selection
+    to assign rank and crowding distance values to solutions.  The next
+    generation is filled with solutions with lower ranks.  When selecting from
+    the last rank, solutions with larger crowding distances (more diverse) are
+    preferred.
+
+    See :meth:`nondominated_sort` for more details on non-dominated sorting.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    selector : Selector
+        The method for selecting parents for mating.
+    variator : Variator, optional
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+    archive : Archive, optional
+        The archive to store the best solutions found during optimization.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -220,6 +332,30 @@ class NSGAII(AbstractGeneticAlgorithm):
             self.archive.extend(self.population)
 
 class EpsMOEA(AbstractGeneticAlgorithm):
+    """:math:`\\epsilon`-MOEA.
+
+    Uses an epsilon-dominance archive to bound the size of the archive.
+    Additionally, mating occurs between a member of the population and a
+    member of the archive.
+
+    See :class:`EpsilonBoxArchive` for more details on epsilon dominance.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    epsilons : list of float
+        The epsilon values.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    selector : Selector
+        The method for selecting parents for mating.
+    variator : Variator, optional
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+    """
 
     def __init__(self, problem,
                  epsilons,
@@ -284,6 +420,23 @@ class EpsMOEA(AbstractGeneticAlgorithm):
             self.population.append(solution)
 
 class GDE3(AbstractGeneticAlgorithm):
+    """Generalized differential evolution (GDE3).
+
+    Only supporting real-valued problems, GDE3 uses differential evolution
+    to evolve the population.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    variator : Variator
+        The variator used during mating to produce offspring.  Must use
+        the differential evolution operator.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -333,6 +486,29 @@ class GDE3(AbstractGeneticAlgorithm):
         self.population = self.survival(offspring)
 
 class SPEA2(AbstractGeneticAlgorithm):
+    """Improved strength-based Pareto evolutionary algorithm (SPEA2).
+
+    SPEA2 uses a novel strengh-based measure of fitness, which is a combination
+    of the number other solutions that are dominated plus a density or crowding
+    distance measure.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    variator : Variator
+        The variator used during mating to produce offspring.  Must use
+        the differential evolution operator.
+    dominance : Dominance
+        The dominance criteria for ranking solutions.
+    k : int
+        Niching parameter specifying that crowding is based on the k-th
+        nearest neighbor.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -422,6 +598,7 @@ class SPEA2(AbstractGeneticAlgorithm):
         self.population = self._truncate(offspring, self.population_size)
 
 class MOEAD(AbstractGeneticAlgorithm):
+    """Multiobjective evolutionary algorithm with decomposition (MOEA/D)."""
 
     def __init__(self, problem,
                  neighborhood_size=10,
@@ -613,6 +790,32 @@ class MOEAD(AbstractGeneticAlgorithm):
             self._update_utility()
 
 class NSGAIII(AbstractGeneticAlgorithm):
+    """Non-dominated sorting genetic algorithm with reference ponts (NSGA-III).
+
+    Replaces NSGA-II's crowding distance-based selection with one using
+    reference points.  At a high level, the advantage of reference points is
+    two-fold.  First, they can provide a better distribution of points,
+    especially on problems with many objectives where most solutions tend to
+    be non-dominated.  Second, the reference points can be selected to target
+    specific regions of interest.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    divisions_outer : int
+        The number of divisions.  When :code:`divisions_inner` is non-zero,
+        this represents the number of outer divisions.
+    divisions_inner : int
+        The number of inner divisions.
+    generator : Generator
+        The method for generating the initial population.
+    selector : Selector
+        The method for selecting parents for mating.
+    variator : Variator
+        The variator used during mating to produce offspring.  Must use
+        the differential evolution operator.
+    """
 
     def __init__(self, problem,
                  divisions_outer,
@@ -794,6 +997,32 @@ class NSGAIII(AbstractGeneticAlgorithm):
         self.population = self._reference_point_truncate(offspring, self.population_size)
 
 class ParticleSwarm(Algorithm, metaclass=ABCMeta):
+    """Abstract class for particle swarm optimization (PSO) algorithms.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    swarm_size : int
+        The size of the swarm (synonymous to a population).
+    leader_size : int
+        The number of leaders to track (synonymous to an archive).
+    generator : Generator
+        The method for generating the initial population.
+    mutate : Variator
+        The mutation used during mating to produce offspring.  Must have an
+        arity of :code:`1`.
+    leader_comparator : Dominance
+        The dominance criteria for selecting leaders.
+    dominance : Dominance
+        The dominance criteria for ranking solutions.
+    fitness : Callable
+        Function for measuring the fitness of solutions.
+    larger_preferred : boolean
+        Indicates if larger or smaller fitness values are preferred.
+    fitness_getter : Callable
+        Function to read the fitness value assigned to solutions.
+    """
 
     def __init__(self, problem,
                  swarm_size=100,
@@ -913,6 +1142,33 @@ class ParticleSwarm(Algorithm, metaclass=ABCMeta):
                 self.particles[i] = self.mutate.mutate([self.particles[i]])[0]
 
 class OMOPSO(ParticleSwarm):
+    """Multi-objective particle swarm optimizer (OMOPSO).
+
+    Notably, OMOPSO introduces a uniform and non-uniform mutation operator
+    that are applied to offspring.  The non-uniform operator scales itself
+    based on the maximum number of iterations, reducing the magnitude of
+    mutations as the run progresses.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    epsilons : list of float
+        The epsilons controlling the size of the epsilon-dominance archive.
+    swarm_size : int
+        The size of the swarm (synonymous to a population).
+    leader_size : int
+        The number of leaders to track (synonymous to an archive).
+    generator : Generator
+        The method for generating the initial population.
+    mutation_probability : float
+        The probability of mutation.
+    mutation_perturbation : float
+        Controls the distribution of offspring produced by mutation.
+    max_iterations : int
+        The maximum number of iterations you expect to run this algorithm.
+        This controls how quickly the non-uniform mutation scales.
+    """
 
     def __init__(self, problem,
                  epsilons,
@@ -965,6 +1221,24 @@ class OMOPSO(ParticleSwarm):
                 self.particles[i] = self.uniform_mutation.mutate(self.particles[i])
 
 class SMPSO(ParticleSwarm):
+    """Speed-constrained particle swarm optimizer (SMPSO).
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    swarm_size : int
+        The size of the swarm (synonymous to a population).
+    leader_size : int
+        The number of leaders to track (synonymous to an archive).
+    generator : Generator
+        The method for generating the initial population.
+    max_iterations : int
+        The maximum number of iterations you expect to run this algorithm.
+        This controls how quickly the non-uniform mutation scales.
+    mutate : Variator
+        The mutation operator.  Must have an arity of :code:`1`.
+    """
 
     def __init__(self, problem,
                  swarm_size=100,
@@ -1029,6 +1303,7 @@ class SMPSO(ParticleSwarm):
                 self.particles[i] = self.mutate.mutate(self.particles[i])
 
 class CMAES(Algorithm):
+    """Covariance matrix adaption evolution strategy (CMA-ES)."""
 
     def __init__(self, problem,
                  offspring_size=100,
@@ -1310,6 +1585,28 @@ class CMAES(Algorithm):
         self.update_distribution()
 
 class IBEA(AbstractGeneticAlgorithm):
+    """Indicator-based evolutionary algorithm (IBEA).
+
+    Uses a :class:`FitnessEvaluator` to measure the fitness of solutions,
+    typically based on hypervolume.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    fitness_evaluator : FitnessEvaluator
+        The method for computing the fitness of solutions.  Default uses
+        hypervolume.
+    fitness_comparator : Dominance
+        The domnance criteria using the fitness value.
+    variator : Variator
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+    """
 
     def __init__(self, problem,
                  population_size=100,
@@ -1356,6 +1653,25 @@ class IBEA(AbstractGeneticAlgorithm):
         return index
 
 class PAES(AbstractGeneticAlgorithm):
+    """Pareto archived evolutionary strategy (PAES).
+
+    Uses an adaptive grid archive to maintain a set of diverse solutions.  See
+    :class:`AdaptiveGridArchive` for more details.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    divisions : int
+        The number of divisions used by the adaptive grid archive.
+    capacity : int
+        The maximum capacity of the adaptive grid archive.
+    generator : Generator
+        The method for generating the initial population.
+    variator : Variator
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+    """
 
     def __init__(self,
                  problem,
@@ -1413,6 +1729,15 @@ class PAES(AbstractGeneticAlgorithm):
             return parent
 
 class RegionBasedSelector(Selector):
+    """Region-based selector using density from an adaptive grid archive.
+
+    Parameters
+    ----------
+    archive : AdaptiveGridArchive
+        The adaptive grid archive
+    grid : dict
+        Mapping from grid indices to solutions.
+    """
 
     def __init__(self, archive, grid):
         super().__init__()
@@ -1420,11 +1745,13 @@ class RegionBasedSelector(Selector):
         self.grid = grid
 
     def draw(self):
+        """Draw a solution at random from the archive."""
         index = random.randrange(len(self.grid.keys()))
         key = list(self.grid.keys())[index]
         return (key, self.grid[key])
 
     def select_one(self, population):
+        """Selects one of two solutions drawn from the archive based on density."""
         entry1 = self.draw()
         entry2 = self.draw()
         selection = entry1
@@ -1437,6 +1764,27 @@ class RegionBasedSelector(Selector):
         return selection[1][random.randrange(len(selection[1]))]
 
 class PESA2(AbstractGeneticAlgorithm):
+    """Pareto envelope-based selection algorithm (PESA2).
+
+    Uses an adaptive grid archive to maintain a set of diverse solutions.  See
+    :class:`AdaptiveGridArchive` for more details.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    population_size : int
+        The size of the population.
+    divisions : int
+        The number of divisions used by the adaptive grid archive.
+    capacity : int
+        The maximum capacity of the adaptive grid archive.
+    generator : Generator
+        The method for generating the initial population.
+    variator : Variator
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+    """
 
     def __init__(self,
                  problem,
@@ -1506,6 +1854,19 @@ class PESA2(AbstractGeneticAlgorithm):
             return parent
 
 class PeriodicAction(Algorithm, metaclass=ABCMeta):
+    """Wrapper for algorithms that performs some action at a fixed interval.
+
+    Parameters
+    ----------
+    algorithm : Algorithm
+        The underlying algorithm.
+    frequency : int
+        The frequency the action occurs.
+    by_nfe : bool
+        If :code:`True`, the frequency is given in number of function
+        evaluations.  If :code:`False`, the frequency is given in the number
+        of iterations.
+    """
 
     def __init__(self,
                  algorithm,
@@ -1547,6 +1908,37 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
             raise AttributeError(name="algorithm", object=self)
 
 class AdaptiveTimeContinuation(PeriodicAction):
+    """Wraps an algorithm to enable adaptive time continuation.
+
+    Adaptive time continuation performs two key functions:
+
+    First, it scales the population based on the size of the archive.  The idea
+    being a larger archive, with more non-dominated solutions, requires a
+    larger population to cover the search space.
+
+    Second, it periodically introduces extra randomness or diversity into the
+    population.  This helps avoid or escape local optima.
+
+    Parameters
+    ----------
+    algorithm : Algorithm
+        The underlying algorithm.
+    window_size : int
+        The number of iterations between calls to :meth:`check`.
+    max_window_size : int
+        The maximum number of iterations before a restart is required.
+    population_rato : float
+        The ratio between the desired population size and archive size, used
+        to scale the population size after each restart.
+    min_population_size : int
+        The minimum allowed population size.
+    max_population_size : int
+        The maximum allowed population size.
+    mutator : Variator
+        The mutation operator applied during restarts to introduce additional
+        randomness or diversity into the population.  Must have an arity of
+        :code:`1`.
+    """
 
     def __init__(self,
                  algorithm,
@@ -1612,6 +2004,33 @@ class AdaptiveTimeContinuation(PeriodicAction):
             self.restart()
 
 class EpsilonProgressContinuation(AdaptiveTimeContinuation):
+    """Wraps an algorithm to enable epsilon-progress continuation.
+
+    Epsilon-progress continuation extends adaptive time continuation to also
+    track the number of improvements made in the :class:`EpsilonBoxArchive`.
+    A restart is triggered if no improvements were recorded, as that often
+    occurs when the algorithm as converged to a local optima.
+
+    Parameters
+    ----------
+    algorithm : Algorithm
+        The underlying algorithm.
+    window_size : int
+        The number of iterations between calls to :meth:`check`.
+    max_window_size : int
+        The maximum number of iterations before a restart is required.
+    population_rato : float
+        The ratio between the desired population size and archive size, used
+        to scale the population size after each restart.
+    min_population_size : int
+        The minimum allowed population size.
+    max_population_size : int
+        The maximum allowed population size.
+    mutator : Variator
+        The mutation operator applied during restarts to introduce additional
+        randomness or diversity into the population.  Must have an arity of
+        :code:`1`.
+    """
 
     def __init__(self,
                  algorithm,
@@ -1645,6 +2064,28 @@ class EpsilonProgressContinuation(AdaptiveTimeContinuation):
         self.last_improvements = self.archive.improvements
 
 class EpsNSGAII(AdaptiveTimeContinuation):
+    """Epsilon-dominance NSGA-II (:math:`\\epsilon`-NSGA-II).
+
+    Extends NSGA-II to use an epsilon-dominance archive to track the best
+    solutions found during search.  This is essentially a form of elitism
+    for multi-objective problems.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem to optimize.
+    epsilons : list of float
+        The epsilons used to configure the epsilon-dominance archive.
+    population_size : int
+        The size of the population.
+    generator : Generator
+        The method for generating the initial population.
+    selector : Selector
+        The method for selecting parents for mating.
+    variator : Variator, optional
+        The variator used during mating to produce offspring.  If :code:`None`,
+        the default variator configured in :code:`PlatypusConfig` is selected.
+    """
 
     def __init__(self,
                  problem,
