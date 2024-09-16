@@ -73,84 +73,83 @@ def load_set(file):
     except json.decoder.JSONDecodeError:
         return platypus.load_objectives(file)
 
-match args.command:
-    case "hypervolume":
-        ref_set = load_set(args.reference)
-        input_set = load_set(args.filename)
-        hyp = platypus.Hypervolume(reference_set=ref_set)
-        print(hyp.calculate(input_set))
-    case "gd":
-        ref_set = load_set(args.reference)
-        input_set = load_set(args.filename)
-        gd = platypus.GenerationalDistance(reference_set=ref_set)
-        print(gd.calculate(input_set))
-    case "igd":
-        ref_set = load_set(args.reference)
-        input_set = load_set(args.filename)
-        igd = platypus.InvertedGenerationalDistance(reference_set=ref_set)
-        print(igd.calculate(input_set))
-    case "epsilon":
-        ref_set = load_set(args.reference)
-        input_set = load_set(args.filename)
-        eps = platypus.EpsilonIndicator(reference_set=ref_set)
-        print(eps.calculate(input_set))
-    case "spacing":
-        input_set = load_set(args.filename)
-        spacing = platypus.Spacing()
-        print(spacing.calculate(input_set))
-    case "solve":
-        problem_module = __import__(args.problem_module if args.problem_module else "platypus", fromlist=[''])
-        algorithm_module = __import__(args.algorithm_module if args.algorithm_module else "platypus", fromlist=[''])
+if args.command == "hypervolume":
+    ref_set = load_set(args.reference)
+    input_set = load_set(args.filename)
+    hyp = platypus.Hypervolume(reference_set=ref_set)
+    print(hyp.calculate(input_set))
+elif args.command == "gd":
+    ref_set = load_set(args.reference)
+    input_set = load_set(args.filename)
+    gd = platypus.GenerationalDistance(reference_set=ref_set)
+    print(gd.calculate(input_set))
+elif args.command == "igd":
+    ref_set = load_set(args.reference)
+    input_set = load_set(args.filename)
+    igd = platypus.InvertedGenerationalDistance(reference_set=ref_set)
+    print(igd.calculate(input_set))
+elif args.command == "epsilon":
+    ref_set = load_set(args.reference)
+    input_set = load_set(args.filename)
+    eps = platypus.EpsilonIndicator(reference_set=ref_set)
+    print(eps.calculate(input_set))
+elif args.command == "spacing":
+    input_set = load_set(args.filename)
+    spacing = platypus.Spacing()
+    print(spacing.calculate(input_set))
+elif args.command == "solve":
+    problem_module = __import__(args.problem_module if args.problem_module else "platypus", fromlist=[''])
+    algorithm_module = __import__(args.algorithm_module if args.algorithm_module else "platypus", fromlist=[''])
 
-        if args.problem not in dir(problem_module):
-            raise platypus.PlatypusError(f"'{args.problem}' not found in module '{problem_module.__name__}'")
-        if args.algorithm not in dir(algorithm_module):
-            raise platypus.PlatypusError(f"'{args.algorithm}' not found in module '{algorithm_module.__name__}'")
+    if args.problem not in dir(problem_module):
+        raise platypus.PlatypusError(f"'{args.problem}' not found in module '{problem_module.__name__}'")
+    if args.algorithm not in dir(algorithm_module):
+        raise platypus.PlatypusError(f"'{args.algorithm}' not found in module '{algorithm_module.__name__}'")
 
-        problem_class = getattr(problem_module, args.problem)
-        algorithm_class = getattr(algorithm_module, args.algorithm)
+    problem_class = getattr(problem_module, args.problem)
+    algorithm_class = getattr(algorithm_module, args.algorithm)
 
-        if not issubclass(problem_class, platypus.Problem):
-            raise platypus.PlatypusError(f"'{args.problem}' is not a valid Problem")
-        if not issubclass(algorithm_class, platypus.Algorithm):
-            raise platypus.PlatypusError(f"'{args.algorithm}' is not a valid Algorithm")
+    if not issubclass(problem_class, platypus.Problem):
+        raise platypus.PlatypusError(f"'{args.problem}' is not a valid Problem")
+    if not issubclass(algorithm_class, platypus.Algorithm):
+        raise platypus.PlatypusError(f"'{args.algorithm}' is not a valid Algorithm")
 
-        extra_args = parse_cli_keyvalue(args.arguments)
-        problem = problem_class(**type_cast(only_keys_for(extra_args, problem_class), problem_class))
-        algorithm = algorithm_class(problem, **type_cast(only_keys_for(extra_args, algorithm_class), algorithm_class))
-        algorithm.run(args.nfe)
+    extra_args = parse_cli_keyvalue(args.arguments)
+    problem = problem_class(**type_cast(only_keys_for(extra_args, problem_class), problem_class))
+    algorithm = algorithm_class(problem, **type_cast(only_keys_for(extra_args, algorithm_class), algorithm_class))
+    algorithm.run(args.nfe)
 
-        if args.output:
-            platypus.save_json(args.output, algorithm, indent=4)
-        else:
-            platypus.dump(algorithm.result, sys.stdout, indent=4)
-    case "plot":
-        import matplotlib.pyplot as plt
-        input_set = load_set(args.filename)
-        nobjs = input_set[0].problem.nobjs
-        fig = plt.figure()
+    if args.output:
+        platypus.save_json(args.output, algorithm, indent=4)
+    else:
+        platypus.dump(algorithm.result, sys.stdout, indent=4)
+elif args.command == "plot":
+    import matplotlib.pyplot as plt
+    input_set = load_set(args.filename)
+    nobjs = input_set[0].problem.nobjs
+    fig = plt.figure()
 
-        if nobjs == 2:
-            ax = fig.add_subplot()
-            ax.scatter([s.objectives[0] for s in input_set],
-                       [s.objectives[1] for s in input_set])
-        elif nobjs == 3:
-            ax = fig.add_subplot(projection='3d')
-            ax.scatter([s.objectives[0] for s in input_set],
-                       [s.objectives[1] for s in input_set],
-                       [s.objectives[2] for s in input_set])
-            ax.view_init(elev=30.0, azim=15.0)
-        else:
-            raise platypus.PlatypusError("plot requires a set with 2 or 3 objectives")
+    if nobjs == 2:
+        ax = fig.add_subplot()
+        ax.scatter([s.objectives[0] for s in input_set],
+                   [s.objectives[1] for s in input_set])
+    elif nobjs == 3:
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter([s.objectives[0] for s in input_set],
+                   [s.objectives[1] for s in input_set],
+                   [s.objectives[2] for s in input_set])
+        ax.view_init(elev=30.0, azim=15.0)
+    else:
+        raise platypus.PlatypusError("plot requires a set with 2 or 3 objectives")
 
-        ax.set_title(args.title if args.title else args.filename)
-        ax.set_xlabel("$f_1(x)$")
-        ax.set_ylabel("$f_2(x)$")
+    ax.set_title(args.title if args.title else args.filename)
+    ax.set_xlabel("$f_1(x)$")
+    ax.set_ylabel("$f_2(x)$")
 
-        if nobjs == 3:
-            ax.set_zlabel("$f_3(x)$")
+    if nobjs == 3:
+        ax.set_zlabel("$f_3(x)$")
 
-        if args.output:
-            plt.savefig(args.output)
-        else:
-            plt.show()
+    if args.output:
+        plt.savefig(args.output)
+    else:
+        plt.show()
