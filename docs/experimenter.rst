@@ -37,12 +37,12 @@ The output of which appears similar to:
 
 .. code::
 
-    NSGAII
-        DTLZ2
-            Hypervolume : [0.361, 0.369, 0.372, 0.376, 0.376, 0.388, 0.378, 0.371, 0.363, 0.364]
-    NSGAIII
-        DTLZ2
-            Hypervolume : [0.407, 0.41, 0.407, 0.405, 0.405, 0.398, 0.404, 0.406, 0.408, 0.401]
+   NSGAII
+      DTLZ2
+         Hypervolume : [0.361, 0.369, 0.372, 0.376, 0.376, 0.388, 0.378, 0.371, 0.363, 0.364]
+   NSGAIII
+      DTLZ2
+         Hypervolume : [0.407, 0.41, 0.407, 0.405, 0.405, 0.398, 0.404, 0.406, 0.408, 0.401]
 
 
 Once this data is collected, we can then use statistical tests to determine if

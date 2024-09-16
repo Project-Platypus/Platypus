@@ -18,7 +18,6 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pickle
 import unittest
-import functools
 from ..core import Problem
 from ..errors import PlatypusError
 from ..problems import DTLZ2
@@ -106,7 +105,7 @@ class TestRunning(unittest.TestCase):
         self._run_test()
 
     def test_MOEAD_pbi(self):
-        self.algorithm = MOEAD(self.problem, scalarizing_function=functools.partial(pbi, theta=0.5))
+        self.algorithm = MOEAD(self.problem, scalarizing_function=pbi)
         self._run_test()
 
     def test_OMOPSO(self):

@@ -9,10 +9,10 @@ To install the latest version of Platypus, run the following commands.
 
 ::
 
-    pip install -U build setuptools
-    git clone https://github.com/Project-Platypus/Platypus.git
-    cd Platypus
-    python -m build
+   pip install -U build setuptools
+   git clone https://github.com/Project-Platypus/Platypus.git
+   cd Platypus
+   python -m build
 
 A Simple Example
 ----------------
@@ -27,13 +27,13 @@ The output shows on each line the objectives for a Pareto optimal solution:
 
 .. code::
 
-    [1.00289403128, 6.63772921439e-05]
-    [0.000320076737668, 1.00499316652]
-    [1.00289403128, 6.63772921439e-05]
-    [0.705383878891, 0.712701387377]
-    [0.961083112366, 0.285860932437]
-    [0.729124908607, 0.688608373855]
-    ...
+   [1.00289403128, 6.63772921439e-05]
+   [0.000320076737668, 1.00499316652]
+   [1.00289403128, 6.63772921439e-05]
+   [0.705383878891, 0.712701387377]
+   [0.961083112366, 0.285860932437]
+   [0.729124908607, 0.688608373855]
+   ...
 
 If *matplotlib* is available, we can also plot the results.  Note that
 *matplotlib* must be installed separately.  Running the following code
@@ -137,13 +137,13 @@ In this case we would need to filter out the infeasible solutions:
 
 .. code:: python
 
-    feasible_solutions = [s for s in algorithm.result if s.feasible]
+   feasible_solutions = [s for s in algorithm.result if s.feasible]
 
 We could also get only the non-dominated solutions:
 
 .. code:: python
 
-    nondominated_solutions = nondominated(algorithm.result)
+   nondominated_solutions = nondominated(algorithm.result)
 
 
 Alternatively, we can develop a reusable class for this problem by extending
@@ -160,4 +160,4 @@ objective by setting the ``directions`` attribute.  For example:
 
 .. code:: python
 
-    problem.directions[:] = Problem.MAXIMIZE
+   problem.directions[:] = Problem.MAXIMIZE

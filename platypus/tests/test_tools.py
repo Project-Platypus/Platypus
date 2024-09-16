@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from .._tools import remove_keys, only_keys, only_keys_for
+from .._tools import coalesce, remove_keys, only_keys, only_keys_for, \
+    parse_cli_keyvalue, type_cast
 
 
 class TestDictMethods(unittest.TestCase):
@@ -40,8 +41,32 @@ class TestDictMethods(unittest.TestCase):
     def _test_func_def(self, a=5):
         pass
 
+    def _test_func_kwonly(self, *, a=5):
+        pass
+
     def test_keys_for(self):
         self.assertEqual({}, only_keys_for({}, self._test_func_pos))
         self.assertEqual({"a": "keep"}, only_keys_for({"a": "keep", "b": "remove"}, self._test_func_pos))
         self.assertEqual({}, only_keys_for({}, self._test_func_def))
         self.assertEqual({"a": "keep"}, only_keys_for({"a": "keep", "b": "remove"}, self._test_func_def))
+        self.assertEqual({}, only_keys_for({}, self._test_func_kwonly))
+        self.assertEqual({"a": "keep"}, only_keys_for({"a": "keep", "b": "remove"}, self._test_func_kwonly))
+
+    def test_parse_cli_keyvalue(self):
+        self.assertEqual({}, parse_cli_keyvalue([]))
+        self.assertEqual({"a": "2"}, parse_cli_keyvalue(["a=2"]))
+        self.assertEqual({"a": "2", "b": "foo"}, parse_cli_keyvalue(["a=2", "b=foo"]))
+
+    def test_type_cast(self):
+        args = {"a": "2", "b": "foo"}
+        self.assertEqual(args, type_cast(args, self._test_func_pos))
+        self.assertEqual({"a": 2, "b": "foo"}, type_cast(args, self._test_func_def))
+        self.assertEqual({"a": 2, "b": "foo"}, type_cast(args, self._test_func_kwonly))
+
+    def test_coalesce(self):
+        self.assertIsNone(coalesce())
+        self.assertIsNone(coalesce(None, None))
+        self.assertEqual("foo", coalesce(None, "foo", "bar", None))
+
+        with self.assertRaises(ValueError):
+            self.assertIsNone(coalesce(None, None, throw_if_none=True))
