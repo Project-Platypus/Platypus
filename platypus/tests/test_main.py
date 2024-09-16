@@ -26,21 +26,21 @@ class TestMain(unittest.TestCase):
     def test_cli(self):
         suffix = str(random.randint(0, 1000000))
 
-        main("solve",
-             "--algorithm", "NSGAII",
-             "--problem", "DTLZ2",
-             "--nfe", "10000",
-             "--output", f"NSGAII_DTLZ2_{suffix}.set")
+        main(["solve",
+              "--algorithm", "NSGAII",
+              "--problem", "DTLZ2",
+              "--nfe", "10000",
+              "--output", f"NSGAII_DTLZ2_{suffix}.set"])
 
         self.assertTrue(os.path.exists(f"NSGAII_DTLZ2_{suffix}.set"))
 
-        main("hypervolume",
-             "--reference", "examples/DTLZ2.2D.pf",
-             f"NSGAII_DTLZ2_{suffix}.set")
+        main(["hypervolume",
+              "--reference", "examples/DTLZ2.2D.pf",
+              f"NSGAII_DTLZ2_{suffix}.set"])
 
-        main("plot",
-             "--output", f"NSGAII_DTLZ2_{suffix}.png",
-             f"NSGAII_DTLZ2_{suffix}.set")
+        main(["plot",
+              "--output", f"NSGAII_DTLZ2_{suffix}.png",
+              f"NSGAII_DTLZ2_{suffix}.set"])
 
         self.assertTrue(os.path.exists(f"NSGAII_DTLZ2_{suffix}.png"))
 
