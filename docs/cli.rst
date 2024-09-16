@@ -41,6 +41,8 @@ the hypervolume using a reference set for normalization:
 
    python -m platypus hypervolume --reference ./examples/DTLZ2.2D.pf NSGAII_DTLZ2.set
 
+which outputs:
+
 ::
 
    0.23519328623761482
@@ -53,3 +55,4 @@ For 2 and 3 objectives, we can also generate a plot, either interactive or savin
 .. code:: bash
 
    python -m platypus plot NSGAII_DTLZ2.set
+   python -m platypus plot --output NSGAII_DTLZ2.png NSGAII_DTLZ2.set
