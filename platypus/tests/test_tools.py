@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from .._tools import remove_keys, only_keys, only_keys_for, \
+from .._tools import coalesce, remove_keys, only_keys, only_keys_for, \
     parse_cli_keyvalue, type_cast
 
 
@@ -62,3 +62,11 @@ class TestDictMethods(unittest.TestCase):
         self.assertEqual(args, type_cast(args, self._test_func_pos))
         self.assertEqual({"a": 2, "b": "foo"}, type_cast(args, self._test_func_def))
         self.assertEqual({"a": 2, "b": "foo"}, type_cast(args, self._test_func_kwonly))
+
+    def test_coalesce(self):
+        self.assertIsNone(coalesce())
+        self.assertIsNone(coalesce(None, None))
+        self.assertEqual("foo", coalesce(None, "foo", "bar", None))
+
+        with self.assertRaises(ValueError):
+            self.assertIsNone(coalesce(None, None, throw_if_none=True))

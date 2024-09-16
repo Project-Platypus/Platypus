@@ -138,3 +138,20 @@ def type_cast(d, func):
         result[k] = _type_cast_value(k, v, argspec)
 
     return result
+
+def coalesce(*args, throw_if_none=False):
+    """Returns the first value, skipping any that are None.
+
+    Parameters
+    ----------
+    args
+        The values, of which at least one should be set.
+    throw_if_none : bool
+        If :code:`true`, throws if no value is set.
+    """
+    for a in args:
+        if a is not None:
+            return a
+    if throw_if_none:
+        raise ValueError("expected at least one value")
+    return None

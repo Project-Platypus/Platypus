@@ -22,7 +22,8 @@ import json
 import logging
 import platypus
 from argparse import ArgumentParser
-from ._tools import only_keys_for, parse_cli_keyvalue, type_cast, log_args
+from ._tools import only_keys_for, parse_cli_keyvalue, type_cast, log_args, \
+    coalesce
 
 def main(input):
     logging.basicConfig(level=logging.INFO)
@@ -102,8 +103,8 @@ def main(input):
         spacing = platypus.Spacing()
         print(spacing.calculate(input_set))
     elif args.command == "solve":
-        problem_module = __import__(args.problem_module if args.problem_module else "platypus", fromlist=[''])
-        algorithm_module = __import__(args.algorithm_module if args.algorithm_module else "platypus", fromlist=[''])
+        problem_module = __import__(coalesce(args.problem_module, "platypus"), fromlist=[''])
+        algorithm_module = __import__(coalesce(args.algorithm_module, "platypus"), fromlist=[''])
 
         if args.problem not in dir(problem_module):
             raise platypus.PlatypusError(f"'{args.problem}' not found in module '{problem_module.__name__}'")
@@ -152,7 +153,7 @@ def main(input):
         else:
             raise platypus.PlatypusError("plot requires a set with 2 or 3 objectives")
 
-        ax.set_title(args.title if args.title else args.filename)
+        ax.set_title(coalesce(args.title, args.filename))
         ax.set_xlabel("$f_1(x)$")
         ax.set_ylabel("$f_2(x)$")
 
