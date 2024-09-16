@@ -46,7 +46,7 @@ def chebyshev(solution, ideal_point, weights, min_weight=0.0001):
     objs = solution.objectives
     return max([max(weights[i], min_weight) * (objs[i]-ideal_point[i]) for i in range(nobjs)])
 
-def pbi(solution, ideal_point, weights, theta):
+def pbi(solution, ideal_point, weights, theta=0.5):
     """Penalty-based boundary intersection fitness of a solution with multiple
     objectives.
 

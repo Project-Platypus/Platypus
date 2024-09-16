@@ -14,4 +14,5 @@ optimization.
    getting-started
    types
    experimenter
+   cli
    api/platypus
