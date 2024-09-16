@@ -12,24 +12,24 @@ see all available options, run:
 Solve
 -----
 
-Solve executes the given algorithm on a problem, printing the final approximation set as JSON:
-
-.. code:: bash
-
-   python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000
-
-Additional arguments can be provided, however, note this only works with built-in Python types like
-``str``, ``int`` and ``float``:
-
-.. code:: bash
-
-   python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 populationSize=250
-
-We can also save the output to a file for further analysis:
+Solve executes the given algorithm on a problem, saving the final approximation set as JSON:
 
 .. code:: bash
 
    python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 --output NSGAII_DTLZ2.set
+
+Additional arguments can be provided, such as setting the ``population_size`` as demonstrated below.
+Note that only arguments with primitive types are supported.
+
+.. code:: bash
+
+   python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 population_size=250
+
+::
+
+   INFO:Platypus:Setting population_size=250 on NSGAII
+   INFO:Platypus:NSGAII starting
+   INFO:Platypus:NSGAII finished; Total NFE: 10000, Elapsed Time: 0:00:06.216727
 
 Performance Indicators
 ----------------------

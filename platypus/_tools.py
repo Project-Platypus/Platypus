@@ -19,7 +19,10 @@
 
 import types
 import inspect
+import logging
 from .core import PlatypusError
+
+LOGGER = logging.getLogger("Platypus")
 
 def remove_keys(d, *keys):
     """Returns a new dictionary with the given keys removed.
@@ -67,6 +70,11 @@ def only_keys_for(d, func):
     argspec = inspect.getfullargspec(func)
     args = argspec.args + argspec.kwonlyargs
     return only_keys(d, *args)
+
+def log_args(args, target):
+    """Logs the arguments."""
+    for k, v in args.items():
+        LOGGER.log(logging.INFO, "Setting %s=%s on %s", k, v, target)
 
 def parse_cli_keyvalue(args):
     """Parses CLI key=value pairs into a dictionary.

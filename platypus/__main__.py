@@ -19,137 +19,150 @@
 
 import sys
 import json
+import logging
 import platypus
 from argparse import ArgumentParser
-from ._tools import only_keys_for, parse_cli_keyvalue, type_cast
+from ._tools import only_keys_for, parse_cli_keyvalue, type_cast, log_args
 
-parser = ArgumentParser(prog="platypus",
-                        description="Platypus (platypus-opt) - Multobjective optimization in Python")
+def main(input):
+    logging.basicConfig(level=logging.INFO)
 
-parser.add_argument("-v", "--version", action="version", version=platypus.__version__)
+    parser = ArgumentParser(prog="platypus",
+                            description="Platypus (platypus-opt) - Multobjective optimization in Python")
 
-subparsers = parser.add_subparsers(title="commands", required=True, dest="command")
+    parser.add_argument("-v", "--version", action="version", version=platypus.__version__)
 
-hypervolume_parser = subparsers.add_parser("hypervolume", help="compute hypervolume")
-hypervolume_parser.add_argument("-r", "--reference", help="reference set")
-hypervolume_parser.add_argument("--minimum", type=float, metavar="N", nargs="*", help="minimum bounds, optional")
-hypervolume_parser.add_argument("--maximum", type=float, metavar="N", nargs="*", help="maximum bounds, optional")
-hypervolume_parser.add_argument("filename")
+    subparsers = parser.add_subparsers(title="commands", required=True, dest="command")
 
-gd_parser = subparsers.add_parser("gd", help="compute generaional distance")
-gd_parser.add_argument("-r", "--reference", help="reference set", required=True)
-gd_parser.add_argument("filename")
+    hypervolume_parser = subparsers.add_parser("hypervolume", help="compute hypervolume")
+    hypervolume_parser.add_argument("-r", "--reference", help="reference set")
+    hypervolume_parser.add_argument("--minimum", type=float, metavar="N", nargs="*", help="minimum bounds, optional")
+    hypervolume_parser.add_argument("--maximum", type=float, metavar="N", nargs="*", help="maximum bounds, optional")
+    hypervolume_parser.add_argument("filename")
 
-igd_parser = subparsers.add_parser("igd", help="compute inverted generaional distance")
-igd_parser.add_argument("-r", "--reference", help="reference set", required=True)
-igd_parser.add_argument("filename")
+    gd_parser = subparsers.add_parser("gd", help="compute generaional distance")
+    gd_parser.add_argument("-r", "--reference", help="reference set", required=True)
+    gd_parser.add_argument("filename")
 
-epsilon_parser = subparsers.add_parser("epsilon", help="compute additive epsilon indicator")
-epsilon_parser.add_argument("-r", "--reference", help="reference set", required=True)
-epsilon_parser.add_argument("filename")
+    igd_parser = subparsers.add_parser("igd", help="compute inverted generaional distance")
+    igd_parser.add_argument("-r", "--reference", help="reference set", required=True)
+    igd_parser.add_argument("filename")
 
-spacing_parser = subparsers.add_parser("spacing", help="compute spacing")
-spacing_parser.add_argument("filename")
+    epsilon_parser = subparsers.add_parser("epsilon", help="compute additive epsilon indicator")
+    epsilon_parser.add_argument("-r", "--reference", help="reference set", required=True)
+    epsilon_parser.add_argument("filename")
 
-solve_parser = subparsers.add_parser("solve", help="solve a built-in problem")
-solve_parser.add_argument("-p", "--problem", help="name of the problem", required=True)
-solve_parser.add_argument("-a", "--algorithm", help="name of the algorithm", required=True)
-solve_parser.add_argument("-n", "--nfe", help="number of function evaluations", type=int, default=10000)
-solve_parser.add_argument("-o", "--output", help="output filename")
-solve_parser.add_argument("--problem_module", help="module containing the problem (if not built-in)")
-solve_parser.add_argument("--algorithm_module", help="module containing the algorithm (if not built-in)")
-solve_parser.add_argument("arguments", metavar="KEY=VALUE", nargs="*", help="additional arguments to set")
+    spacing_parser = subparsers.add_parser("spacing", help="compute spacing")
+    spacing_parser.add_argument("filename")
 
-plot_parser = subparsers.add_parser("plot", help="generate simple 2D or 3D plot")
-plot_parser.add_argument("-t", "--title", help="plot title")
-plot_parser.add_argument("-o", "--output", help="output filename")
-plot_parser.add_argument("filename")
+    solve_parser = subparsers.add_parser("solve", help="solve a built-in problem")
+    solve_parser.add_argument("-p", "--problem", help="name of the problem", required=True)
+    solve_parser.add_argument("-a", "--algorithm", help="name of the algorithm", required=True)
+    solve_parser.add_argument("-n", "--nfe", help="number of function evaluations", type=int, default=10000)
+    solve_parser.add_argument("-o", "--output", help="output filename")
+    solve_parser.add_argument("--problem_module", help="module containing the problem (if not built-in)")
+    solve_parser.add_argument("--algorithm_module", help="module containing the algorithm (if not built-in)")
+    solve_parser.add_argument("arguments", metavar="KEY=VALUE", nargs="*", help="additional arguments to set")
 
-args = parser.parse_args()
+    plot_parser = subparsers.add_parser("plot", help="generate simple 2D or 3D plot")
+    plot_parser.add_argument("-t", "--title", help="plot title")
+    plot_parser.add_argument("-o", "--output", help="output filename")
+    plot_parser.add_argument("filename")
 
-def load_set(file):
-    try:
-        return platypus.load_json(file)
-    except json.decoder.JSONDecodeError:
-        return platypus.load_objectives(file)
+    args = parser.parse_args(input)
 
-if args.command == "hypervolume":
-    ref_set = load_set(args.reference)
-    input_set = load_set(args.filename)
-    hyp = platypus.Hypervolume(reference_set=ref_set)
-    print(hyp.calculate(input_set))
-elif args.command == "gd":
-    ref_set = load_set(args.reference)
-    input_set = load_set(args.filename)
-    gd = platypus.GenerationalDistance(reference_set=ref_set)
-    print(gd.calculate(input_set))
-elif args.command == "igd":
-    ref_set = load_set(args.reference)
-    input_set = load_set(args.filename)
-    igd = platypus.InvertedGenerationalDistance(reference_set=ref_set)
-    print(igd.calculate(input_set))
-elif args.command == "epsilon":
-    ref_set = load_set(args.reference)
-    input_set = load_set(args.filename)
-    eps = platypus.EpsilonIndicator(reference_set=ref_set)
-    print(eps.calculate(input_set))
-elif args.command == "spacing":
-    input_set = load_set(args.filename)
-    spacing = platypus.Spacing()
-    print(spacing.calculate(input_set))
-elif args.command == "solve":
-    problem_module = __import__(args.problem_module if args.problem_module else "platypus", fromlist=[''])
-    algorithm_module = __import__(args.algorithm_module if args.algorithm_module else "platypus", fromlist=[''])
+    def load_set(file):
+        try:
+            return platypus.load_json(file)
+        except json.decoder.JSONDecodeError:
+            return platypus.load_objectives(file)
 
-    if args.problem not in dir(problem_module):
-        raise platypus.PlatypusError(f"'{args.problem}' not found in module '{problem_module.__name__}'")
-    if args.algorithm not in dir(algorithm_module):
-        raise platypus.PlatypusError(f"'{args.algorithm}' not found in module '{algorithm_module.__name__}'")
+    if args.command == "hypervolume":
+        ref_set = load_set(args.reference)
+        input_set = load_set(args.filename)
+        hyp = platypus.Hypervolume(reference_set=ref_set)
+        print(hyp.calculate(input_set))
+    elif args.command == "gd":
+        ref_set = load_set(args.reference)
+        input_set = load_set(args.filename)
+        gd = platypus.GenerationalDistance(reference_set=ref_set)
+        print(gd.calculate(input_set))
+    elif args.command == "igd":
+        ref_set = load_set(args.reference)
+        input_set = load_set(args.filename)
+        igd = platypus.InvertedGenerationalDistance(reference_set=ref_set)
+        print(igd.calculate(input_set))
+    elif args.command == "epsilon":
+        ref_set = load_set(args.reference)
+        input_set = load_set(args.filename)
+        eps = platypus.EpsilonIndicator(reference_set=ref_set)
+        print(eps.calculate(input_set))
+    elif args.command == "spacing":
+        input_set = load_set(args.filename)
+        spacing = platypus.Spacing()
+        print(spacing.calculate(input_set))
+    elif args.command == "solve":
+        problem_module = __import__(args.problem_module if args.problem_module else "platypus", fromlist=[''])
+        algorithm_module = __import__(args.algorithm_module if args.algorithm_module else "platypus", fromlist=[''])
 
-    problem_class = getattr(problem_module, args.problem)
-    algorithm_class = getattr(algorithm_module, args.algorithm)
+        if args.problem not in dir(problem_module):
+            raise platypus.PlatypusError(f"'{args.problem}' not found in module '{problem_module.__name__}'")
+        if args.algorithm not in dir(algorithm_module):
+            raise platypus.PlatypusError(f"'{args.algorithm}' not found in module '{algorithm_module.__name__}'")
 
-    if not issubclass(problem_class, platypus.Problem):
-        raise platypus.PlatypusError(f"'{args.problem}' is not a valid Problem")
-    if not issubclass(algorithm_class, platypus.Algorithm):
-        raise platypus.PlatypusError(f"'{args.algorithm}' is not a valid Algorithm")
+        problem_class = getattr(problem_module, args.problem)
+        algorithm_class = getattr(algorithm_module, args.algorithm)
 
-    extra_args = parse_cli_keyvalue(args.arguments)
-    problem = problem_class(**type_cast(only_keys_for(extra_args, problem_class), problem_class))
-    algorithm = algorithm_class(problem, **type_cast(only_keys_for(extra_args, algorithm_class), algorithm_class))
-    algorithm.run(args.nfe)
+        if not issubclass(problem_class, platypus.Problem):
+            raise platypus.PlatypusError(f"'{args.problem}' is not a valid Problem")
+        if not issubclass(algorithm_class, platypus.Algorithm):
+            raise platypus.PlatypusError(f"'{args.algorithm}' is not a valid Algorithm")
 
-    if args.output:
-        platypus.save_json(args.output, algorithm, indent=4)
-    else:
-        platypus.dump(algorithm.result, sys.stdout, indent=4)
-elif args.command == "plot":
-    import matplotlib.pyplot as plt
-    input_set = load_set(args.filename)
-    nobjs = input_set[0].problem.nobjs
-    fig = plt.figure()
+        extra_args = parse_cli_keyvalue(args.arguments)
+        problem_args = type_cast(only_keys_for(extra_args, problem_class), problem_class)
+        algorithm_args = type_cast(only_keys_for(extra_args, algorithm_class), algorithm_class)
 
-    if nobjs == 2:
-        ax = fig.add_subplot()
-        ax.scatter([s.objectives[0] for s in input_set],
-                   [s.objectives[1] for s in input_set])
-    elif nobjs == 3:
-        ax = fig.add_subplot(projection='3d')
-        ax.scatter([s.objectives[0] for s in input_set],
-                   [s.objectives[1] for s in input_set],
-                   [s.objectives[2] for s in input_set])
-        ax.view_init(elev=30.0, azim=15.0)
-    else:
-        raise platypus.PlatypusError("plot requires a set with 2 or 3 objectives")
+        log_args(problem_args, problem_class.__name__)
+        log_args(algorithm_args, algorithm_class.__name__)
 
-    ax.set_title(args.title if args.title else args.filename)
-    ax.set_xlabel("$f_1(x)$")
-    ax.set_ylabel("$f_2(x)$")
+        problem = problem_class(**problem_args)
+        algorithm = algorithm_class(problem, **algorithm_args)
+        algorithm.run(args.nfe)
 
-    if nobjs == 3:
-        ax.set_zlabel("$f_3(x)$")
+        if args.output:
+            platypus.save_json(args.output, algorithm, indent=4)
+        else:
+            platypus.dump(algorithm.result, sys.stdout, indent=4)
+    elif args.command == "plot":
+        import matplotlib.pyplot as plt
+        input_set = load_set(args.filename)
+        nobjs = input_set[0].problem.nobjs
+        fig = plt.figure()
 
-    if args.output:
-        plt.savefig(args.output)
-    else:
-        plt.show()
+        if nobjs == 2:
+            ax = fig.add_subplot()
+            ax.scatter([s.objectives[0] for s in input_set],
+                       [s.objectives[1] for s in input_set])
+        elif nobjs == 3:
+            ax = fig.add_subplot(projection='3d')
+            ax.scatter([s.objectives[0] for s in input_set],
+                       [s.objectives[1] for s in input_set],
+                       [s.objectives[2] for s in input_set])
+            ax.view_init(elev=30.0, azim=15.0)
+        else:
+            raise platypus.PlatypusError("plot requires a set with 2 or 3 objectives")
+
+        ax.set_title(args.title if args.title else args.filename)
+        ax.set_xlabel("$f_1(x)$")
+        ax.set_ylabel("$f_2(x)$")
+
+        if nobjs == 3:
+            ax.set_zlabel("$f_3(x)$")
+
+        if args.output:
+            plt.savefig(args.output)
+        else:
+            plt.show()
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
