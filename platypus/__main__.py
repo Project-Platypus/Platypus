@@ -19,6 +19,7 @@
 
 import sys
 import json
+import random
 import logging
 import platypus
 from argparse import ArgumentParser
@@ -60,6 +61,7 @@ def main(input):
     solve_parser.add_argument("-p", "--problem", help="name of the problem", required=True)
     solve_parser.add_argument("-a", "--algorithm", help="name of the algorithm", required=True)
     solve_parser.add_argument("-n", "--nfe", help="number of function evaluations", type=int, default=10000)
+    solve_parser.add_argument("-s", "--seed", help="pseudo-random number seed", type=int)
     solve_parser.add_argument("-o", "--output", help="output filename")
     solve_parser.add_argument("--problem_module", help="module containing the problem (if not built-in)")
     solve_parser.add_argument("--algorithm_module", help="module containing the algorithm (if not built-in)")
@@ -103,6 +105,9 @@ def main(input):
         spacing = platypus.Spacing()
         print(spacing.calculate(input_set))
     elif args.command == "solve":
+        if args.seed is not None:
+            random.seed(args.seed)
+
         problem_module = __import__(coalesce(args.problem_module, "platypus"), fromlist=[''])
         algorithm_module = __import__(coalesce(args.algorithm_module, "platypus"), fromlist=[''])
 
