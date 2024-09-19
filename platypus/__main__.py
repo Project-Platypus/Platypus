@@ -36,26 +36,31 @@ def main(input):
 
     subparsers = parser.add_subparsers(title="commands", required=True, dest="command")
 
+    # Use comma-separated lists instead of nargs, since nargs="+" or nargs="*" will capture positional
+    # arguments unless separated by --.
+    def split_list(type):
+        return lambda input: [type(s.strip()) for s in input.split(',')]
+
     hypervolume_parser = subparsers.add_parser("hypervolume", help="compute hypervolume")
-    hypervolume_parser.add_argument("-r", "--reference", help="reference set")
-    hypervolume_parser.add_argument("--minimum", type=float, metavar="N", nargs="*", help="minimum bounds, optional")
-    hypervolume_parser.add_argument("--maximum", type=float, metavar="N", nargs="*", help="maximum bounds, optional")
-    hypervolume_parser.add_argument("filename")
+    hypervolume_parser.add_argument("-r", "--reference_set", help="reference set")
+    hypervolume_parser.add_argument("--minimum", help="minimum bounds, optional", type=split_list(float))
+    hypervolume_parser.add_argument("--maximum", help="maximum bounds, optional", type=split_list(float))
+    hypervolume_parser.add_argument("filename", nargs="?")
 
     gd_parser = subparsers.add_parser("gd", help="compute generaional distance")
-    gd_parser.add_argument("-r", "--reference", help="reference set", required=True)
-    gd_parser.add_argument("filename")
+    gd_parser.add_argument("-r", "--reference_set", help="reference set", required=True)
+    gd_parser.add_argument("filename", nargs="?")
 
     igd_parser = subparsers.add_parser("igd", help="compute inverted generaional distance")
-    igd_parser.add_argument("-r", "--reference", help="reference set", required=True)
-    igd_parser.add_argument("filename")
+    igd_parser.add_argument("-r", "--reference_set", help="reference set", required=True)
+    igd_parser.add_argument("filename", nargs="?")
 
     epsilon_parser = subparsers.add_parser("epsilon", help="compute additive epsilon indicator")
-    epsilon_parser.add_argument("-r", "--reference", help="reference set", required=True)
-    epsilon_parser.add_argument("filename")
+    epsilon_parser.add_argument("-r", "--reference_set", help="reference set", required=True)
+    epsilon_parser.add_argument("filename", nargs="?")
 
     spacing_parser = subparsers.add_parser("spacing", help="compute spacing")
-    spacing_parser.add_argument("filename")
+    spacing_parser.add_argument("filename", nargs="?")
 
     solve_parser = subparsers.add_parser("solve", help="solve a built-in problem")
     solve_parser.add_argument("-p", "--problem", help="name of the problem", required=True)
@@ -67,36 +72,60 @@ def main(input):
     solve_parser.add_argument("--algorithm_module", help="module containing the algorithm (if not built-in)")
     solve_parser.add_argument("arguments", metavar="KEY=VALUE", nargs="*", help="additional arguments to set")
 
+    filter_parser = subparsers.add_parser("filter", help="filter results using selected filters")
+    filter_parser.add_argument("-e", "--epsilons", help="epsilon values for epsilon-dominance, implies --nondominated", type=split_list(float))
+    filter_parser.add_argument("-f", "--feasible", help="remove any infeasible solutions", action='store_true')
+    filter_parser.add_argument("-u", "--unique", help="remove any duplicate solutions", action='store_true')
+    filter_parser.add_argument("-n", "--nondominated", help="remove any dominated solutions", action='store_true')
+    filter_parser.add_argument("-o", "--output", help="output filename")
+    filter_parser.add_argument("filename", nargs="?")
+
+    normalize_parser = subparsers.add_parser("normalize", help="normalize results")
+    normalize_parser.add_argument("-r", "--reference_set", help="reference set")
+    normalize_parser.add_argument("--minimum", help="minimum values for each objective", type=split_list(float))
+    normalize_parser.add_argument("--maximum", help="maximum values for each objective", type=split_list(float))
+    normalize_parser.add_argument("-o", "--output", help="output filename")
+    normalize_parser.add_argument("filename", nargs="?")
+
     plot_parser = subparsers.add_parser("plot", help="generate simple 2D or 3D plot")
     plot_parser.add_argument("-t", "--title", help="plot title")
     plot_parser.add_argument("-o", "--output", help="output filename")
-    plot_parser.add_argument("filename")
+    plot_parser.add_argument("filename", nargs="?")
 
     args = parser.parse_args(input)
 
     def load_set(file):
+        if file is None:
+            return platypus.load(sys.stdin)
+
         try:
             return platypus.load_json(file)
         except json.decoder.JSONDecodeError:
             return platypus.load_objectives(file)
 
+    def save_set(result, file, indent=4):
+        if file is None:
+            platypus.dump(result, sys.stdout, indent=indent)
+        else:
+            platypus.save_json(file, result, indent=indent)
+
     if args.command == "hypervolume":
-        ref_set = load_set(args.reference)
+        ref_set = load_set(args.reference_set)
         input_set = load_set(args.filename)
         hyp = platypus.Hypervolume(reference_set=ref_set)
         print(hyp.calculate(input_set))
     elif args.command == "gd":
-        ref_set = load_set(args.reference)
+        ref_set = load_set(args.reference_set)
         input_set = load_set(args.filename)
         gd = platypus.GenerationalDistance(reference_set=ref_set)
         print(gd.calculate(input_set))
     elif args.command == "igd":
-        ref_set = load_set(args.reference)
+        ref_set = load_set(args.reference_set)
         input_set = load_set(args.filename)
         igd = platypus.InvertedGenerationalDistance(reference_set=ref_set)
         print(igd.calculate(input_set))
     elif args.command == "epsilon":
-        ref_set = load_set(args.reference)
+        ref_set = load_set(args.reference_set)
         input_set = load_set(args.filename)
         eps = platypus.EpsilonIndicator(reference_set=ref_set)
         print(eps.calculate(input_set))
@@ -135,10 +164,38 @@ def main(input):
         algorithm = algorithm_class(problem, **algorithm_args)
         algorithm.run(args.nfe)
 
-        if args.output:
-            platypus.save_json(args.output, algorithm, indent=4)
-        else:
-            platypus.dump(algorithm.result, sys.stdout, indent=4)
+        save_set(algorithm, args.output)
+    elif args.command == "filter":
+        input_set = load_set(args.filename)
+
+        if args.unique:
+            input_set = platypus.unique(input_set)
+        if args.feasible:
+            input_set = platypus.feasible(input_set)
+        if args.nondominated or args.epsilons:
+            archive = platypus.EpsilonBoxArchive(args.epsilons) if args.epsilons else platypus.Archive()
+            archive += input_set
+            input_set = archive
+
+        save_set(list(input_set), args.output)
+    elif args.command == "normalize":
+        input_set = load_set(args.filename)
+        minimum = args.minimum
+        maximum = args.maximum
+
+        if args.reference_set:
+            if minimum is not None or maximum is not None:
+                print("ignoring --minimum and --maximum options since a reference set is provided", file=sys.stderr)
+            ref_set = load_set(args.reference_set)
+            minimum, maximum = platypus.normalize(ref_set)
+
+        norm_min, norm_max = platypus.normalize(input_set, minimum, maximum)
+        print(f"Using bounds minimum={norm_min}; maximum={norm_max}")
+
+        for s in input_set:
+            s.objectives = s.normalized_objectives
+
+        save_set(input_set, args.output)
     elif args.command == "plot":
         import matplotlib.pyplot as plt
         input_set = load_set(args.filename)
