@@ -16,9 +16,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-
+import os
+import re
 import sys
 import json
+import locale
 import random
 import logging
 import platypus
@@ -27,40 +29,80 @@ from ._tools import only_keys_for, parse_cli_keyvalue, type_cast, log_args, \
     coalesce
 
 def main(input):
-    logging.basicConfig(level=logging.INFO)
+    """The main entry point for the Platypus CLI."""
+    LOGGER = logging.getLogger("Platypus")
+
+    def load_set(file):
+        """Loads input file from stdin or file."""
+        if file is None:
+            return platypus.load(sys.stdin)
+
+        try:
+            return platypus.load_json(file)
+        except json.decoder.JSONDecodeError:
+            return platypus.load_objectives(file)
+
+    def save_set(result, file, indent=4):
+        """Output result to stdout or file."""
+        if file is None:
+            platypus.dump(result, sys.stdout, indent=indent)
+            sys.stdout.write(os.linesep)
+        else:
+            platypus.save_json(file, result, indent=indent)
+
+    def split_list(type, separator=None):
+        """Argparse type for comma-separated list of values.
+
+        Accepts arguments of the form::
+
+            --arg val1,val2,val3
+
+        This is, in my opinion, a bit easier to use than argparse's default
+        which will capture any subsequent positional arguments unless
+        separated by ``--``.
+
+        By default, supports either ``,`` or ``;`` as the separator, except
+        in locales using that character as a decimal point.
+        """
+        separator = coalesce(separator, "".join({",", ";"}.difference(locale.localeconv()["decimal_point"])))
+        pattern = re.compile(f"[{re.escape(separator)}]")
+        return lambda input: [type(s.strip()) for s in pattern.split(input)]
+
+    def debug_inputs(args):
+        """Log CLI arguments."""
+        for attr in dir(args):
+            if not attr.startswith("_"):
+                LOGGER.debug("Argument: %s=%s", attr, getattr(args, attr))
 
     parser = ArgumentParser(prog="platypus",
                             description="Platypus (platypus-opt) - Multobjective optimization in Python")
 
     parser.add_argument("-v", "--version", action="version", version=platypus.__version__)
+    parser.add_argument('--log', help='set the logging level', type=str.upper, default='WARNING',
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
 
     subparsers = parser.add_subparsers(title="commands", required=True, dest="command")
-
-    # Use comma-separated lists instead of nargs, since nargs="+" or nargs="*" will capture positional
-    # arguments unless separated by --.
-    def split_list(type):
-        return lambda input: [type(s.strip()) for s in input.split(',')]
 
     hypervolume_parser = subparsers.add_parser("hypervolume", help="compute hypervolume")
     hypervolume_parser.add_argument("-r", "--reference_set", help="reference set")
     hypervolume_parser.add_argument("--minimum", help="minimum bounds, optional", type=split_list(float))
     hypervolume_parser.add_argument("--maximum", help="maximum bounds, optional", type=split_list(float))
-    hypervolume_parser.add_argument("filename", nargs="?")
+    hypervolume_parser.add_argument("filename", help="input filename", nargs="?")
 
     gd_parser = subparsers.add_parser("gd", help="compute generaional distance")
     gd_parser.add_argument("-r", "--reference_set", help="reference set", required=True)
-    gd_parser.add_argument("filename", nargs="?")
+    gd_parser.add_argument("filename", help="input filename", nargs="?")
 
     igd_parser = subparsers.add_parser("igd", help="compute inverted generaional distance")
     igd_parser.add_argument("-r", "--reference_set", help="reference set", required=True)
-    igd_parser.add_argument("filename", nargs="?")
+    igd_parser.add_argument("filename", help="input filename", nargs="?")
 
     epsilon_parser = subparsers.add_parser("epsilon", help="compute additive epsilon indicator")
     epsilon_parser.add_argument("-r", "--reference_set", help="reference set", required=True)
-    epsilon_parser.add_argument("filename", nargs="?")
+    epsilon_parser.add_argument("filename", help="input filename", nargs="?")
 
     spacing_parser = subparsers.add_parser("spacing", help="compute spacing")
-    spacing_parser.add_argument("filename", nargs="?")
+    spacing_parser.add_argument("filename", help="input filename", nargs="?")
 
     solve_parser = subparsers.add_parser("solve", help="solve a built-in problem")
     solve_parser.add_argument("-p", "--problem", help="name of the problem", required=True)
@@ -78,36 +120,26 @@ def main(input):
     filter_parser.add_argument("-u", "--unique", help="remove any duplicate solutions", action='store_true')
     filter_parser.add_argument("-n", "--nondominated", help="remove any dominated solutions", action='store_true')
     filter_parser.add_argument("-o", "--output", help="output filename")
-    filter_parser.add_argument("filename", nargs="?")
+    filter_parser.add_argument("filename", help="input filename", nargs="?")
 
     normalize_parser = subparsers.add_parser("normalize", help="normalize results")
     normalize_parser.add_argument("-r", "--reference_set", help="reference set")
     normalize_parser.add_argument("--minimum", help="minimum values for each objective", type=split_list(float))
     normalize_parser.add_argument("--maximum", help="maximum values for each objective", type=split_list(float))
     normalize_parser.add_argument("-o", "--output", help="output filename")
-    normalize_parser.add_argument("filename", nargs="?")
+    normalize_parser.add_argument("filename", help="input filename", nargs="?")
 
     plot_parser = subparsers.add_parser("plot", help="generate simple 2D or 3D plot")
     plot_parser.add_argument("-t", "--title", help="plot title")
     plot_parser.add_argument("-o", "--output", help="output filename")
-    plot_parser.add_argument("filename", nargs="?")
+    plot_parser.add_argument("filename", help="input filename", nargs="?")
 
     args = parser.parse_args(input)
 
-    def load_set(file):
-        if file is None:
-            return platypus.load(sys.stdin)
+    if args.log:
+        logging.basicConfig(level=args.log)
 
-        try:
-            return platypus.load_json(file)
-        except json.decoder.JSONDecodeError:
-            return platypus.load_objectives(file)
-
-    def save_set(result, file, indent=4):
-        if file is None:
-            platypus.dump(result, sys.stdout, indent=indent)
-        else:
-            platypus.save_json(file, result, indent=indent)
+    debug_inputs(args)
 
     if args.command == "hypervolume":
         ref_set = load_set(args.reference_set)
@@ -185,12 +217,12 @@ def main(input):
 
         if args.reference_set:
             if minimum is not None or maximum is not None:
-                print("ignoring --minimum and --maximum options since a reference set is provided", file=sys.stderr)
+                LOGGER.warn("ignoring --minimum and --maximum options since a reference set is provided", file=sys.stderr)
             ref_set = load_set(args.reference_set)
             minimum, maximum = platypus.normalize(ref_set)
 
         norm_min, norm_max = platypus.normalize(input_set, minimum, maximum)
-        print(f"Using bounds minimum={norm_min}; maximum={norm_max}")
+        LOGGER.info(f"Using bounds minimum={norm_min}; maximum={norm_max}")
 
         for s in input_set:
             s.objectives = s.normalized_objectives

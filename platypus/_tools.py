@@ -74,7 +74,7 @@ def only_keys_for(d, func):
 def log_args(args, target):
     """Logs the arguments."""
     for k, v in args.items():
-        LOGGER.log(logging.INFO, "Setting %s=%s on %s", k, v, target)
+        LOGGER.info("Setting %s=%s on %s", k, v, target)
 
 def parse_cli_keyvalue(args):
     """Parses CLI key=value pairs into a dictionary.

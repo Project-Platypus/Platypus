@@ -516,26 +516,24 @@ class Algorithm(metaclass=ABCMeta):
         last_log = self.nfe
         start_time = time.time()
 
-        LOGGER.log(logging.INFO, "%s starting", type(self).__name__)
+        LOGGER.info("%s starting", type(self).__name__)
 
         while not condition(self):
             self.step()
 
             if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
-                LOGGER.log(logging.INFO,
-                           "%s running; NFE Complete: %d, Elapsed Time: %s",
-                           type(self).__name__,
-                           self.nfe,
-                           datetime.timedelta(seconds=time.time()-start_time))
+                LOGGER.info("%s running; NFE Complete: %d, Elapsed Time: %s",
+                            type(self).__name__,
+                            self.nfe,
+                            datetime.timedelta(seconds=time.time()-start_time))
 
             if callback is not None:
                 callback(self)
 
-        LOGGER.log(logging.INFO,
-                   "%s finished; Total NFE: %d, Elapsed Time: %s",
-                   type(self).__name__,
-                   self.nfe,
-                   datetime.timedelta(seconds=time.time()-start_time))
+        LOGGER.info("%s finished; Total NFE: %d, Elapsed Time: %s",
+                    type(self).__name__,
+                    self.nfe,
+                    datetime.timedelta(seconds=time.time()-start_time))
 
 def _constraint_eq(x, y):
     return abs(x - y)

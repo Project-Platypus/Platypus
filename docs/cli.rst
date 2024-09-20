@@ -47,21 +47,10 @@ which outputs:
 
    0.23519328623761482
 
-Plotting
---------
-
-For 2 and 3 objectives, we can also generate a plot, either interactive or saving as an image:
-
-.. code:: bash
-
-   python -m platypus plot NSGAII_DTLZ2.set
-   python -m platypus plot --output NSGAII_DTLZ2.png NSGAII_DTLZ2.set
-
 Filtering
 ---------
 
-The results can be filtered to remove any dominated solutions, with optional support to remove
-infeasible, duplicate, or using epsilon-dominance:
+The results can be filtered to remove any dominated, infeasible, or duplicate solutions:
 
 .. code:: bash
 
@@ -81,6 +70,16 @@ the normalized solutions:
    python -m platypus normalize --output NSGAII_DTLZ2_normalized.set --reference_set ./examples/DTLZ2.2D.pf NSGAII_DTLZ2.set
    python -m platypus normalize --output NSGAII_DTLZ2_normalized.set --minimum 0.0,0.0 --maximum 1.0,1.0 NSGAII_DTLZ2.set
 
+Plotting
+--------
+
+For 2 and 3 objectives, we can also generate a plot, either interactive or saving as an image:
+
+.. code:: bash
+
+   python -m platypus plot NSGAII_DTLZ2.set
+   python -m platypus plot --output NSGAII_DTLZ2.png NSGAII_DTLZ2.set
+
 Combining or Chaining Commands
 ------------------------------
 
@@ -91,5 +90,5 @@ as demonstrated below:
 .. code:: bash
 
    python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 | \
-       python -m platypus filter -e 0.01,0.01 | \
+       python -m platypus filter --epsilons 0.01,0.01 | \
        python -m platypus plot

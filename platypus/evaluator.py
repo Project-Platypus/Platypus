@@ -142,11 +142,10 @@ class MapEvaluator(Evaluator):
 
             for chunk in _chunks(jobs, log_frequency):
                 result.extend(self.map_func(run_job, chunk))
-                LOGGER.log(logging.INFO,
-                           "%s running; Jobs Complete: %d, Elapsed Time: %s",
-                           job_name,
-                           len(result),
-                           datetime.timedelta(seconds=time.time()-start_time))
+                LOGGER.info("%s running; Jobs Complete: %d, Elapsed Time: %s",
+                            job_name,
+                            len(result),
+                            datetime.timedelta(seconds=time.time()-start_time))
 
             return result
 
@@ -192,11 +191,10 @@ class SubmitEvaluator(Evaluator):
 
             for chunk in _chunks(futures, log_frequency):
                 result.extend([f.result() for f in chunk])
-                LOGGER.log(logging.INFO,
-                           "%s running; Jobs Complete: %d, Elapsed Time: %s",
-                           job_name,
-                           len(result),
-                           datetime.timedelta(seconds=time.time()-start_time))
+                LOGGER.info("%s running; Jobs Complete: %d, Elapsed Time: %s",
+                            job_name,
+                            len(result),
+                            datetime.timedelta(seconds=time.time()-start_time))
 
             return result
 
@@ -246,11 +244,10 @@ class ApplyEvaluator(Evaluator):
 
             for chunk in _chunks(futures, log_frequency):
                 result.extend([f.get() for f in chunk])
-                LOGGER.log(logging.INFO,
-                           "%s running; Jobs Complete: %d, Elapsed Time: %s",
-                           job_name,
-                           len(result),
-                           datetime.timedelta(seconds=time.time()-start_time))
+                LOGGER.info("%s running; Jobs Complete: %d, Elapsed Time: %s",
+                            job_name,
+                            len(result),
+                            datetime.timedelta(seconds=time.time()-start_time))
 
             return result
 
@@ -279,19 +276,19 @@ class PoolEvaluator(MapEvaluator):
         self.pool = pool
 
         if hasattr(pool, "_processes"):
-            LOGGER.log(logging.INFO, "Started pool evaluator with %d processes", pool._processes)
+            LOGGER.info("Started pool evaluator with %d processes", pool._processes)
         else:
-            LOGGER.log(logging.INFO, "Started pool evaluator")
+            LOGGER.info("Started pool evaluator")
 
     def close(self):
-        LOGGER.log(logging.DEBUG, "Closing pool evaluator")
+        LOGGER.debug("Closing pool evaluator")
         self.pool.close()
 
         if hasattr(self.pool, "join"):
-            LOGGER.log(logging.DEBUG, "Waiting for all processes to complete")
+            LOGGER.debug("Waiting for all processes to complete")
             self.pool.join()
 
-        LOGGER.log(logging.INFO, "Closed pool evaluator")
+        LOGGER.info("Closed pool evaluator")
 
 class MultiprocessingEvaluator(PoolEvaluator):
     """Evaluator using Python's multiprocessing library.
@@ -333,15 +330,15 @@ class ProcessPoolEvaluator(SubmitEvaluator):
             from concurrent.futures import ProcessPoolExecutor
             self.executor = ProcessPoolExecutor(processes)
             super().__init__(self.executor.submit)
-            LOGGER.log(logging.INFO, "Started process pool evaluator")
+            LOGGER.info("Started process pool evaluator")
 
             if processes:
-                LOGGER.log(logging.INFO, "Using user-defined number of processes: %d", processes)
+                LOGGER.info("Using user-defined number of processes: %d", processes)
         except ImportError:
             # prevent error from showing in Eclipse if concurrent.futures not available
             raise
 
     def close(self):
-        LOGGER.log(logging.DEBUG, "Closing process pool evaluator")
+        LOGGER.debug("Closing process pool evaluator")
         self.executor.shutdown()
-        LOGGER.log(logging.INFO, "Closed process pool evaluator")
+        LOGGER.info("Closed process pool evaluator")
