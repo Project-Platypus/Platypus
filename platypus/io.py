@@ -257,7 +257,7 @@ def load_state(file, update_rng=True):
         # the file is missing the UTF-8 byte order mark)
         with open(os.fspath(file), "rb") as f:
             state = pickle.loads(f.read())
-    
+
     if update_rng:
         random.setstate(state["random"])
 
