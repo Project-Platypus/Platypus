@@ -21,7 +21,9 @@ import os
 import json
 import pickle
 import random
-from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
+from .__init__ import __version__
+from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution, \
+    PlatypusError
 
 def load_objectives(file, problem=None):
     """Loads objective values from a file.
@@ -193,10 +195,12 @@ def save_state(file, algorithm, json=False, indent=None):
 
     Allows saving the algorithm and RNG state to a file, which can be later
     restored using :meth:`load_state`.  This is useful to either:
+
     1. Inspect or record the configuration of an algorithm; or
     2. Allow resuming runs from the state file.
 
     This feature is experimental.  Please take note of the following:
+
     1. Platypus uses Python's :code:`random` library, which uses a global RNG
        state.  Reproducibility is not guaranteed when running multithreaded
        or async programs.
@@ -221,7 +225,8 @@ def save_state(file, algorithm, json=False, indent=None):
     indent:
         Controls the formatting of the JSON fle, see :meth:`json.dump`.
     """
-    state = {"algorithm": algorithm,
+    state = {"version": __version__,
+             "algorithm": algorithm,
              "random": random.getstate()}
 
     if json:
@@ -247,16 +252,20 @@ def load_state(file, update_rng=True):
         results.
     """
     try:
-        with open(os.fspath(file), "r") as f:
-            content = f.read()
+        try:
+            with open(os.fspath(file), "r") as f:
+                content = f.read()
 
-        import jsonpickle
-        state = jsonpickle.loads(content)
-    except UnicodeDecodeError:
-        # Fall back to using the binary format (this error likely indicates
-        # the file is missing the UTF-8 byte order mark)
-        with open(os.fspath(file), "rb") as f:
-            state = pickle.loads(f.read())
+            import jsonpickle
+            state = jsonpickle.loads(content)
+        except UnicodeDecodeError:
+            # Fall back to using the binary format (this error likely indicates
+            # the file is missing the UTF-8 byte order mark)
+            with open(os.fspath(file), "rb") as f:
+                state = pickle.loads(f.read())
+    except Exception:
+        raise PlatypusError("failed to load state file (saved with version "
+                            f"{state["version"]}, current version {__version__})")
 
     if update_rng:
         random.setstate(state["random"])
