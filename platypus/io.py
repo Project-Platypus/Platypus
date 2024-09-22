@@ -268,7 +268,7 @@ def load_state(file, update_rng=True):
         raise PlatypusError(f"failed to load state file {file}", e)
 
     if state["version"] != PlatypusConfig.version:
-        warnings.warn(f"State file {file} created with version {state["version"]} differs from current version {PlatypusConfig.version}")
+        warnings.warn(f"State file {file} created with version {state['version']} differs from current version {PlatypusConfig.version}")
 
     if update_rng:
         random.setstate(state["random"])
