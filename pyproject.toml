@@ -12,7 +12,7 @@ readme = "README.md"
 license = { file="COPYING" }
 requires-python = ">= 3.8"
 dependencies = []
-dynamic = ["version"]  # Version is read from platypus/__init__.py
+dynamic = ["version"]
 
 [project.urls]
 "Homepage" = "https://github.com/Project-Platypus/Platypus"

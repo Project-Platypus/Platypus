@@ -77,7 +77,7 @@ def main(input):
     parser = ArgumentParser(prog="platypus",
                             description="Platypus (platypus-opt) - Multobjective optimization in Python")
 
-    parser.add_argument("-v", "--version", action="version", version=platypus.__version__)
+    parser.add_argument("-v", "--version", action="version", version=platypus.PlatypusConfig.version)
     parser.add_argument('--log', help='set the logging level', type=str.upper, default='WARNING',
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
 

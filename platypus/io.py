@@ -21,7 +21,8 @@ import os
 import json
 import pickle
 import random
-from .__init__ import __version__
+import warnings
+from .config import PlatypusConfig
 from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution, \
     PlatypusError
 
@@ -225,7 +226,7 @@ def save_state(file, algorithm, json=False, indent=None):
     indent:
         Controls the formatting of the JSON fle, see :meth:`json.dump`.
     """
-    state = {"version": __version__,
+    state = {"version": PlatypusConfig.version,
              "algorithm": algorithm,
              "random": random.getstate()}
 
@@ -263,9 +264,11 @@ def load_state(file, update_rng=True):
             # the file is missing the UTF-8 byte order mark)
             with open(os.fspath(file), "rb") as f:
                 state = pickle.loads(f.read())
-    except Exception:
-        raise PlatypusError("failed to load state file (saved with version "
-                            f"{state["version"]}, current version {__version__})")
+    except Exception as e:
+        raise PlatypusError(f"failed to load state file {file}", e)
+
+    if state["version"] != PlatypusConfig.version:
+        warnings.warn(f"State file {file} created with version {state["version"]} differs from current version {PlatypusConfig.version}")
 
     if update_rng:
         random.setstate(state["random"])
