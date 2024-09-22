@@ -1,9 +1,6 @@
 from platypus import NSGAII, DTLZ2, save_state, load_state
 
-try:
-    import jsonpickle
-except ImportError:
-    print("Please install jsonpickle to run this example!")
+# Note: This example requires jsonpickle.
 
 problem = DTLZ2()
 

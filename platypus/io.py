@@ -221,8 +221,8 @@ def save_state(file, algorithm, json=False, **kwargs):
     kwargs
         Additional arguments passed to the pickle library.
     """
-    state = {"random": random.getstate(),
-             "algorithm": algorithm}
+    state = {"algorithm": algorithm,
+             "random": random.getstate()}
 
     if json:
         import jsonpickle
