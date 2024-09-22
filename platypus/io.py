@@ -19,6 +19,8 @@
 
 import os
 import json
+import pickle
+import random
 from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
 
 def load_objectives(file, problem=None):
@@ -185,3 +187,79 @@ def load_json(file, problem=None):
     """
     with open(os.fspath(file), "r") as f:
         return load(f, problem=problem)
+
+def save_state(file, algorithm, json=False, **kwargs):
+    """Capture and save the algorithm state to a file.
+
+    Allows saving the algorithm and RNG state to a file, which can be later
+    restored using :meth:`load_state`.  This is useful to either:
+    1. Inspect or record the configuration of an algorithm; or
+    2. Allow resuming runs from the state file.
+
+    This feature is experimental.  Please take note of the following:
+    1. Platypus uses Python's :code:`random` library, which uses a global RNG
+       state.  Reproducibility is not guaranteed when running multithreaded
+       or async programs.
+    2. State files are not guaranteed to be compatible across versions,
+       including minor or patch versions.
+    3. Internally, :mod:`pickle` and :mod:`jsonpickle` (for JSON output) are
+       used.  Refer to each for warnings related to potential security
+       concerns when dealing with untrusted inputs.
+
+    Setting :code:`json=True` will produce human-readable output in a JSON
+    format.  This requires the optional :code:`jsonpickle` dependency.
+
+    Parameters
+    ----------
+    file: str, bytes, or os.PathLike
+        The file.
+    algorithm: Algorithm
+        The algorithm to capture.
+    json: bool
+        If :code:`False`, produces a binary-encoded state file.
+        If :code:`True`, produces a JSON file.
+    kwargs
+        Additional arguments passed to the pickle library.
+    """
+    state = {"random": random.getstate(),
+             "algorithm": algorithm}
+
+    if json:
+        import jsonpickle
+        with open(os.fspath(file), "w") as f:
+            f.write(jsonpickle.dumps(state, **kwargs))
+    else:
+        with open(os.fspath(file), "wb") as f:
+            f.write(pickle.dumps(state, **kwargs))
+
+def load_state(file, json=False, update_rng=True, **kwargs):
+    """Restores the algorithm from a state file.
+
+    Refer to :meth:`save_state` for details and warnings when working with
+    state files.
+
+    Parameters
+    ----------
+    file: str, bytes, or os.PathLike
+        The file.
+    json: bool
+        If :code:`False`, reads a binary-encoded state file.
+        If :code:`True`, reads a JSON file.
+    update_rng: bool
+        If :code:`True`, updates the RNG state.  Must be set for reproducible
+        results.
+    kwargs
+        Additional arguments passed to the pickle library.
+    """
+    if json:
+        import jsonpickle
+        with open(os.fspath(file), "r") as f:
+            state = jsonpickle.loads(f.read())
+    else:
+        with open(os.fspath(file), "rb") as f:
+            state = pickle.loads(f.read())
+
+    if update_rng:
+        random.setstate(state["random"])
+
+    return state["algorithm"]

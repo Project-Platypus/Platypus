@@ -36,7 +36,7 @@ class RandomGenerator(Generator):
 
     def generate(self, problem):
         solution = Solution(problem)
-        solution.variables = [x.rand() for x in problem.types]
+        solution.variables[:] = [x.rand() for x in problem.types]
         return solution
 
 class InjectedPopulation(Generator):
@@ -65,7 +65,7 @@ class InjectedPopulation(Generator):
         else:
             # Otherwise generate a random solution
             solution = Solution(problem)
-            solution.variables = [x.rand() for x in problem.types]
+            solution.variables[:] = [x.rand() for x in problem.types]
             return solution
 
 class TournamentSelector(Selector):
