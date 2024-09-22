@@ -88,7 +88,7 @@ class TestState(SolutionMixin, unittest.TestCase):
 
             original.run(10000)
 
-            copy = load_state(f.name, json=json)
+            copy = load_state(f.name)
             copy.run(10000)
 
             self.assertEqual(original.nfe, copy.nfe)

@@ -10,4 +10,4 @@ algorithm = NSGAII(problem)
 algorithm.run(10000)
 
 # Save the result to JSON
-save_json("result.json", algorithm, indent=4)
+save_json("NSGAII_DTLZ2_Results.json", algorithm, indent=4)

@@ -188,7 +188,7 @@ def load_json(file, problem=None):
     with open(os.fspath(file), "r") as f:
         return load(f, problem=problem)
 
-def save_state(file, algorithm, json=False, **kwargs):
+def save_state(file, algorithm, json=False, indent=None):
     """Capture and save the algorithm state to a file.
 
     Allows saving the algorithm and RNG state to a file, which can be later
@@ -218,8 +218,8 @@ def save_state(file, algorithm, json=False, **kwargs):
     json: bool
         If :code:`False`, produces a binary-encoded state file.
         If :code:`True`, produces a JSON file.
-    kwargs
-        Additional arguments passed to the pickle library.
+    indent:
+        Controls the formatting of the JSON fle, see :meth:`json.dump`.
     """
     state = {"algorithm": algorithm,
              "random": random.getstate()}
@@ -227,12 +227,12 @@ def save_state(file, algorithm, json=False, **kwargs):
     if json:
         import jsonpickle
         with open(os.fspath(file), "w") as f:
-            f.write(jsonpickle.dumps(state, **kwargs))
+            f.write(jsonpickle.dumps(state, indent=indent))
     else:
         with open(os.fspath(file), "wb") as f:
-            f.write(pickle.dumps(state, **kwargs))
+            f.write(pickle.dumps(state))
 
-def load_state(file, json=False, update_rng=True, **kwargs):
+def load_state(file, update_rng=True):
     """Restores the algorithm from a state file.
 
     Refer to :meth:`save_state` for details and warnings when working with
@@ -242,23 +242,22 @@ def load_state(file, json=False, update_rng=True, **kwargs):
     ----------
     file: str, bytes, or os.PathLike
         The file.
-    json: bool
-        If :code:`False`, reads a binary-encoded state file.
-        If :code:`True`, reads a JSON file.
     update_rng: bool
         If :code:`True`, updates the RNG state.  Must be set for reproducible
         results.
-    kwargs
-        Additional arguments passed to the pickle library.
     """
-    if json:
-        import jsonpickle
+    try:
         with open(os.fspath(file), "r") as f:
-            state = jsonpickle.loads(f.read())
-    else:
+            content = f.read()
+
+        import jsonpickle
+        state = jsonpickle.loads(content)
+    except UnicodeDecodeError:
+        # Fall back to using the binary format (this error likely indicates
+        # the file is missing the UTF-8 byte order mark)
         with open(os.fspath(file), "rb") as f:
             state = pickle.loads(f.read())
-
+    
     if update_rng:
         random.setstate(state["random"])
 
