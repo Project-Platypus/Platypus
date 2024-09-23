@@ -18,7 +18,13 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 class PlatypusWarning(UserWarning):
-    """Warning emitted from the Platypus library."""
+    """Warning about a potential issue with the usage of Platypus.
+
+    Warnings emitted by Platypus should extend from this type, unless a more
+    standard warning type is available (e.g., :class:`DeprecationWarning`).
+    These warnings typically indicate incorrect usage that could potentially
+    lead to issues, but not at the severity of raising an exception.
+    """
     pass
 
 class PlatypusError(Exception):
