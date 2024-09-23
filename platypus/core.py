@@ -92,14 +92,6 @@ class WarnOnOverwriteMixin:
                           category=PlatypusWarning, stacklevel=2)
         super().__setattr__(name, value)
 
-def _convert_constraint(x):
-    if isinstance(x, Constraint):
-        return x
-    elif isinstance(x, (list, tuple)):
-        return [_convert_constraint(y) for y in x]
-    else:
-        return Constraint(x)
-
 class Problem(WarnOnOverwriteMixin):
     """Class representing a problem.
 
@@ -156,7 +148,7 @@ class Problem(WarnOnOverwriteMixin):
         self.function = function
         self.types = FixedLengthArray(nvars)
         self.directions = FixedLengthArray(nobjs, self.MINIMIZE)
-        self.constraints = FixedLengthArray(nconstrs, "==0", _convert_constraint)
+        self.constraints = FixedLengthArray(nconstrs, "==0", Constraint.to_constraint)
 
     def __call__(self, solution):
         """Evaluate the solution.
@@ -635,6 +627,23 @@ class Constraint:
 
     def __call__(self, value):
         return self.function(value)
+
+    @classmethod
+    def to_constraint(cls, obj):
+        """Converts the given object to a constraint.
+
+        Parameters
+        ----------
+        obj : str, Constraint, or a list of constraints
+            The constraint given as a string, Constraint, or a list / tuple
+            of objects representing constraints.
+        """
+        if isinstance(obj, Constraint):
+            return obj
+        elif isinstance(obj, (list, tuple)):
+            return [Constraint.to_constraint(c) for c in obj]
+        else:
+            return Constraint(obj)
 
 class Solution(WarnOnOverwriteMixin):
     """Class representing a solution to a problem.
