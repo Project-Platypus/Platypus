@@ -28,7 +28,7 @@ from abc import ABCMeta, abstractmethod
 from .core import Algorithm, ParetoDominance, AttributeDominance, \
     nondominated_sort, nondominated_prune, nondominated_truncate, \
     nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
-    Archive, EpsilonDominance, FitnessArchive, Solution, Problem, \
+    Archive, EpsilonDominance, FitnessArchive, Solution, Direction, \
     HypervolumeFitnessEvaluator, nondominated_sort_cmp, fitness_key, \
     crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive
 from .distance import DistanceMatrix
@@ -622,7 +622,7 @@ class MOEAD(AbstractGeneticAlgorithm):
         self.weight_generator_kwargs = only_keys_for(kwargs, weight_generator)
 
         # MOEA/D currently only works on minimization problems
-        if any([d != Problem.MINIMIZE for d in problem.directions]):
+        if any([d != Direction.MINIMIZE for d in problem.directions]):
             raise PlatypusError("MOEAD currently only works with minimization problems")
 
         # If using the default weight generator, random_weights, use a default
@@ -836,7 +836,7 @@ class NSGAIII(AbstractGeneticAlgorithm):
         self.reference_points = normal_boundary_weights(problem.nobjs, divisions_outer, divisions_inner)
 
         # NSGAIII currently only works on minimization problems
-        if any([d != Problem.MINIMIZE for d in problem.directions]):
+        if any([d != Direction.MINIMIZE for d in problem.directions]):
             raise PlatypusError("NSGAIII currently only works with minimization problems")
 
     def _find_extreme_points(self, solutions, objective):

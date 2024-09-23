@@ -84,7 +84,7 @@ class _PlatypusJSONEncoder(json.JSONEncoder):
                                 "nobjs": obj.problem.nobjs,
                                 "nconstrs": obj.problem.nconstrs,
                                 "function": obj.problem.function,
-                                "directions": obj.problem.directions,
+                                "directions": [d.value for d in obj.problem.directions],
                                 "constraints": obj.problem.constraints},
                     "result": obj.result}
         if isinstance(obj, Solution):

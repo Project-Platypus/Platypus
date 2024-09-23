@@ -18,7 +18,7 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-from .core import Problem, Indicator, normalize, POSITIVE_INFINITY
+from .core import Direction, Indicator, normalize, POSITIVE_INFINITY
 from .errors import PlatypusError
 from .distance import manhattan_dist, distance_to_nearest
 
@@ -139,7 +139,7 @@ class Hypervolume(Indicator):
 
     def invert(self, solution):
         for i in range(solution.problem.nobjs):
-            if solution.problem.directions[i] == Problem.MINIMIZE:
+            if solution.problem.directions[i] == Direction.MINIMIZE:
                 solution.normalized_objectives[i] = 1.0 - max(0.0, min(1.0, solution.normalized_objectives[i]))
 
     def dominates(self, solution1, solution2, nobjs):

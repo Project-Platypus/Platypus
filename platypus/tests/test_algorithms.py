@@ -18,7 +18,7 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pickle
 import unittest
-from ..core import Problem
+from ..core import Problem, Direction
 from ..errors import PlatypusError
 from ..problems import DTLZ2
 from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
@@ -135,7 +135,7 @@ class TestMaximizationGuard(unittest.TestCase):
 
     def setUp(self):
         self.problem = Problem(1, 1)
-        self.problem.directions[:] = Problem.MAXIMIZE
+        self.problem.directions[:] = Direction.MAXIMIZE
 
     def test_MOEAD(self):
         with self.assertRaises(PlatypusError):

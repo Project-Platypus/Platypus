@@ -22,7 +22,8 @@ import unittest
 from ._utils import SolutionMixin
 from ..core import Constraint, ParetoDominance, Archive, EpsilonBoxArchive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
-        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize
+        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
+        Direction, Problem
 from ..errors import PlatypusError, PlatypusWarning
 
 class TestSolution(SolutionMixin, unittest.TestCase):
@@ -44,6 +45,20 @@ class TestSolution(SolutionMixin, unittest.TestCase):
         s = self.createSolution(4, 5)
         with self.assertWarns(PlatypusWarning):
             s.objectives = [1, 2]
+
+class TestDirection(unittest.TestCase):
+
+    def test_to_direction(self):
+        self.assertEqual(Direction.MINIMIZE, Direction.to_direction(-1))
+        self.assertEqual(Direction.MINIMIZE, Direction.to_direction("minimize"))
+        self.assertEqual(Direction.MINIMIZE, Direction.to_direction(Direction.MINIMIZE))
+        self.assertEqual(Direction.MINIMIZE, Direction.to_direction(Problem.MINIMIZE))
+
+        self.assertEqual(Direction.MAXIMIZE, Direction.to_direction(1))
+        self.assertEqual(Direction.MAXIMIZE, Direction.to_direction("maximize"))
+        self.assertEqual(Direction.MAXIMIZE, Direction.to_direction(Direction.MAXIMIZE))
+        self.assertEqual(Direction.MAXIMIZE, Direction.to_direction(Problem.MAXIMIZE))
+
 
 class TestConstraint(unittest.TestCase):
 

@@ -19,7 +19,7 @@
 
 from .core import FixedLengthArray, Problem, Generator, Variator, \
     Mutation, Selector, TerminationCondition, MaxEvaluations, MaxTime, \
-    Algorithm, Constraint, Solution, Dominance, ParetoDominance, \
+    Algorithm, Constraint, Solution, Dominance, ParetoDominance, Direction, \
     EpsilonDominance, AttributeDominance, Archive, AdaptiveGridArchive, \
     FitnessArchive, EpsilonBoxArchive, nondominated, crowding_distance, \
     nondominated_sort_cmp, nondominated_sort, nondominated_split, \

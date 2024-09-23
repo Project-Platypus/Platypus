@@ -1,5 +1,5 @@
 import math
-from platypus import GeneticAlgorithm, Problem, Permutation, nondominated, unique
+from platypus import GeneticAlgorithm, Problem, Direction, Permutation, nondominated, unique
 
 # The (x, y) coordinates of cities in the PR76 instance.  This instance has
 # an optimal tour length of 108159.
@@ -29,7 +29,7 @@ def tsp(x):
 
 problem = Problem(1, 1)
 problem.types[0] = Permutation(range(len(cities)))
-problem.directions[0] = Problem.MINIMIZE
+problem.directions[0] = Direction.MINIMIZE
 problem.function = tsp
 
 algorithm = GeneticAlgorithm(problem)

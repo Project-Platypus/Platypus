@@ -160,4 +160,4 @@ objective by setting the ``directions`` attribute.  For example:
 
 .. code:: python
 
-   problem.directions[:] = Problem.MAXIMIZE
+   problem.directions[:] = Direction.MAXIMIZE

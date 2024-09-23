@@ -21,7 +21,7 @@ import unittest
 from ._utils import SolutionMixin
 from ..indicators import GenerationalDistance, InvertedGenerationalDistance, \
     EpsilonIndicator, Spacing, Hypervolume
-from ..core import Solution, Problem, POSITIVE_INFINITY
+from ..core import Solution, Problem, Direction, POSITIVE_INFINITY
 
 class TestGenerationalDistance(SolutionMixin, unittest.TestCase):
 
@@ -126,7 +126,7 @@ class TestHypervolume(SolutionMixin, unittest.TestCase):
         hyp = Hypervolume(reference_set)
 
         problem = Problem(0, 2)
-        problem.directions[:] = Problem.MAXIMIZE
+        problem.directions[:] = Direction.MAXIMIZE
         s1 = Solution(problem)
         s2 = Solution(problem)
         s1.objectives[:] = [0.5, 1.0]

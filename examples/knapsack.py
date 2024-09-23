@@ -1,4 +1,4 @@
-from platypus import GeneticAlgorithm, Problem, Constraint, Binary, nondominated, unique
+from platypus import GeneticAlgorithm, Problem, Constraint, Direction, Binary, nondominated, unique
 
 # This simple example has an optimal value of 15 when picking items 1 and 4.
 items = 7
@@ -15,7 +15,7 @@ def knapsack(x):
 
 problem = Problem(1, 1, 1)
 problem.types[0] = Binary(items)
-problem.directions[0] = Problem.MAXIMIZE
+problem.directions[0] = Direction.MAXIMIZE
 problem.constraints[0] = Constraint("<=", capacity)
 problem.function = knapsack
 

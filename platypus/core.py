@@ -29,6 +29,7 @@ import warnings
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
+from enum import Enum
 from .config import PlatypusConfig
 from .evaluator import Job
 from .errors import PlatypusError, PlatypusWarning
@@ -92,6 +93,29 @@ class WarnOnOverwriteMixin:
                           category=PlatypusWarning, stacklevel=2)
         super().__setattr__(name, value)
 
+class Direction(Enum):
+    """Defines the optimization direction for an objective."""
+
+    MINIMIZE = -1
+    MAXIMIZE = 1
+
+    @classmethod
+    def to_direction(cls, obj):
+        """Converts the given object to an optimization direction.
+
+        Parameters
+        ----------
+        obj : str, int, or Direction
+            The object representing a direction.
+        """
+        if isinstance(obj, str):
+            try:
+                return Direction[obj.upper()]
+            except KeyError:
+                raise PlatypusError(f"{obj} is not a valid direction, valid values: {', '.join([d.name for d in Direction])}")
+        else:
+            return Direction(obj)
+
 class Problem(WarnOnOverwriteMixin):
     """Class representing a problem.
 
@@ -109,7 +133,7 @@ class Problem(WarnOnOverwriteMixin):
     types: FixedLengthArray of Type
         The type of each decision variable.  The type describes the bounds and
         encoding/decoding required for each decision variable.
-    directions: FixedLengthArray of int
+    directions: FixedLengthArray of Direction
         The optimization direction of each objective, either MINIMIZE (-1) or
         MAXIMIZE (1)
     constraints: FixedLengthArray of Constraint
@@ -117,6 +141,7 @@ class Problem(WarnOnOverwriteMixin):
         default requires each constraint value to be 0.
     """
 
+    # These values are being deprecated, use Direction instead
     MINIMIZE = -1
     MAXIMIZE = 1
 
@@ -147,7 +172,7 @@ class Problem(WarnOnOverwriteMixin):
         self.nconstrs = nconstrs
         self.function = function
         self.types = FixedLengthArray(nvars)
-        self.directions = FixedLengthArray(nobjs, self.MINIMIZE)
+        self.directions = FixedLengthArray(nobjs, Direction.MINIMIZE, Direction.to_direction)
         self.constraints = FixedLengthArray(nconstrs, "==0", Constraint.to_constraint)
 
     def __call__(self, solution):
@@ -762,7 +787,7 @@ class ParetoDominance(Dominance):
             o1 = solution1.objectives[i]
             o2 = solution2.objectives[i]
 
-            if problem.directions[i] == Problem.MAXIMIZE:
+            if problem.directions[i] == Direction.MAXIMIZE:
                 o1 = -o1
                 o2 = -o2
 
@@ -841,7 +866,7 @@ class EpsilonDominance(Dominance):
             o1 = solution1.objectives[i]
             o2 = solution2.objectives[i]
 
-            if problem.directions[i] == Problem.MAXIMIZE:
+            if problem.directions[i] == Direction.MAXIMIZE:
                 o1 = -o1
                 o2 = -o2
 
@@ -887,7 +912,7 @@ class EpsilonDominance(Dominance):
             o1 = solution1.objectives[i]
             o2 = solution2.objectives[i]
 
-            if problem.directions[i] == Problem.MAXIMIZE:
+            if problem.directions[i] == Direction.MAXIMIZE:
                 o1 = -o1
                 o2 = -o2
 
@@ -914,7 +939,7 @@ class EpsilonDominance(Dominance):
                 o1 = solution1.objectives[i]
                 o2 = solution2.objectives[i]
 
-                if problem.directions[i] == Problem.MAXIMIZE:
+                if problem.directions[i] == Direction.MAXIMIZE:
                     o1 = -o1
                     o2 = -o2
 
@@ -1646,7 +1671,7 @@ class HypervolumeFitnessEvaluator(FitnessEvaluator):
         else:
             b = solution2.normalized_objectives[d-1]
 
-        if solution1.problem.directions[d-1] == Problem.MAXIMIZE:
+        if solution1.problem.directions[d-1] == Direction.MAXIMIZE:
             a = 1.0 - a
             b = 1.0 - b
 
