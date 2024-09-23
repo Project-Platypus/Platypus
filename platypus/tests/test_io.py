@@ -21,7 +21,7 @@ import tempfile
 import unittest
 from ._utils import SolutionMixin
 from ..algorithms import NSGAII
-from ..problems import DTLZ2
+from ..problems import CF1
 from ..io import save_objectives, load_objectives, save_json, load_json, \
     save_state, load_state
 
@@ -59,7 +59,7 @@ class TestJSON(SolutionMixin, unittest.TestCase):
             self.assertSimilar(expected[i], actual[i])
 
     def test_algorithm(self):
-        problem = DTLZ2()
+        problem = CF1()
         algorithm = NSGAII(problem)
         algorithm.run(1000)
 
@@ -80,7 +80,7 @@ class TestJSON(SolutionMixin, unittest.TestCase):
 class TestState(SolutionMixin, unittest.TestCase):
 
     def run_test(self, json):
-        problem = DTLZ2()
+        problem = CF1()
         original = NSGAII(problem)
 
         with tempfile.NamedTemporaryFile() as f:

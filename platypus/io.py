@@ -23,7 +23,9 @@ import pickle
 import random
 import warnings
 from .config import PlatypusConfig
-from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
+from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution, \
+    Direction, Constraint
+from .types import Type
 from .errors import PlatypusError, PlatypusWarning
 
 def load_objectives(file, problem=None):
@@ -76,6 +78,12 @@ class _PlatypusJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (Archive, FixedLengthArray)):
             return list(obj)
+        if isinstance(obj, Type):
+            return str(obj)
+        if isinstance(obj, Direction):
+            return obj.name
+        if isinstance(obj, Constraint):
+            return obj.op
         if isinstance(obj, Algorithm):
             return {"algorithm": {"name": type(obj).__name__,
                                   "nfe": obj.nfe},
@@ -84,7 +92,8 @@ class _PlatypusJSONEncoder(json.JSONEncoder):
                                 "nobjs": obj.problem.nobjs,
                                 "nconstrs": obj.problem.nconstrs,
                                 "function": obj.problem.function,
-                                "directions": [d.value for d in obj.problem.directions],
+                                "types": obj.problem.types,
+                                "directions": obj.problem.directions,
                                 "constraints": obj.problem.constraints},
                     "result": obj.result}
         if isinstance(obj, Solution):
