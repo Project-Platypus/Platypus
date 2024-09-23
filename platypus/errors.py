@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
+class PlatypusWarning(UserWarning):
+    """Warning emitted from the Platypus library."""
+    pass
+
 class PlatypusError(Exception):
     """An exception occurred in the Platypus library.
 

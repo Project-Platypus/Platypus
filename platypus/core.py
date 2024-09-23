@@ -25,12 +25,13 @@ import time
 import logging
 import datetime
 import operator
+import warnings
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
 from .config import PlatypusConfig
 from .evaluator import Job
-from .errors import PlatypusError
+from .errors import PlatypusError, PlatypusWarning
 from .filters import unique, truncate, matches, fitness_key, rank_key, \
     crowding_distance_key, objective_value_at_index
 
@@ -82,6 +83,15 @@ class FixedLengthArray:
             return self._size == other._size and self._data == other._data
         return NotImplemented
 
+class WarnOnOverwriteMixin:
+    """Mixin for classes using FixedLengthArray to warn on direct assignment."""
+
+    def __setattr__(self, name, value):
+        if hasattr(self, name) and isinstance(getattr(self, name), FixedLengthArray) and not isinstance(value, FixedLengthArray):
+            warnings.warn(f"Avoid assigning attribute '{name}' directly, use indices '{name}[:]=...' instead",
+                          category=PlatypusWarning, stacklevel=2)
+        super().__setattr__(name, value)
+
 def _convert_constraint(x):
     if isinstance(x, Constraint):
         return x
@@ -90,7 +100,7 @@ def _convert_constraint(x):
     else:
         return Constraint(x)
 
-class Problem:
+class Problem(WarnOnOverwriteMixin):
     """Class representing a problem.
 
     Attributes
@@ -626,7 +636,7 @@ class Constraint:
     def __call__(self, value):
         return self.function(value)
 
-class Solution:
+class Solution(WarnOnOverwriteMixin):
     """Class representing a solution to a problem.
 
     Parameters

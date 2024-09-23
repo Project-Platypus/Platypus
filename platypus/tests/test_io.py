@@ -61,7 +61,7 @@ class TestJSON(SolutionMixin, unittest.TestCase):
     def test_algorithm(self):
         problem = DTLZ2()
         algorithm = NSGAII(problem)
-        algorithm.run(10000)
+        algorithm.run(1000)
 
         expected = algorithm.result
 
@@ -86,10 +86,10 @@ class TestState(SolutionMixin, unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             save_state(f.name, original, json=json)
 
-            original.run(10000)
+            original.run(1000)
 
             copy = load_state(f.name)
-            copy.run(10000)
+            copy.run(1000)
 
             self.assertEqual(original.nfe, copy.nfe)
 

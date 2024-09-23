@@ -23,8 +23,8 @@ import pickle
 import random
 import warnings
 from .config import PlatypusConfig
-from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution, \
-    PlatypusError
+from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
+from .errors import PlatypusError, PlatypusWarning
 
 def load_objectives(file, problem=None):
     """Loads objective values from a file.
@@ -268,7 +268,8 @@ def load_state(file, update_rng=True):
         raise PlatypusError(f"failed to load state file {file}", e)
 
     if state["version"] != PlatypusConfig.version:
-        warnings.warn(f"State file {file} created with version {state['version']} differs from current version {PlatypusConfig.version}")
+        warnings.warn(f"State file {file} created with version {state['version']} differs from current version {PlatypusConfig.version}",
+                      category=PlatypusWarning, stacklevel=2)
 
     if update_rng:
         random.setstate(state["random"])

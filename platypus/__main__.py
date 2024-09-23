@@ -225,7 +225,7 @@ def main(input):
         LOGGER.info(f"Using bounds minimum={norm_min}; maximum={norm_max}")
 
         for s in input_set:
-            s.objectives = s.normalized_objectives
+            s.objectives[:] = s.normalized_objectives
 
         save_set(input_set, args.output)
     elif args.command == "plot":

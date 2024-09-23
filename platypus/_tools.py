@@ -20,7 +20,7 @@
 import types
 import inspect
 import logging
-from .core import PlatypusError
+from .errors import PlatypusError
 
 LOGGER = logging.getLogger("Platypus")
 

@@ -23,7 +23,7 @@ from ._utils import SolutionMixin
 from ..core import Constraint, ParetoDominance, Archive, EpsilonBoxArchive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
         POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize
-from ..errors import PlatypusError
+from ..errors import PlatypusError, PlatypusWarning
 
 class TestSolution(SolutionMixin, unittest.TestCase):
 
@@ -40,6 +40,10 @@ class TestSolution(SolutionMixin, unittest.TestCase):
         self.assertEqual(2, clone.constraint_violation)
         self.assertEqual(True, clone.evaluated)
 
+    def test_warning(self):
+        s = self.createSolution(4, 5)
+        with self.assertWarns(PlatypusWarning):
+            s.objectives = [1, 2]
 
 class TestConstraint(unittest.TestCase):
 
