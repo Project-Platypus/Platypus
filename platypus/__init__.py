@@ -65,9 +65,12 @@ from .types import Type, Real, Binary, Integer, Permutation, Subset
 
 from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
 
-from .io import save_objectives, load_objectives, save_json, load_json, dump, load
+from .io import save_objectives, load_objectives, save_json, load_json, \
+    dump, load, save_state, load_state
 
 from .deprecated import default_variator, default_mutator, nondominated_cmp
+
+__version__ = "1.4.0"
 
 PlatypusConfig.register_default_variator(Real, GAOperator(SBX(), PM()))
 PlatypusConfig.register_default_variator(Binary, GAOperator(HUX(), BitFlip()))
@@ -80,5 +83,4 @@ PlatypusConfig.register_default_mutator(Permutation, CompoundMutation(Insertion(
 PlatypusConfig.register_default_mutator(Subset, Replace())
 
 PlatypusConfig.default_evaluator = MapEvaluator()
-
-__version__ = "1.4.0"
+PlatypusConfig._version = __version__

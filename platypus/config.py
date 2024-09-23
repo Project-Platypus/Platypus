@@ -26,10 +26,15 @@ class _PlatypusConfig:
 
     def __init__(self):
         super().__init__()
+        self._version = None
         self._default_variator = {}
         self._default_mutator = {}
         self.default_evaluator = None
         self.default_log_frequency = None
+
+    @property
+    def version(self):
+        return self._version
 
     def register_default_variator(self, type, operator):
         """Registers or overwrites the default variator.

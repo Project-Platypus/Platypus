@@ -19,7 +19,12 @@
 
 import os
 import json
-from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution
+import pickle
+import random
+import warnings
+from .config import PlatypusConfig
+from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution, \
+    PlatypusError
 
 def load_objectives(file, problem=None):
     """Loads objective values from a file.
@@ -185,3 +190,87 @@ def load_json(file, problem=None):
     """
     with open(os.fspath(file), "r") as f:
         return load(f, problem=problem)
+
+def save_state(file, algorithm, json=False, indent=None):
+    """Capture and save the algorithm state to a file.
+
+    Allows saving the algorithm and RNG state to a file, which can be later
+    restored using :meth:`load_state`.  This is useful to either:
+
+    1. Inspect or record the configuration of an algorithm; or
+    2. Allow resuming runs from the state file.
+
+    This feature is experimental.  Please take note of the following:
+
+    1. Platypus uses Python's :code:`random` library, which uses a global RNG
+       state.  Reproducibility is not guaranteed when running multithreaded
+       or async programs.
+    2. State files are not guaranteed to be compatible across versions,
+       including minor or patch versions.
+    3. Internally, :mod:`pickle` and :mod:`jsonpickle` (for JSON output) are
+       used.  Refer to each for warnings related to potential security
+       concerns when dealing with untrusted inputs.
+
+    Setting :code:`json=True` will produce human-readable output in a JSON
+    format.  This requires the optional :code:`jsonpickle` dependency.
+
+    Parameters
+    ----------
+    file: str, bytes, or os.PathLike
+        The file.
+    algorithm: Algorithm
+        The algorithm to capture.
+    json: bool
+        If :code:`False`, produces a binary-encoded state file.
+        If :code:`True`, produces a JSON file.
+    indent:
+        Controls the formatting of the JSON fle, see :meth:`json.dump`.
+    """
+    state = {"version": PlatypusConfig.version,
+             "algorithm": algorithm,
+             "random": random.getstate()}
+
+    if json:
+        import jsonpickle
+        with open(os.fspath(file), "w") as f:
+            f.write(jsonpickle.dumps(state, indent=indent))
+    else:
+        with open(os.fspath(file), "wb") as f:
+            f.write(pickle.dumps(state))
+
+def load_state(file, update_rng=True):
+    """Restores the algorithm from a state file.
+
+    Refer to :meth:`save_state` for details and warnings when working with
+    state files.
+
+    Parameters
+    ----------
+    file: str, bytes, or os.PathLike
+        The file.
+    update_rng: bool
+        If :code:`True`, updates the RNG state.  Must be set for reproducible
+        results.
+    """
+    try:
+        try:
+            with open(os.fspath(file), "r") as f:
+                content = f.read()
+
+            import jsonpickle
+            state = jsonpickle.loads(content)
+        except UnicodeDecodeError:
+            # Fall back to using the binary format (this error likely indicates
+            # the file is missing the UTF-8 byte order mark)
+            with open(os.fspath(file), "rb") as f:
+                state = pickle.loads(f.read())
+    except Exception as e:
+        raise PlatypusError(f"failed to load state file {file}", e)
+
+    if state["version"] != PlatypusConfig.version:
+        warnings.warn(f"State file {file} created with version {state['version']} differs from current version {PlatypusConfig.version}")
+
+    if update_rng:
+        random.setstate(state["random"])
+
+    return state["algorithm"]

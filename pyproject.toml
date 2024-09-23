@@ -12,7 +12,7 @@ readme = "README.md"
 license = { file="COPYING" }
 requires-python = ">= 3.8"
 dependencies = []
-dynamic = ["version"]  # Version is read from platypus/__init__.py
+dynamic = ["version"]
 
 [project.urls]
 "Homepage" = "https://github.com/Project-Platypus/Platypus"
@@ -20,7 +20,7 @@ dynamic = ["version"]  # Version is read from platypus/__init__.py
 "Bug Tracker" = "https://github.com/Project-Platypus/Platypus/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "mock", "flake8", "flake8-pyproject", "numpy", "matplotlib"]
+test = ["pytest", "mock", "flake8", "flake8-pyproject", "numpy", "matplotlib", "jsonpickle"]
 docs = ["sphinx", "sphinx-rtd-theme"]
 full = ["mpi4py", "Platypus-Opt[test]", "Platypus-Opt[docs]"]
 

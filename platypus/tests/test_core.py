@@ -19,22 +19,16 @@
 import copy
 import random
 import unittest
-from ..core import Constraint, Problem, Solution, ParetoDominance, Archive, \
+from ._utils import SolutionMixin
+from ..core import Constraint, ParetoDominance, Archive, EpsilonBoxArchive, \
         nondominated_sort, nondominated_truncate, nondominated_prune, \
-        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
-        EpsilonBoxArchive
+        POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize
 from ..errors import PlatypusError
 
-def createSolution(*args):
-    problem = Problem(0, len(args))
-    solution = Solution(problem)
-    solution.objectives[:] = [float(x) for x in args]
-    return solution
-
-class TestSolution(unittest.TestCase):
+class TestSolution(SolutionMixin, unittest.TestCase):
 
     def test_deepcopy(self):
-        orig = createSolution(4, 5)
+        orig = self.createSolution(4, 5)
         orig.constraint_violation = 2
         orig.evaluated = True
 
@@ -106,13 +100,13 @@ class TestConstraint(unittest.TestCase):
         with self.assertRaises(PlatypusError):
             Constraint("")
 
-class TestParetoDominance(unittest.TestCase):
+class TestParetoDominance(SolutionMixin, unittest.TestCase):
 
     def test_dominance(self):
         dominance = ParetoDominance()
-        s1 = createSolution(0.0, 0.0)
-        s2 = createSolution(1.0, 1.0)
-        s3 = createSolution(0.0, 1.0)
+        s1 = self.createSolution(0.0, 0.0)
+        s2 = self.createSolution(1.0, 1.0)
+        s3 = self.createSolution(0.0, 1.0)
 
         self.assertEqual(-1, dominance.compare(s1, s2))
         self.assertEqual(1, dominance.compare(s2, s1))
@@ -121,9 +115,9 @@ class TestParetoDominance(unittest.TestCase):
 
     def test_nondominance(self):
         dominance = ParetoDominance()
-        s1 = createSolution(0.0, 1.0)
-        s2 = createSolution(0.5, 0.5)
-        s3 = createSolution(1.0, 0.0)
+        s1 = self.createSolution(0.0, 1.0)
+        s2 = self.createSolution(0.5, 0.5)
+        s3 = self.createSolution(1.0, 0.0)
 
         self.assertEqual(0, dominance.compare(s1, s2))
         self.assertEqual(0, dominance.compare(s2, s1))
@@ -132,12 +126,12 @@ class TestParetoDominance(unittest.TestCase):
         self.assertEqual(0, dominance.compare(s1, s3))
         self.assertEqual(0, dominance.compare(s3, s1))
 
-class TestArchive(unittest.TestCase):
+class TestArchive(SolutionMixin, unittest.TestCase):
 
     def test_dominance(self):
-        s1 = createSolution(1.0, 1.0)
-        s2 = createSolution(0.0, 0.0)
-        s3 = createSolution(0.0, 1.0)
+        s1 = self.createSolution(1.0, 1.0)
+        s2 = self.createSolution(0.0, 0.0)
+        s3 = self.createSolution(0.0, 1.0)
 
         archive = Archive(ParetoDominance())
         archive += [s1, s2, s3]
@@ -146,23 +140,23 @@ class TestArchive(unittest.TestCase):
         self.assertEqual(s2, archive[0])
 
     def test_nondominance(self):
-        s1 = createSolution(0.0, 1.0)
-        s2 = createSolution(0.5, 0.5)
-        s3 = createSolution(1.0, 0.0)
+        s1 = self.createSolution(0.0, 1.0)
+        s2 = self.createSolution(0.5, 0.5)
+        s3 = self.createSolution(1.0, 0.0)
 
         archive = Archive(ParetoDominance())
         archive += [s1, s2, s3]
 
         self.assertEqual(3, len(archive))
 
-class TestNondominatedSort(unittest.TestCase):
+class TestNondominatedSort(SolutionMixin, unittest.TestCase):
 
     def setUp(self):
-        self.s1 = createSolution(0.0, 1.0)
-        self.s2 = createSolution(0.5, 0.5)
-        self.s3 = createSolution(1.0, 0.0)
-        self.s4 = createSolution(0.75, 0.75)
-        self.s5 = createSolution(1.0, 1.0)
+        self.s1 = self.createSolution(0.0, 1.0)
+        self.s2 = self.createSolution(0.5, 0.5)
+        self.s3 = self.createSolution(1.0, 0.0)
+        self.s4 = self.createSolution(0.75, 0.75)
+        self.s5 = self.createSolution(1.0, 1.0)
 
         self.population = [self.s1, self.s2, self.s3, self.s4, self.s5]
         random.shuffle(self.population)
@@ -280,12 +274,12 @@ class TestNondominatedSort(unittest.TestCase):
         self.assertIn(self.s5, result)
         self.assertIn(self.s3, result)
 
-class TestNormalize(unittest.TestCase):
+class TestNormalize(SolutionMixin, unittest.TestCase):
 
     def test_normalize(self):
-        s1 = createSolution(0, 2)
-        s2 = createSolution(2, 3)
-        s3 = createSolution(1, 1)
+        s1 = self.createSolution(0, 2)
+        s2 = self.createSolution(2, 3)
+        s3 = self.createSolution(1, 1)
         solutions = [s1, s2, s3]
 
         normalize(solutions)
@@ -294,19 +288,19 @@ class TestNormalize(unittest.TestCase):
         self.assertEqual([1.0, 1.0], s2.normalized_objectives)
         self.assertEqual([0.5, 0.0], s3.normalized_objectives)
 
-class TestEpsilonBoxArchive(unittest.TestCase):
+class TestEpsilonBoxArchive(SolutionMixin, unittest.TestCase):
 
     def test_improvements(self):
-        s1 = createSolution(0.25, 0.25)     # Improvement 1 - First solution always counted as improvement
-        s2 = createSolution(0.10, 0.10)     # Improvement 2 - Dominates prior solution and in new epsilon-box
-        s3 = createSolution(0.24, 0.24)
-        s4 = createSolution(0.09, 0.50)     # Improvement 3 - Non-dominated to all existing solutions
-        s5 = createSolution(0.50, 0.50)
-        s6 = createSolution(0.05, 0.05)     # Improvement 4 - Dominates prior solution and in new epsilon-box
-        s7 = createSolution(0.04, 0.04)
-        s8 = createSolution(0.02, 0.02)
-        s9 = createSolution(0.00, 0.00)
-        s10 = createSolution(-0.01, -0.01)  # Improvement 5 - Dominates prior solution and in new epsilon-box
+        s1 = self.createSolution(0.25, 0.25)     # Improvement 1 - First solution always counted as improvement
+        s2 = self.createSolution(0.10, 0.10)     # Improvement 2 - Dominates prior solution and in new epsilon-box
+        s3 = self.createSolution(0.24, 0.24)
+        s4 = self.createSolution(0.09, 0.50)     # Improvement 3 - Non-dominated to all existing solutions
+        s5 = self.createSolution(0.50, 0.50)
+        s6 = self.createSolution(0.05, 0.05)     # Improvement 4 - Dominates prior solution and in new epsilon-box
+        s7 = self.createSolution(0.04, 0.04)
+        s8 = self.createSolution(0.02, 0.02)
+        s9 = self.createSolution(0.00, 0.00)
+        s10 = self.createSolution(-0.01, -0.01)  # Improvement 5 - Dominates prior solution and in new epsilon-box
 
         solutions = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10]
         expectedImprovements = [1, 2, 2, 3, 3, 4, 4, 4, 4, 5]
