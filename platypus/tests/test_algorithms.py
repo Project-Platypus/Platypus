@@ -25,7 +25,7 @@ from ..errors import PlatypusError
 from ..problems import DTLZ2, CF1
 from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
     SMPSO, SPEA2, EpsMOEA, EpsNSGAII, AbstractGeneticAlgorithm, \
-    ParticleSwarm, AdaptiveTimeContinuation
+    ParticleSwarm
 from ..weights import normal_boundary_weights, pbi
 
 problems = [DTLZ2, CF1]
@@ -84,10 +84,6 @@ def test_run(algorithm):
         assert algorithm.nfe % algorithm.swarm_size == 0
     elif isinstance(algorithm, CMAES):
         assert algorithm.nfe % algorithm.offspring_size == 0
-    elif isinstance(algorithm, AdaptiveTimeContinuation):
-        pass
-    else:
-        pytest.fail(f"unexpected algorithm type {type(algorithm)}, please update tests")
 
     assert len(algorithm.result) > 0
 
