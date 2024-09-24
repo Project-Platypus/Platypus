@@ -1,5 +1,5 @@
 import pytest
-from ..core import Problem, Solution, Archive, FixedLengthArray
+from ..core import Problem, Solution, Algorithm, Archive, FixedLengthArray
 
 def createSolution(*args):
     problem = Problem(0, len(args))
@@ -8,7 +8,11 @@ def createSolution(*args):
     return solution
 
 def similar(expected, actual, epsilon=0.0000001):
-    if isinstance(expected, Solution) and isinstance(actual, Solution):
+    if isinstance(expected, Algorithm) and isinstance(actual, Algorithm):
+        assert type(expected) is type(actual)
+        assert expected.nfe == actual.nfe
+        similar(expected.result, actual.result)
+    elif isinstance(expected, Solution) and isinstance(actual, Solution):
         similar(expected.variables, actual.variables, epsilon)
         similar(expected.objectives, actual.objectives, epsilon)
         similar(expected.constraints, actual.constraints, epsilon)

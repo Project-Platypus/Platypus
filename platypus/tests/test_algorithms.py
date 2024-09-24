@@ -19,11 +19,13 @@
 import pickle
 import pytest
 import jsonpickle
+from ._utils import similar
 from ..core import Problem, Direction
 from ..errors import PlatypusError
 from ..problems import DTLZ2, CF1
 from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
-    SMPSO, SPEA2, EpsMOEA
+    SMPSO, SPEA2, EpsMOEA, EpsNSGAII, AbstractGeneticAlgorithm, \
+    ParticleSwarm, AdaptiveTimeContinuation
 from ..weights import normal_boundary_weights, pbi
 
 problems = [DTLZ2, CF1]
@@ -31,7 +33,7 @@ problems = [DTLZ2, CF1]
 algorithms = {
     NSGAII: [{}],
     NSGAIII: [{"divisions_outer": 24},
-              {"divisions_outer": 4, "divisions_inner": 2}],
+              {"divisions_outer": 1, "divisions_inner": 4}],
     CMAES: [{}],
     GDE3: [{}],
     IBEA: [{}],
@@ -42,6 +44,7 @@ algorithms = {
     SMPSO: [{}],
     SPEA2: [{}],
     EpsMOEA: [{"epsilons": [0.01]}],
+    EpsNSGAII: [{"epsilons": [0.01]}],
 }
 
 constraints_not_supported = {IBEA}
@@ -62,18 +65,30 @@ def create_instances():
 def test_pickle(algorithm):
     s = pickle.dumps(algorithm)
     copy = pickle.loads(s)
-    assert type(algorithm) is type(copy)
+    similar(algorithm, copy)
 
 @pytest.mark.parametrize("algorithm", create_instances())
 def test_jsonpickle(algorithm):
     s = jsonpickle.dumps(algorithm)
     copy = jsonpickle.loads(s)
-    assert type(algorithm) is type(copy)
+    similar(algorithm, copy)
 
 @pytest.mark.parametrize("algorithm", create_instances())
 def test_run(algorithm):
     algorithm.run(500)
-    assert algorithm.nfe >= 500 and algorithm.nfe < 600
+    assert algorithm.nfe >= 500
+
+    if isinstance(algorithm, AbstractGeneticAlgorithm):
+        assert algorithm.nfe % algorithm.population_size == 0
+    elif isinstance(algorithm, ParticleSwarm):
+        assert algorithm.nfe % algorithm.swarm_size == 0
+    elif isinstance(algorithm, CMAES):
+        assert algorithm.nfe % algorithm.offspring_size == 0
+    elif isinstance(algorithm, AdaptiveTimeContinuation):
+        pass
+    else:
+        pytest.fail(f"unexpected algorithm type {type(algorithm)}, please update tests")
+
     assert len(algorithm.result) > 0
 
 @pytest.fixture

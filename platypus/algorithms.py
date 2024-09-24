@@ -1045,6 +1045,7 @@ class ParticleSwarm(Algorithm, metaclass=ABCMeta):
         self.fitness = fitness
         self.larger_preferred = larger_preferred
         self.fitness_getter = fitness_getter
+        self.result = []
 
     def step(self):
         if self.nfe == 0:
@@ -1332,6 +1333,7 @@ class CMAES(Algorithm):
         self.initial_search_point = initial_search_point
         self.check_consistency = check_consistency
         self.population = []
+        self.result = []
         self.iteration = 0
         self.last_eigenupdate = 0
 
@@ -1905,7 +1907,7 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
         if "algorithm" in self.__dict__:
             return getattr(self.algorithm, name)
         else:
-            raise AttributeError(name="algorithm", object=self)
+            raise AttributeError(name="algorithm", obj=self)
 
 class AdaptiveTimeContinuation(PeriodicAction):
     """Wraps an algorithm to enable adaptive time continuation.
