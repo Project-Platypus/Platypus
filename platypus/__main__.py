@@ -24,6 +24,7 @@ import locale
 import random
 import logging
 import platypus
+import importlib
 from argparse import ArgumentParser
 from ._tools import only_keys_for, parse_cli_keyvalue, type_cast, log_args, \
     coalesce
@@ -169,8 +170,8 @@ def main(input):
         if args.seed is not None:
             random.seed(args.seed)
 
-        problem_module = __import__(coalesce(args.problem_module, "platypus"), fromlist=[''])
-        algorithm_module = __import__(coalesce(args.algorithm_module, "platypus"), fromlist=[''])
+        problem_module = importlib.import_module(coalesce(args.problem_module, "platypus"))
+        algorithm_module = importlib.import_module(coalesce(args.algorithm_module, "platypus"))
 
         if args.problem not in dir(problem_module):
             raise platypus.PlatypusError(f"'{args.problem}' not found in module '{problem_module.__name__}'")
