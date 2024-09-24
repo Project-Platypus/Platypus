@@ -17,130 +17,72 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pickle
-import unittest
+import pytest
+import jsonpickle
 from ..core import Problem, Direction
 from ..errors import PlatypusError
-from ..problems import DTLZ2
+from ..problems import DTLZ2, CF1
 from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
     SMPSO, SPEA2, EpsMOEA
 from ..weights import normal_boundary_weights, pbi
 
-class TestPickling(unittest.TestCase):
+problems = [DTLZ2, CF1]
 
-    def setUp(self):
-        self.problem = DTLZ2()
+algorithms = {
+    NSGAII: [{}],
+    NSGAIII: [{"divisions_outer": 24},
+              {"divisions_outer": 4, "divisions_inner": 2}],
+    CMAES: [{}],
+    GDE3: [{}],
+    IBEA: [{}],
+    MOEAD: [{},
+            {"weight_generator": normal_boundary_weights, "divisions_outer": 24},
+            {"scalarizing_function": pbi}],
+    OMOPSO: [{"epsilons": [0.01]}],
+    SMPSO: [{}],
+    SPEA2: [{}],
+    EpsMOEA: [{"epsilons": [0.01]}],
+}
 
-    def test_NSGAII(self):
-        pickle.dumps(NSGAII(self.problem))
+constraints_not_supported = {IBEA}
 
-    def test_NSGAIII(self):
-        pickle.dumps(NSGAIII(self.problem, divisions_outer=24))
+def create_instances():
+    for problem in problems:
+        for algorithm in algorithms.keys():
+            for i, kwargs in enumerate(algorithms[algorithm]):
+                id = f"{problem.__name__}-{algorithm.__name__}-{i+1}"
+                p = problem()
 
-    def test_CMAES(self):
-        pickle.dumps(CMAES(self.problem))
+                if algorithm in constraints_not_supported and p.nconstrs > 0:
+                    continue
 
-    def test_GDE3(self):
-        pickle.dumps(GDE3(self.problem))
+                yield pytest.param(algorithm(p, **kwargs), id=id)
 
-    def test_IBEA(self):
-        pickle.dumps(IBEA(self.problem))
+@pytest.mark.parametrize("algorithm", create_instances())
+def test_pickle(algorithm):
+    s = pickle.dumps(algorithm)
+    copy = pickle.loads(s)
+    assert type(algorithm) is type(copy)
 
-    def test_MOEAD_random_weights(self):
-        pickle.dumps(MOEAD(self.problem))
+@pytest.mark.parametrize("algorithm", create_instances())
+def test_jsonpickle(algorithm):
+    s = jsonpickle.dumps(algorithm)
+    copy = jsonpickle.loads(s)
+    assert type(algorithm) is type(copy)
 
-    def test_MOEAD_normal_boundary_weights(self):
-        pickle.dumps(MOEAD(self.problem, weight_generator=normal_boundary_weights, divisions_outer=24))
+@pytest.mark.parametrize("algorithm", create_instances())
+def test_run(algorithm):
+    algorithm.run(500)
+    assert algorithm.nfe >= 500 and algorithm.nfe < 600
+    assert len(algorithm.result) > 0
 
-    def test_OMOPSO(self):
-        pickle.dumps(OMOPSO(self.problem, epsilons=[0.01]))
+@pytest.fixture
+def maximized_problem():
+    problem = Problem(1, 1)
+    problem.directions[:] = Direction.MAXIMIZE
+    return problem
 
-    def test_SMPSO(self):
-        pickle.dumps(SMPSO(self.problem))
-
-    def test_SPEA2(self):
-        pickle.dumps(SPEA2(self.problem))
-
-    def test_EpsMOEA(self):
-        pickle.dumps(EpsMOEA(self.problem, epsilons=[0.01]))
-
-
-class TestRunning(unittest.TestCase):
-
-    def setUp(self):
-        self.problem = DTLZ2()
-        self.post_checks = lambda: True
-
-    def test_NSGAII(self):
-        self.algorithm = NSGAII(self.problem)
-        self._run_test()
-
-    def test_NSGAIII(self):
-        self.algorithm = NSGAIII(self.problem, divisions_outer=24)
-        self._run_test()
-
-    def test_CMAES(self):
-        self.algorithm = CMAES(self.problem)
-        self._run_test()
-
-    def test_GDE3(self):
-        self.algorithm = GDE3(self.problem)
-        self._run_test()
-
-    def test_IBEA(self):
-        self.algorithm = IBEA(self.problem)
-        self._run_test()
-
-    def test_MOEAD_default(self):
-        self.algorithm = MOEAD(self.problem)
-        self.post_checks = lambda: self.assertEqual(100, self.algorithm.population_size)
-        self._run_test()
-
-    def test_MOEAD_random_weights(self):
-        self.algorithm = MOEAD(self.problem, population_size=50)
-        self.post_checks = lambda: self.assertEqual(50, self.algorithm.population_size)
-        self._run_test()
-
-    def test_MOEAD_normal_boundary_weights(self):
-        self.algorithm = MOEAD(self.problem, weight_generator=normal_boundary_weights, divisions_outer=24)
-        self._run_test()
-
-    def test_MOEAD_pbi(self):
-        self.algorithm = MOEAD(self.problem, scalarizing_function=pbi)
-        self._run_test()
-
-    def test_OMOPSO(self):
-        self.algorithm = OMOPSO(self.problem, epsilons=[0.01])
-        self._run_test()
-
-    def test_SMPSO(self):
-        self.algorithm = SMPSO(self.problem)
-        self._run_test()
-
-    def test_SPEA2(self):
-        self.algorithm = SPEA2(self.problem)
-        self._run_test()
-
-    def test_EpsMOEA(self):
-        self.algorithm = EpsMOEA(self.problem, epsilons=[0.01])
-        self._run_test()
-
-    def _run_test(self):
-        self.algorithm.run(500)
-        self.assertGreaterEqual(self.algorithm.nfe, 500)
-        self.assertLess(self.algorithm.nfe, 600)
-        self.assertIsNotNone(self.algorithm.result)
-        self.post_checks()
-
-class TestMaximizationGuard(unittest.TestCase):
-
-    def setUp(self):
-        self.problem = Problem(1, 1)
-        self.problem.directions[:] = Direction.MAXIMIZE
-
-    def test_MOEAD(self):
-        with self.assertRaises(PlatypusError):
-            MOEAD(self.problem)
-
-    def test_NSGAIII(self):
-        with self.assertRaises(PlatypusError):
-            NSGAIII(self.problem, divisions_outer=24)
+@pytest.mark.parametrize("algorithm", [MOEAD, NSGAIII])
+def test_fail_maximization(maximized_problem, algorithm):
+    with pytest.raises(PlatypusError):
+        algorithm(maximized_problem, **algorithms[algorithm][0])

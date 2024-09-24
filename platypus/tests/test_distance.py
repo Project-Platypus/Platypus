@@ -16,33 +16,29 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import unittest
-from ._utils import SolutionMixin
+import pytest
+from ._utils import createSolution
 from ..distance import euclidean_dist, manhattan_dist, DistanceMatrix
 
+def test_euclidean():
+    assert 0.0 == euclidean_dist([1, 1], [1, 1])
+    assert pytest.approx(1.414, abs=0.001) == euclidean_dist([0, 0], [1, 1])
+    assert pytest.approx(1.414, abs=0.001) == euclidean_dist([1, 1], [0, 0])
 
-class TestDistances(unittest.TestCase):
+def test_manhattan():
+    assert 0.0 == manhattan_dist([1, 1], [1, 1])
+    assert pytest.approx(2.0, abs=0.001) == manhattan_dist([0, 0], [1, 1])
+    assert pytest.approx(2.0, abs=0.001) == manhattan_dist([1, 1], [0, 0])
 
-    def test_euclidean(self):
-        self.assertEqual(0.0, euclidean_dist([1, 1], [1, 1]))
-        self.assertAlmostEqual(1.414, euclidean_dist([0, 0], [1, 1]), delta=0.001)
-        self.assertAlmostEqual(1.414, euclidean_dist([1, 1], [0, 0]), delta=0.001)
+def test_distance_matrix():
+    solutions = [createSolution(0, 1), createSolution(0.5, 0.5), createSolution(0.75, 0.25), createSolution(1, 0)]
+    matrix = DistanceMatrix(solutions)
 
-    def test_manhattan(self):
-        self.assertEqual(0.0, manhattan_dist([1, 1], [1, 1]))
-        self.assertAlmostEqual(2.0, manhattan_dist([0, 0], [1, 1]), delta=0.001)
-        self.assertAlmostEqual(2.0, manhattan_dist([1, 1], [0, 0]), delta=0.001)
+    assert pytest.approx(0.353, abs=0.001) == matrix[1, 2]
+    assert pytest.approx(0.353, abs=0.001) == matrix[2, 1]
+    assert pytest.approx(0.353, abs=0.001) == matrix.kth_distance(2, 0)
+    assert pytest.approx(0.353, abs=0.001) == matrix.kth_distance(1, 0)
 
-class TestDistanceMatrix(SolutionMixin, unittest.TestCase):
-
-    def test(self):
-        solutions = [self.createSolution(0, 1), self.createSolution(0.5, 0.5), self.createSolution(0.75, 0.25), self.createSolution(1, 0)]
-        matrix = DistanceMatrix(solutions)
-
-        self.assertAlmostEqual(0.353, matrix[1, 2], delta=0.001)
-        self.assertAlmostEqual(0.353, matrix[2, 1], delta=0.001)
-        self.assertAlmostEqual(0.353, matrix.kth_distance(2, 0), delta=0.001)
-        self.assertAlmostEqual(0.353, matrix.kth_distance(1, 0), delta=0.001)
-        self.assertEqual(2, matrix.find_most_crowded())
-        matrix.remove_point(2)
-        self.assertEqual(1, matrix.find_most_crowded())
+    assert 2 == matrix.find_most_crowded()
+    matrix.remove_point(2)
+    assert 1 == matrix.find_most_crowded()

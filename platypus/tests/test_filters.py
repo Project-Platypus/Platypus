@@ -16,116 +16,61 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import unittest
-from abc import ABCMeta, abstractmethod
-from ._utils import SolutionMixin
+import pytest
+from ._utils import createSolution
 from ..filters import unique, group, truncate, matches, objectives_key, \
     objective_value_at_index
 
-def iterator(*args):
+s1 = createSolution(0.0, 1.0)
+s2 = createSolution(1.0, 0.0)
+s3 = createSolution(0.0, 1.0)
+
+def iterator(args):
     return iter(args)
 
-def generator(*args):
+def generator(args):
     return (x for x in args)
 
-def view(*args):
+def view(args):
     return {x: x for x in args}.keys()
 
-class TestKeys(SolutionMixin, unittest.TestCase):
+def truncate_2nd_obj(solutions):
+    return truncate(solutions, 1, key=objective_value_at_index(1))
 
-    def test_objectives(self):
-        s = self.createSolution(0.0, 1.0)
-        self.assertEqual((0.0, 1.0), objectives_key(s))
+def matches_2nd_obj(solutions):
+    return matches(solutions, 1.0, key=objective_value_at_index(1))
 
-    def test_objective_value_at_index(self):
-        s = self.createSolution(0.0, 1.0)
-        self.assertEqual(0.0, objective_value_at_index(0)(s))
-        self.assertEqual(1.0, objective_value_at_index(1)(s))
+def test_objectives_key():
+    assert (0.0, 1.0) == objectives_key(createSolution(0.0, 1.0))
 
-class FilterTestCase(SolutionMixin, unittest.TestCase, metaclass=ABCMeta):
+def test_objective_value_at_index():
+    s = createSolution(0.0, 1.0)
+    assert 0.0 == objective_value_at_index(0)(s)
+    assert 1.0 == objective_value_at_index(1)(s)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.s1 = self.createSolution(0.0, 1.0)
-        self.s2 = self.createSolution(1.0, 0.0)
-        self.s3 = self.createSolution(0.0, 1.0)
+@pytest.mark.parametrize("source", [list, iterator, generator, view])
+@pytest.mark.parametrize("filter,expected", [
+    (unique, []),
+    (group, {}),
+    (truncate_2nd_obj, []),
+    (matches_2nd_obj, [])])
+def test_empty(source, filter, expected):
+    assert expected == filter(source([]))
 
-    @abstractmethod
-    def filter(self, solutions):
-        raise NotImplementedError()
+@pytest.mark.parametrize("source", [list, iterator, generator, view])
+@pytest.mark.parametrize("filter,expected", [
+    (unique, [s1]),
+    (group, {(0.0, 1.0): [s1]}),
+    (truncate_2nd_obj, [s1]),
+    (matches_2nd_obj, [s1])])
+def test_single_item(source, filter, expected):
+    assert expected == filter(source([s1]))
 
-    def test_list_empty(self):
-        self.assertEqual(self.empty_result, self.filter([]))
-
-    def test_list_single_item(self):
-        self.assertEqual(self.single_item_result, self.filter([self.s1]))
-
-    def test_list_multiple_items(self):
-        self.assertEqual(self.multiple_item_result, self.filter([self.s1, self.s2, self.s3]))
-
-    def test_iterator_empty(self):
-        self.assertEqual(self.empty_result, self.filter(iterator()))
-
-    def test_iterator_single_item(self):
-        self.assertEqual(self.single_item_result, self.filter(iterator(self.s1)))
-
-    def test_iterator_multiple_items(self):
-        self.assertEqual(self.multiple_item_result, self.filter(iterator(self.s1, self.s2, self.s3)))
-
-    def test_generator_empty(self):
-        self.assertEqual(self.empty_result, self.filter(generator()))
-
-    def test_generator_single_item(self):
-        self.assertEqual(self.single_item_result, self.filter(generator(self.s1)))
-
-    def test_generator_multiple_items(self):
-        self.assertEqual(self.multiple_item_result, self.filter(generator(self.s1, self.s2, self.s3)))
-
-    def test_view_empty(self):
-        self.assertEqual(self.empty_result, self.filter(view()))
-
-    def test_view_single_item(self):
-        self.assertEqual(self.single_item_result, self.filter(view(self.s1)))
-
-    def test_view_multiple_items(self):
-        self.assertEqual(self.multiple_item_result, self.filter(view(self.s1, self.s2, self.s3)))
-
-class TestUnique(FilterTestCase):
-
-    def setUp(self):
-        self.empty_result = []
-        self.single_item_result = [self.s1]
-        self.multiple_item_result = [self.s1, self.s2]
-
-    def filter(self, solutions):
-        return unique(solutions)
-
-class TestGroup(FilterTestCase):
-
-    def setUp(self):
-        self.empty_result = {}
-        self.single_item_result = {(0.0, 1.0): [self.s1]}
-        self.multiple_item_result = {(0.0, 1.0): [self.s1, self.s3], (1.0, 0.0): [self.s2]}
-
-    def filter(self, solutions):
-        return group(solutions)
-
-class TestTruncate(FilterTestCase):
-
-    def setUp(self):
-        self.empty_result = []
-        self.single_item_result = [self.s1]
-        self.multiple_item_result = [self.s2]
-
-    def filter(self, solutions):
-        return truncate(solutions, 1, key=lambda x: x.objectives[1])
-
-class TestMatches(FilterTestCase):
-
-    def setUp(self):
-        self.empty_result = []
-        self.single_item_result = [self.s1]
-        self.multiple_item_result = [self.s1, self.s3]
-
-    def filter(self, solutions):
-        return matches(solutions, 1.0, key=lambda x: x.objectives[1])
+@pytest.mark.parametrize("source", [list, iterator, generator, view])
+@pytest.mark.parametrize("filter,expected", [
+    (unique, [s1, s2]),
+    (group, {(0.0, 1.0): [s1, s3], (1.0, 0.0): [s2]}),
+    (truncate_2nd_obj, [s2]),
+    (matches_2nd_obj, [s1, s3])])
+def test_multiple_items(source, filter, expected):
+    assert expected == filter(source([s1, s2, s3]))

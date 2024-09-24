@@ -16,159 +16,83 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import unittest
-from abc import ABCMeta, abstractmethod
+import pytest
+from ._utils import assertBinEqual
 from ..types import Real, Binary, Integer, Permutation, Subset, \
     bin2gray, bin2int, int2bin, gray2bin
 
+@pytest.fixture
+def nsamples():
+    return 100
 
-class TypeTestCase(unittest.TestCase, metaclass=ABCMeta):
+elements = [("foo", 5), ("bar", 2), "hello", "world"]
 
-    @abstractmethod
-    def createInstance(self):
-        raise NotImplementedError()
+test_cases = [
+    pytest.param(Real(0.0, 5.0), lambda x: isinstance(x, float) and x >= 0.0 and x <= 5.0, id="Real"),
+    pytest.param(Integer(0, 5), lambda x: isinstance(x, int) and x >= 0 and x <= 5, id="Integer"),
+    pytest.param(Binary(5), lambda x: isinstance(x, list) and len(x) == 5 and all([isinstance(v, bool) for v in x]), id="Binary"),
+    pytest.param(Permutation(range(5)), lambda x: isinstance(x, list) and len(x) == 5 and all([v in range(5) for v in x]), id="Permutation-Int"),
+    pytest.param(Permutation(elements), lambda x: isinstance(x, list) and len(x) == 4 and all([v in elements for v in x]), id="Permutation-Elements"),
+    pytest.param(Subset(range(10), 2), lambda x: isinstance(x, list) and len(x) == 2 and all([v in range(10) for v in x]), id="Subset-Int"),
+    pytest.param(Subset(elements, 2), lambda x: isinstance(x, list) and len(x) == 2 and all([v in elements for v in x]), id="Subset-Elements"),
+]
 
-    @abstractmethod
-    def assertValidValue(self, val):
-        raise NotImplementedError()
+@pytest.mark.parametrize("type,validator", test_cases)
+def test(type, validator, nsamples):
+    for i in range(nsamples):
+        x = type.rand()
+        decoded = type.decode(x)
 
-    def setUp(self):
-        self.variable = self.createInstance()
+        assert validator(decoded)
+        assert x == type.encode(decoded)
 
-    def test_rand(self):
-        for i in range(100):
-            val = self.variable.decode(self.variable.rand())
-            self.assertValidValue(val)
+def test_real_bounds():
+    type = Real(0.0, 5.0)
+    assert 0.0 == type.min_value
+    assert 5.0 == type.max_value
 
-    def test_encode_decode(self):
-        for i in range(100):
-            val = self.variable.rand()
-            decoded = self.variable.decode(val)
-            encoded = self.variable.encode(decoded)
-            self.assertEqual(val, encoded)
+def test_int_bounds():
+    type = Integer(0, 5)
+    assert 3 == type.nbits
+    assert 0 == type.min_value
+    assert 5 == type.max_value
 
+BINARY_ENCODINGS = {
+    0: {"binary": (0, 0, 0, 0), "gray": (0, 0, 0, 0)},
+    1: {"binary": (0, 0, 0, 1), "gray": (0, 0, 0, 1)},
+    2: {"binary": (0, 0, 1, 0), "gray": (0, 0, 1, 1)},
+    3: {"binary": (0, 0, 1, 1), "gray": (0, 0, 1, 0)},
+    4: {"binary": (0, 1, 0, 0), "gray": (0, 1, 1, 0)},
+    5: {"binary": (0, 1, 0, 1), "gray": (0, 1, 1, 1)},
+    6: {"binary": (0, 1, 1, 0), "gray": (0, 1, 0, 1)},
+    7: {"binary": (0, 1, 1, 1), "gray": (0, 1, 0, 0)},
+    8: {"binary": (1, 0, 0, 0), "gray": (1, 1, 0, 0)},
+    9: {"binary": (1, 0, 0, 1), "gray": (1, 1, 0, 1)},
+    10: {"binary": (1, 0, 1, 0), "gray": (1, 1, 1, 1)},
+    11: {"binary": (1, 0, 1, 1), "gray": (1, 1, 1, 0)},
+    12: {"binary": (1, 1, 0, 0), "gray": (1, 0, 1, 0)},
+    13: {"binary": (1, 1, 0, 1), "gray": (1, 0, 1, 1)},
+    14: {"binary": (1, 1, 1, 0), "gray": (1, 0, 0, 1)},
+    15: {"binary": (1, 1, 1, 1), "gray": (1, 0, 0, 0)}}
 
-class TestReal(TypeTestCase):
+def test_int2bin():
+    assertBinEqual([], int2bin(0, 0))
+    assertBinEqual([0], int2bin(0, 1))
 
-    def createInstance(self):
-        return Real(0.0, 5.0)
+    for i in BINARY_ENCODINGS.keys():
+        assertBinEqual(BINARY_ENCODINGS[i]["binary"], int2bin(i, 4))
 
-    def assertValidValue(self, val):
-        self.assertIsInstance(val, float)
-        self.assertGreaterEqual(val, 0.0)
-        self.assertLessEqual(val, 5.0)
+def test_bin2int():
+    assert 0 == bin2int([])
+    assert 0 == bin2int([0])
 
-    def test_init(self):
-        self.assertEqual(0.0, self.variable.min_value)
-        self.assertEqual(5.0, self.variable.max_value)
+    for i in BINARY_ENCODINGS.keys():
+        assert i == bin2int(BINARY_ENCODINGS[i]["binary"])
 
+def test_bin2gray():
+    for i in BINARY_ENCODINGS.keys():
+        assertBinEqual(BINARY_ENCODINGS[i]["gray"], bin2gray(int2bin(i, 4)))
 
-class TestBinary(TypeTestCase):
-
-    def createInstance(self):
-        return Binary(5)
-
-    def assertValidValue(self, val):
-        self.assertEqual(5, len(val))
-        for v in val:
-            self.assertIsInstance(v, bool)
-
-
-class TestInteger(TypeTestCase):
-
-    def createInstance(self):
-        return Integer(0, 5)
-
-    def assertValidValue(self, val):
-        self.assertIsInstance(val, int)
-        self.assertGreaterEqual(val, 0)
-        self.assertLessEqual(val, 5)
-
-    def test_init(self):
-        self.assertEqual(3, self.variable.nbits)
-        self.assertEqual(0, self.variable.min_value)
-        self.assertEqual(5, self.variable.max_value)
-
-
-class TestPermutationIntegers(TypeTestCase):
-
-    def createInstance(self):
-        return Permutation(range(5))
-
-    def assertValidValue(self, val):
-        self.assertEqual(5, len(val))
-        for i in range(5):
-            self.assertIn(i, val)
-
-
-class TestPermutationElements(TypeTestCase):
-
-    elements = [("foo", 5), ("bar", 2)]
-
-    def createInstance(self):
-        return Permutation(self.elements)
-
-    def assertValidValue(self, val):
-        self.assertEqual(2, len(val))
-        for e in self.elements:
-            self.assertIn(e, val)
-
-
-class TestSubset(TypeTestCase):
-
-    def createInstance(self):
-        return Subset(range(10), 2)
-
-    def assertValidValue(self, val):
-        self.assertEqual(2, len(val))
-        for v in val:
-            self.assertIn(v, range(10))
-
-class TestGrayCode(unittest.TestCase):
-
-    EXPECTED = {
-        0: {"binary": (0, 0, 0, 0), "gray": (0, 0, 0, 0)},
-        1: {"binary": (0, 0, 0, 1), "gray": (0, 0, 0, 1)},
-        2: {"binary": (0, 0, 1, 0), "gray": (0, 0, 1, 1)},
-        3: {"binary": (0, 0, 1, 1), "gray": (0, 0, 1, 0)},
-        4: {"binary": (0, 1, 0, 0), "gray": (0, 1, 1, 0)},
-        5: {"binary": (0, 1, 0, 1), "gray": (0, 1, 1, 1)},
-        6: {"binary": (0, 1, 1, 0), "gray": (0, 1, 0, 1)},
-        7: {"binary": (0, 1, 1, 1), "gray": (0, 1, 0, 0)},
-        8: {"binary": (1, 0, 0, 0), "gray": (1, 1, 0, 0)},
-        9: {"binary": (1, 0, 0, 1), "gray": (1, 1, 0, 1)},
-        10: {"binary": (1, 0, 1, 0), "gray": (1, 1, 1, 1)},
-        11: {"binary": (1, 0, 1, 1), "gray": (1, 1, 1, 0)},
-        12: {"binary": (1, 1, 0, 0), "gray": (1, 0, 1, 0)},
-        13: {"binary": (1, 1, 0, 1), "gray": (1, 0, 1, 1)},
-        14: {"binary": (1, 1, 1, 0), "gray": (1, 0, 0, 1)},
-        15: {"binary": (1, 1, 1, 1), "gray": (1, 0, 0, 0)},
-    }
-
-    def assertBinEqual(self, b1, b2):
-        self.assertEqual(len(b1), len(b2))
-
-        for i in range(len(b1)):
-            self.assertEqual(bool(b1[i]), bool(b2[i]))
-
-    def test_int2bin(self):
-        self.assertBinEqual([], int2bin(0, 0))
-        self.assertBinEqual([0], int2bin(0, 1))
-
-        for i in range(16):
-            self.assertBinEqual(self.EXPECTED[i]["binary"], int2bin(i, 4))
-
-    def test_bin2int(self):
-        self.assertEqual(0, bin2int([]))
-        self.assertEqual(0, bin2int([0]))
-
-        for i in range(16):
-            self.assertEqual(i, bin2int(self.EXPECTED[i]["binary"]))
-
-    def test_bin2gray(self):
-        for i in range(16):
-            self.assertBinEqual(self.EXPECTED[i]["gray"], bin2gray(int2bin(i, 4)))
-
-    def test_gray2bin(self):
-        for i in range(16):
-            self.assertBinEqual(self.EXPECTED[i]["binary"], gray2bin(self.EXPECTED[i]["gray"]))
+def test_gray2bin():
+    for i in BINARY_ENCODINGS.keys():
+        assertBinEqual(BINARY_ENCODINGS[i]["binary"], gray2bin(BINARY_ENCODINGS[i]["gray"]))

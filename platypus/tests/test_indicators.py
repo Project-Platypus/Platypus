@@ -17,119 +17,108 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import math
-import unittest
-from ._utils import SolutionMixin
+import pytest
+from ._utils import createSolution
 from ..indicators import GenerationalDistance, InvertedGenerationalDistance, \
     EpsilonIndicator, Spacing, Hypervolume
 from ..core import Solution, Problem, Direction, POSITIVE_INFINITY
 
-class TestGenerationalDistance(SolutionMixin, unittest.TestCase):
+@pytest.fixture
+def reference_set():
+    return [createSolution(0, 1), createSolution(1, 0)]
 
-    def test(self):
-        reference_set = [self.createSolution(0, 1), self.createSolution(1, 0)]
-        gd = GenerationalDistance(reference_set)
+def test_gd(reference_set):
+    gd = GenerationalDistance(reference_set)
 
-        set = []
-        self.assertEqual(POSITIVE_INFINITY, gd(set))
+    set = []
+    assert POSITIVE_INFINITY == gd(set)
 
-        set = [self.createSolution(0.0, 1.0)]
-        self.assertEqual(0.0, gd(set))
+    set = [createSolution(0.0, 1.0)]
+    assert 0.0 == gd(set)
 
-        set = [self.createSolution(0.0, 1.0), self.createSolution(1.0, 0.0)]
-        self.assertEqual(0.0, gd(set))
+    set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+    assert 0.0 == gd(set)
 
-        set = [self.createSolution(2.0, 2.0)]
-        self.assertEqual(math.sqrt(5.0), gd(set))
+    set = [createSolution(2.0, 2.0)]
+    assert math.sqrt(5.0) == gd(set)
 
-        set = [self.createSolution(0.5, 0.0), self.createSolution(0.0, 0.5)]
-        self.assertEqual(math.sqrt(0.5)/2.0, gd(set))
+    set = [createSolution(0.5, 0.0), createSolution(0.0, 0.5)]
+    assert math.sqrt(0.5)/2.0 == gd(set)
 
-class TestInvertedGenerationalDistance(SolutionMixin, unittest.TestCase):
+def test_igd(reference_set):
+    igd = InvertedGenerationalDistance(reference_set)
 
-    def test(self):
-        reference_set = [self.createSolution(0, 1), self.createSolution(1, 0)]
-        igd = InvertedGenerationalDistance(reference_set)
+    set = []
+    assert POSITIVE_INFINITY == igd(set)
 
-        set = []
-        self.assertEqual(POSITIVE_INFINITY, igd(set))
+    set = [createSolution(0.0, 1.0)]
+    assert math.sqrt(2.0)/2.0 == igd(set)
 
-        set = [self.createSolution(0.0, 1.0)]
-        self.assertEqual(math.sqrt(2.0)/2.0, igd(set))
+    set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+    assert 0.0 == igd(set)
 
-        set = [self.createSolution(0.0, 1.0), self.createSolution(1.0, 0.0)]
-        self.assertEqual(0.0, igd(set))
+    set = [createSolution(2.0, 2.0)]
+    assert 2.0*math.sqrt(5.0)/2.0 == igd(set)
 
-        set = [self.createSolution(2.0, 2.0)]
-        self.assertEqual(2.0*math.sqrt(5.0)/2.0, igd(set))
+def test_eps(reference_set):
+    ei = EpsilonIndicator(reference_set)
 
-class TestEpsilonIndicator(SolutionMixin, unittest.TestCase):
+    set = []
+    assert POSITIVE_INFINITY == ei(set)
 
-    def test(self):
-        reference_set = [self.createSolution(0, 1), self.createSolution(1, 0)]
-        ei = EpsilonIndicator(reference_set)
+    set = [createSolution(0.0, 1.0)]
+    assert 1.0 == ei(set)
 
-        set = []
-        self.assertEqual(POSITIVE_INFINITY, ei(set))
+    set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+    assert 0.0 == ei(set)
 
-        set = [self.createSolution(0.0, 1.0)]
-        self.assertEqual(1.0, ei(set))
+    set = [createSolution(2.0, 2.0)]
+    assert 2.0 == ei(set)
 
-        set = [self.createSolution(0.0, 1.0), self.createSolution(1.0, 0.0)]
-        self.assertEqual(0.0, ei(set))
+def test_spacing():
+    sp = Spacing()
 
-        set = [self.createSolution(2.0, 2.0)]
-        self.assertEqual(2.0, ei(set))
+    set = []
+    assert 0.0 == sp(set)
 
-class TestSpacing(SolutionMixin, unittest.TestCase):
+    set = [createSolution(0.5, 0.5)]
+    assert 0.0 == sp(set)
 
-    def test(self):
-        sp = Spacing()
+    set = [createSolution(0.0, 1.0), createSolution(1.0, 0.0)]
+    assert 0.0 == sp(set)
 
-        set = []
-        self.assertEqual(0.0, sp(set))
+    set = [createSolution(0.0, 1.0), createSolution(0.5, 0.5), createSolution(1.0, 0.0)]
+    assert 0.0 == sp(set)
 
-        set = [self.createSolution(0.5, 0.5)]
-        self.assertEqual(0.0, sp(set))
+    set = [createSolution(0.0, 1.0), createSolution(0.25, 0.75), createSolution(1.0, 0.0)]
+    assert sp(set) > 0.0
 
-        set = [self.createSolution(0.0, 1.0), self.createSolution(1.0, 0.0)]
-        self.assertEqual(0.0, sp(set))
+def test_hyp(reference_set):
+    hyp = Hypervolume(reference_set)
 
-        set = [self.createSolution(0.0, 1.0), self.createSolution(0.5, 0.5), self.createSolution(1.0, 0.0)]
-        self.assertEqual(0.0, sp(set))
+    set = []
+    assert 0.0 == hyp(set)
 
-        set = [self.createSolution(0.0, 1.0), self.createSolution(0.25, 0.75), self.createSolution(1.0, 0.0)]
-        self.assertGreater(sp(set), 0.0)
+    set = [createSolution(0.5, 0.5)]
+    assert 0.25 == hyp(set)
 
-class TestHypervolume(SolutionMixin, unittest.TestCase):
+    set = [createSolution(0.0, 0.0)]
+    assert 1.0 == hyp(set)
 
-    def test(self):
-        reference_set = [self.createSolution(0.0, 1.0), self.createSolution(1.0, 0.0)]
-        hyp = Hypervolume(reference_set)
+    set = [createSolution(1.0, 1.0)]
+    assert 0.0 == hyp(set)
 
-        set = []
-        self.assertEqual(0.0, hyp(set))
+    set = [createSolution(0.5, 0.0), createSolution(0.0, 0.5)]
+    assert 0.75 == hyp(set)
 
-        set = [self.createSolution(0.5, 0.5)]
-        self.assertEqual(0.25, hyp(set))
+def test_hyp_maximize(reference_set):
+    hyp = Hypervolume(reference_set)
 
-        set = [self.createSolution(0.0, 0.0)]
-        self.assertEqual(1.0, hyp(set))
+    problem = Problem(0, 2)
+    problem.directions[:] = Direction.MAXIMIZE
+    s1 = Solution(problem)
+    s2 = Solution(problem)
+    s1.objectives[:] = [0.5, 1.0]
+    s2.objectives[:] = [1.0, 0.5]
 
-        set = [self.createSolution(1.0, 1.0)]
-        self.assertEqual(0.0, hyp(set))
-
-        set = [self.createSolution(0.5, 0.0), self.createSolution(0.0, 0.5)]
-        self.assertEqual(0.75, hyp(set))
-
-    def test_maximize(self):
-        reference_set = [self.createSolution(0.0, 1.0), self.createSolution(1.0, 0.0)]
-        hyp = Hypervolume(reference_set)
-
-        problem = Problem(0, 2)
-        problem.directions[:] = Direction.MAXIMIZE
-        s1 = Solution(problem)
-        s2 = Solution(problem)
-        s1.objectives[:] = [0.5, 1.0]
-        s2.objectives[:] = [1.0, 0.5]
-
-        self.assertEqual(0.75, hyp([s1, s2]))
+    assert 0.75 == hyp([s1, s2])

@@ -16,50 +16,52 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import unittest
+import pytest
 from ..config import PlatypusConfig
 from ..evaluator import MapEvaluator, SubmitEvaluator
 from ..operators import GAOperator, PM, SBX
 from ..problems import DTLZ2
 from ..types import Real
 
-class TestConfig(unittest.TestCase):
+@pytest.fixture
+def problem():
+    return DTLZ2()
 
-    def setUp(self):
-        self.problem = DTLZ2(2)
+def test_default_variator(problem):
+    assert isinstance(PlatypusConfig.default_variator(problem), GAOperator)
 
-    def test_default_variator(self):
-        self.assertIsNotNone(PlatypusConfig.default_variator(self.problem))
-        self.assertIsInstance(PlatypusConfig.default_variator(self.problem), GAOperator)
+def test_default_variator_reassigned(problem):
+    originalVariator = PlatypusConfig.default_variator(Real)
 
-    def test_default_variator_reassigned(self):
-        originalVariator = PlatypusConfig.default_variator(Real)
-
+    try:
         PlatypusConfig.register_default_variator(Real, SBX())
-        self.assertIsInstance(PlatypusConfig.default_variator(self.problem), SBX)
-
+        assert isinstance(PlatypusConfig.default_variator(problem), SBX)
+    finally:
         PlatypusConfig.register_default_variator(Real, originalVariator)
 
-    def test_default_mutator(self):
-        self.assertIsNotNone(PlatypusConfig.default_mutator(self.problem))
-        self.assertIsInstance(PlatypusConfig.default_mutator(self.problem), PM)
+def test_default_mutator(problem):
+    assert isinstance(PlatypusConfig.default_mutator(problem), PM)
 
-    def test_default_mutator_reassigned(self):
-        originalMutator = PlatypusConfig.default_mutator(Real)
+def test_default_mutator_reassigned(problem):
+    originalMutator = PlatypusConfig.default_mutator(Real)
 
+    try:
         PlatypusConfig.register_default_mutator(Real, PM())
-        self.assertIsInstance(PlatypusConfig.default_mutator(self.problem), PM)
-
+        assert isinstance(PlatypusConfig.default_mutator(problem), PM)
+    finally:
         PlatypusConfig.register_default_mutator(Real, originalMutator)
 
-    def test_default_evaluator(self):
-        self.assertIsNotNone(PlatypusConfig.default_evaluator)
-        self.assertIsInstance(PlatypusConfig.default_evaluator, MapEvaluator)
+def test_default_evaluator():
+    assert isinstance(PlatypusConfig.default_evaluator, MapEvaluator)
 
-    def test_default_evaluator_reassigned(self):
-        originalEvaluator = PlatypusConfig.default_evaluator
+def test_default_evaluator_reassigned():
+    originalEvaluator = PlatypusConfig.default_evaluator
 
+    try:
         PlatypusConfig.default_evaluator = SubmitEvaluator(lambda x: x)
-        self.assertIsInstance(PlatypusConfig.default_evaluator, SubmitEvaluator)
-
+        assert isinstance(PlatypusConfig.default_evaluator, SubmitEvaluator)
+    finally:
         PlatypusConfig.default_evaluator = originalEvaluator
+
+def test_version():
+    assert PlatypusConfig.version is not None

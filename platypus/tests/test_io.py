@@ -16,93 +16,79 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-
+import pytest
 import tempfile
-import unittest
-from ._utils import SolutionMixin
+from ._utils import createSolution, similar
 from ..algorithms import NSGAII
 from ..problems import CF1
 from ..io import save_objectives, load_objectives, save_json, load_json, \
     save_state, load_state
 
-class TestObjectives(SolutionMixin, unittest.TestCase):
+def test_objectives():
+    s1 = createSolution(0.0, 1.0)
+    s2 = createSolution(1.0, 0.0)
+    expected = [s1, s2]
 
-    def test(self):
-        s1 = self.createSolution(0.0, 1.0)
-        s2 = self.createSolution(1.0, 0.0)
-        expected = [s1, s2]
+    with tempfile.NamedTemporaryFile() as f:
+        save_objectives(f.name, expected)
+        actual = load_objectives(f.name, s1.problem)
 
-        with tempfile.NamedTemporaryFile() as f:
-            save_objectives(f.name, expected)
-            actual = load_objectives(f.name, s1.problem)
+    assert len(expected) == len(actual)
 
-        self.assertEqual(len(expected), len(actual))
+    for i in range(len(expected)):
+        assert expected[i].objectives == actual[i].objectives
+
+def test_json_solutions():
+    s1 = createSolution(0.0, 1.0)
+    s2 = createSolution(1.0, 0.0)
+    expected = [s1, s2]
+
+    with tempfile.NamedTemporaryFile() as f:
+        save_json(f.name, expected)
+        actual = load_json(f.name)
+
+    assert len(expected) == len(actual)
+
+    for i in range(len(expected)):
+        assert actual[i].problem is not None
+        similar(expected[i], actual[i])
+
+def test_json_algorithm():
+    problem = CF1()
+    algorithm = NSGAII(problem)
+    algorithm.run(1000)
+
+    expected = algorithm.result
+
+    with tempfile.NamedTemporaryFile() as f:
+        save_json(f.name, algorithm)
+        actual = load_json(f.name)
+
+    assert len(expected) == len(actual)
+
+    for i in range(len(expected)):
+        assert actual[i].problem is not None
+        similar(expected[i], actual[i])
+
+@pytest.mark.parametrize("json", [False, True])
+def test_state(json):
+    problem = CF1()
+    original = NSGAII(problem)
+
+    with tempfile.NamedTemporaryFile() as f:
+        save_state(f.name, original, json=json)
+
+        original.run(1000)
+
+        copy = load_state(f.name)
+        copy.run(1000)
+
+        assert original.nfe == copy.nfe
+
+        expected = original.result
+        actual = copy.result
+
+        assert len(expected) == len(actual)
 
         for i in range(len(expected)):
-            self.assertEqual(expected[i].objectives, actual[i].objectives)
-
-class TestJSON(SolutionMixin, unittest.TestCase):
-
-    def test_solutions(self):
-        s1 = self.createSolution(0.0, 1.0)
-        s2 = self.createSolution(1.0, 0.0)
-        expected = [s1, s2]
-
-        with tempfile.NamedTemporaryFile() as f:
-            save_json(f.name, expected)
-            actual = load_json(f.name)
-
-        self.assertEqual(len(expected), len(actual))
-
-        for i in range(len(expected)):
-            self.assertIsNotNone(actual[i].problem)
-            self.assertSimilar(expected[i], actual[i])
-
-    def test_algorithm(self):
-        problem = CF1()
-        algorithm = NSGAII(problem)
-        algorithm.run(1000)
-
-        expected = algorithm.result
-
-        with tempfile.NamedTemporaryFile() as f:
-            save_json(f.name, algorithm)
-            actual = load_json(f.name)
-
-        self.assertEqual(len(expected), len(actual))
-
-        for i in range(len(expected)):
-            self.assertIsNotNone(actual[i].problem)
-            self.assertSimilar(expected[i].variables, actual[i].variables)
-            self.assertSimilar(expected[i].objectives, actual[i].objectives)
-            self.assertSimilar(expected[i].constraints, actual[i].constraints)
-
-class TestState(SolutionMixin, unittest.TestCase):
-
-    def run_test(self, json):
-        problem = CF1()
-        original = NSGAII(problem)
-
-        with tempfile.NamedTemporaryFile() as f:
-            save_state(f.name, original, json=json)
-
-            original.run(1000)
-
-            copy = load_state(f.name)
-            copy.run(1000)
-
-            self.assertEqual(original.nfe, copy.nfe)
-
-            expected = original.result
-            actual = copy.result
-
-            self.assertEqual(len(expected), len(actual))
-
-            for i in range(len(expected)):
-                self.assertSimilar(expected[i], actual[i])
-
-    def test_binary(self):
-        self.run_test(False)
-
-    def test_json(self):
-        self.run_test(True)
+            similar(expected[i], actual[i])
