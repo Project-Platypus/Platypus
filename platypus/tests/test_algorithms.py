@@ -75,6 +75,7 @@ def test_jsonpickle(algorithm):
 
 @pytest.mark.parametrize("algorithm", create_instances())
 def test_run(algorithm):
+    assert algorithm.nfe == 0
     algorithm.run(500)
     assert algorithm.nfe >= 500
 

@@ -23,8 +23,10 @@ from ..core import Problem
 from ..problems import WFG, ZDT
 from ..operators import RandomGenerator
 
+def problem_filter(x):
+    return inspect.isclass(x) and issubclass(x, Problem) and x not in (Problem, WFG, ZDT)
+
 problem_module = importlib.import_module("platypus.problems")
-problem_filter = lambda x: inspect.isclass(x) and issubclass(x, Problem) and x not in (Problem, WFG, ZDT)
 problems = [v for _, v in inspect.getmembers(problem_module, problem_filter)]
 
 @pytest.mark.parametrize("problem", problems)
@@ -32,3 +34,6 @@ def test_problem(problem):
     p = problem()
     s = RandomGenerator().generate(p)
     p.evaluate(s)
+    assert all([x is not None for x in s.variables])
+    assert all([x is not None for x in s.objectives])
+    assert all([x is not None for x in s.constraints])
