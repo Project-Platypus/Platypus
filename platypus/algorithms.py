@@ -1906,8 +1906,10 @@ class PeriodicAction(Algorithm, metaclass=ABCMeta):
         # would get stuck in an infinite loop looking for the "algorithm" attribute.
         if "algorithm" in self.__dict__:
             return getattr(self.algorithm, name)
+        if sys.version_info >= (3, 10):
+            raise AttributeError(name=name, obj=self)
         else:
-            raise AttributeError(name="algorithm", obj=self)
+            raise AttributeError()
 
 class AdaptiveTimeContinuation(PeriodicAction):
     """Wraps an algorithm to enable adaptive time continuation.
