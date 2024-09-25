@@ -289,3 +289,27 @@ class EpsilonProgressContinuationExtension(AdaptiveTimeContinuationExtension):
     def restart(self, algorithm):
         super().restart(algorithm)
         self.last_improvements = algorithm.archive.improvements
+
+class SaveResultsExtension(FixedFrequencyExtension):
+    """Extension that performs an action at a fixed frequency.
+
+    Parameters
+    ----------
+    filename_pattern: str
+        The filename pattern.  Include :code:`{nfe}` to include the NFE.
+    frequency : int
+        The frequency the action occurs.
+    by_nfe : bool
+        If :code:`True`, the frequency is given in number of function
+        evaluations.  If :code:`False`, the frequency is given in the number
+        of iterations.
+    """
+
+    def __init__(self, filename_pattern, frequency=10000, by_nfe=True):
+        super().__init__(frequency, by_nfe)
+        self.filename_pattern = filename_pattern
+
+    def do_action(self, algorithm):
+        from .io import save_json
+        filename = self.filename_pattern.format(nfe=algorithm.nfe)
+        save_json(filename, algorithm.result)

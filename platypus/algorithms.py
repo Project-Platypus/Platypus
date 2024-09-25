@@ -21,6 +21,7 @@ import sys
 import copy
 import math
 import random
+import inspect
 import operator
 import itertools
 import functools
@@ -108,6 +109,8 @@ class Algorithm(metaclass=ABCMeta):
         extension : Extension
             The extension.
         """
+        if inspect.isclass(extension):
+            extension = extension()
         self._extensions.insert(0, extension)
 
     @abstractmethod

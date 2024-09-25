@@ -69,7 +69,8 @@ from .io import save_objectives, load_objectives, save_json, load_json, \
     dump, load, save_state, load_state
 
 from .extensions import Extension, FixedFrequencyExtension, \
-    AdaptiveTimeContinuationExtension, EpsilonProgressContinuationExtension
+    AdaptiveTimeContinuationExtension, EpsilonProgressContinuationExtension, \
+    SaveResultsExtension
 
 from .deprecated import default_variator, default_mutator, nondominated_cmp, \
     PeriodicAction, AdaptiveTimeContinuation, EpsilonProgressContinuation
