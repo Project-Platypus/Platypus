@@ -21,25 +21,167 @@ import sys
 import copy
 import math
 import random
+import inspect
 import operator
 import itertools
 import functools
 from abc import ABCMeta, abstractmethod
-from .core import Algorithm, ParetoDominance, AttributeDominance, \
-    nondominated_sort, nondominated_prune, nondominated_truncate, \
-    nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
-    Archive, EpsilonDominance, FitnessArchive, Solution, Direction, \
-    HypervolumeFitnessEvaluator, nondominated_sort_cmp, fitness_key, \
-    crowding_distance_key, AdaptiveGridArchive, Selector, EpsilonBoxArchive
-from .distance import DistanceMatrix
-from .errors import PlatypusError
-from .operators import TournamentSelector, RandomGenerator, \
-    DifferentialEvolution, clip, UniformMutation, NonUniformMutation, UM
 from ._math import choose, lsolve, tred2, tql2, check_eigensystem, \
     point_line_dist
-from ._tools import remove_keys, only_keys_for
-from .weights import random_weights, chebyshev, normal_boundary_weights
+from ._tools import remove_keys, only_keys_for, coalesce
 from .config import PlatypusConfig
+from .core import ParetoDominance, AttributeDominance, EpsilonDominance, \
+    nondominated_sort, nondominated_prune, nondominated_truncate, \
+    nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
+    Archive, FitnessArchive, Solution, Direction, AdaptiveGridArchive, \
+    HypervolumeFitnessEvaluator, nondominated_sort_cmp, fitness_key, \
+    crowding_distance_key, Selector, EpsilonBoxArchive, \
+    TerminationCondition, MaxEvaluations
+from .distance import DistanceMatrix
+from .errors import PlatypusError
+from .evaluator import Job
+from .extensions import LoggingExtension, AdaptiveTimeContinuationExtension
+from .operators import TournamentSelector, RandomGenerator, \
+    DifferentialEvolution, clip, UniformMutation, NonUniformMutation
+from .weights import random_weights, chebyshev, normal_boundary_weights
+
+class EvaluateSolution(Job):
+
+    def __init__(self, solution):
+        super().__init__()
+        self.solution = solution
+
+    def run(self):
+        self.solution.evaluate()
+
+class Algorithm(metaclass=ABCMeta):
+    """Base class for all optimization algorithms.
+
+    For most use cases, use the :meth:`run` method to execute an algorithm
+    until the termination conditions are satisfied.  Internally, this invokes
+    the :meth:`step` method to perform each iteration of the algorithm.  An
+    termination conditions and callbacks are evaluated after each step.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem being optimized.
+    evaluator : Evaluator
+        The evalutor used to evaluate solutions.  If `None`, the default
+        evaluator defined in :attr:`PlatypusConfig` is selected.
+    log_frequency : int
+        The frequency to log evaluation progress.  If `None`, the default
+        log frequency defined in :attr:`PlatypusConfig` is selected.
+
+    Attributes
+    ----------
+    nfe : int
+        The current number of function evaluations (NFE)
+    result: list or Archive
+        The current result, which is updated after each iteration.
+    """
+
+    def __init__(self,
+                 problem,
+                 evaluator=None,
+                 log_frequency=None,
+                 **kwargs):
+        super().__init__()
+        self.problem = problem
+        self.evaluator = evaluator
+        self.nfe = 0
+        self._extensions = []
+
+        if self.evaluator is None:
+            self.evaluator = PlatypusConfig.default_evaluator
+
+        self.add_extension(LoggingExtension(coalesce(log_frequency, PlatypusConfig.default_log_frequency, 0)))
+
+    def add_extension(self, extension):
+        """Adds an extension to this algorithm.
+
+        Extensions add functionality to an algorithm at specific points during
+        a run.  If multiple extensions are added, they are run in reverse
+        order.  That is, the last extension added is the first to run.
+
+        Parameters
+        ----------
+        extension : Extension
+            The extension.
+        """
+        if inspect.isclass(extension):
+            extension = extension()
+        self._extensions.insert(0, extension)
+
+    @abstractmethod
+    def step(self):
+        """Performs one logical step of the algorithm."""
+        pass
+
+    def evaluate_all(self, solutions):
+        """Evaluates all of the given solutions.
+
+        Subclasses should prefer using this method to evaluate solutions,
+        ideally providing an entire population to leverage parallelization,
+        as it tracks NFE.
+
+        Parameters
+        ----------
+        solutions : list of Solution
+            The solutions to evaluate.
+        """
+        unevaluated = [s for s in solutions if not s.evaluated]
+
+        jobs = [EvaluateSolution(s) for s in unevaluated]
+        results = self.evaluator.evaluate_all(jobs)
+
+        # if needed, update the original solution with the results
+        for i, result in enumerate(results):
+            if unevaluated[i] != result.solution:
+                unevaluated[i].variables[:] = result.solution.variables[:]
+                unevaluated[i].objectives[:] = result.solution.objectives[:]
+                unevaluated[i].constraints[:] = result.solution.constraints[:]
+                unevaluated[i].constraint_violation = result.solution.constraint_violation
+                unevaluated[i].feasible = result.solution.feasible
+                unevaluated[i].evaluated = result.solution.evaluated
+
+        self.nfe += len(solutions)
+
+    def run(self, condition, callback=None):
+        """Runs this algorithm until the termination condition is reached.
+
+        Parameters
+        ----------
+        condition : int or TerminationCondition
+            The termination condition.  Providing an integer value is converted
+            into the :class:`MaxEvaluations` condition.
+        callback : Callable, optional
+            Callback function that is invoked after every iteration.  The
+            callback is passed this algorithm instance.
+        """
+        if isinstance(condition, int):
+            condition = MaxEvaluations(condition)
+
+        if isinstance(condition, TerminationCondition):
+            condition.initialize(self)
+
+        for extension in self._extensions:
+            extension.start_run(self)
+
+        while not condition(self):
+            for extension in self._extensions:
+                extension.pre_step(self)
+
+            self.step()
+
+            for extension in self._extensions:
+                extension.post_step(self)
+
+            if callback is not None:
+                callback(self)
+
+        for extension in self._extensions:
+            extension.end_run(self)
 
 class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
     """Abstract class for genetic algorithms.
@@ -1855,221 +1997,7 @@ class PESA2(AbstractGeneticAlgorithm):
         else:
             return parent
 
-class PeriodicAction(Algorithm, metaclass=ABCMeta):
-    """Wrapper for algorithms that performs some action at a fixed interval.
-
-    Parameters
-    ----------
-    algorithm : Algorithm
-        The underlying algorithm.
-    frequency : int
-        The frequency the action occurs.
-    by_nfe : bool
-        If :code:`True`, the frequency is given in number of function
-        evaluations.  If :code:`False`, the frequency is given in the number
-        of iterations.
-    """
-
-    def __init__(self,
-                 algorithm,
-                 frequency=10000,
-                 by_nfe=True):
-        super().__init__(algorithm.problem, algorithm.evaluator)
-        self.algorithm = algorithm
-        self.frequency = frequency
-        self.by_nfe = by_nfe
-        self.iteration = 0
-        self.last_invocation = 0
-
-    def step(self):
-        self.algorithm.step()
-        self.iteration += 1
-        self.nfe = self.algorithm.nfe
-
-        if self.by_nfe:
-            if self.nfe - self.last_invocation >= self.frequency:
-                self.do_action()
-                self.last_invocation = self.nfe
-        else:
-            if self.iteration - self.last_invocation >= self.frequency:
-                self.do_action()
-                self.last_invocation = self.iteration
-
-    @abstractmethod
-    def do_action(self):
-        """Performs the action."""
-        pass
-
-    def __getattr__(self, name):
-        # Be careful to not interfere with multiprocessing's unpickling, where it may check for
-        # an attribute before the "algorithm" attribute is set.  Without this guard in place, we
-        # would get stuck in an infinite loop looking for the "algorithm" attribute.
-        if "algorithm" in self.__dict__:
-            return getattr(self.algorithm, name)
-        if sys.version_info >= (3, 10):
-            raise AttributeError(name=name, obj=self)
-        else:
-            raise AttributeError()
-
-class AdaptiveTimeContinuation(PeriodicAction):
-    """Wraps an algorithm to enable adaptive time continuation.
-
-    Adaptive time continuation performs two key functions:
-
-    First, it scales the population based on the size of the archive.  The idea
-    being a larger archive, with more non-dominated solutions, requires a
-    larger population to cover the search space.
-
-    Second, it periodically introduces extra randomness or diversity into the
-    population.  This helps avoid or escape local optima.
-
-    Parameters
-    ----------
-    algorithm : Algorithm
-        The underlying algorithm.
-    window_size : int
-        The number of iterations between calls to :meth:`check`.
-    max_window_size : int
-        The maximum number of iterations before a restart is required.
-    population_rato : float
-        The ratio between the desired population size and archive size, used
-        to scale the population size after each restart.
-    min_population_size : int
-        The minimum allowed population size.
-    max_population_size : int
-        The maximum allowed population size.
-    mutator : Variator
-        The mutation operator applied during restarts to introduce additional
-        randomness or diversity into the population.  Must have an arity of
-        :code:`1`.
-    """
-
-    def __init__(self,
-                 algorithm,
-                 window_size=100,
-                 max_window_size=1000,
-                 population_ratio=4.0,
-                 min_population_size=10,
-                 max_population_size=10000,
-                 mutator=UM(1.0)):
-        super().__init__(algorithm,
-                         frequency=window_size,
-                         by_nfe=False)
-        self.window_size = window_size
-        self.max_window_size = max_window_size
-        self.population_ratio = population_ratio
-        self.min_population_size = min_population_size
-        self.max_population_size = max_population_size
-        self.mutator = mutator
-        self.last_restart = 0
-
-    def check(self):
-        """Checks if a restart is required."""
-        population_size = len(self.algorithm.population)
-        target_size = self.population_ratio * len(self.algorithm.archive)
-
-        if self.iteration - self.last_restart >= self.max_window_size:
-            return True
-        elif (target_size >= self.min_population_size and
-              target_size <= self.max_population_size and
-              abs(population_size - target_size) > (0.25 * target_size)):
-            return True
-        else:
-            return False
-
-    def restart(self):
-        """Performs the restart procedure."""
-        archive = self.algorithm.archive
-        population = archive[:]
-
-        new_size = int(self.population_ratio * len(archive))
-
-        if new_size < self.min_population_size:
-            new_size = self.min_population_size
-        elif new_size > self.max_population_size:
-            new_size = self.max_population_size
-
-        offspring = []
-
-        while len(population) + len(offspring) < new_size:
-            parents = [archive[random.randrange(len(archive))] for _ in range(self.mutator.arity)]
-            offspring.extend(self.mutator.evolve(parents))
-
-        self.algorithm.evaluate_all(offspring)
-        self.nfe = self.algorithm.nfe
-
-        population.extend(offspring)
-        archive.extend(offspring)
-
-        self.last_restart = self.iteration
-        self.algorithm.population = population
-        self.algorithm.population_size = len(population)
-
-    def do_action(self):
-        if self.check():
-            self.restart()
-
-class EpsilonProgressContinuation(AdaptiveTimeContinuation):
-    """Wraps an algorithm to enable epsilon-progress continuation.
-
-    Epsilon-progress continuation extends adaptive time continuation to also
-    track the number of improvements made in the :class:`EpsilonBoxArchive`.
-    A restart is triggered if no improvements were recorded, as that often
-    occurs when the algorithm as converged to a local optima.
-
-    Parameters
-    ----------
-    algorithm : Algorithm
-        The underlying algorithm.
-    window_size : int
-        The number of iterations between calls to :meth:`check`.
-    max_window_size : int
-        The maximum number of iterations before a restart is required.
-    population_rato : float
-        The ratio between the desired population size and archive size, used
-        to scale the population size after each restart.
-    min_population_size : int
-        The minimum allowed population size.
-    max_population_size : int
-        The maximum allowed population size.
-    mutator : Variator
-        The mutation operator applied during restarts to introduce additional
-        randomness or diversity into the population.  Must have an arity of
-        :code:`1`.
-    """
-
-    def __init__(self,
-                 algorithm,
-                 window_size=100,
-                 max_window_size=1000,
-                 population_ratio=4.0,
-                 min_population_size=10,
-                 max_population_size=10000,
-                 mutator=UM(1.0)):
-        super().__init__(algorithm,
-                         window_size,
-                         max_window_size,
-                         population_ratio,
-                         min_population_size,
-                         max_population_size,
-                         mutator)
-        self.last_improvements = 0
-
-    def check(self):
-        result = super().check()
-
-        if not result:
-            if self.archive.improvements <= self.last_improvements:
-                result = True
-
-        self.last_improvements = self.archive.improvements
-        return result
-
-    def restart(self):
-        super().restart()
-        self.last_improvements = self.archive.improvements
-
-class EpsNSGAII(AdaptiveTimeContinuation):
+class EpsNSGAII(NSGAII):
     """Epsilon-dominance NSGA-II (:math:`\\epsilon`-NSGA-II).
 
     Extends NSGA-II to use an epsilon-dominance archive to track the best
@@ -2101,11 +2029,11 @@ class EpsNSGAII(AdaptiveTimeContinuation):
                  selector=TournamentSelector(2),
                  variator=None,
                  **kwargs):
-        super().__init__(
-                NSGAII(problem,
-                       population_size,
-                       generator,
-                       selector,
-                       variator,
-                       EpsilonBoxArchive(epsilons),
-                       **kwargs))
+        super().__init__(problem,
+                         population_size,
+                         generator,
+                         selector,
+                         variator,
+                         EpsilonBoxArchive(epsilons),
+                         **kwargs)
+        self.add_extension(AdaptiveTimeContinuationExtension())

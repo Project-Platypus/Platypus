@@ -19,7 +19,7 @@
 
 from .core import FixedLengthArray, Problem, Generator, Variator, \
     Mutation, Selector, TerminationCondition, MaxEvaluations, MaxTime, \
-    Algorithm, Constraint, Solution, Dominance, ParetoDominance, Direction, \
+    Constraint, Solution, Dominance, ParetoDominance, Direction, \
     EpsilonDominance, AttributeDominance, Archive, AdaptiveGridArchive, \
     FitnessArchive, EpsilonBoxArchive, nondominated, crowding_distance, \
     nondominated_sort_cmp, nondominated_sort, nondominated_split, \
@@ -34,11 +34,11 @@ from .filters import unique, truncate, matches, feasible, infeasible, \
     objectives_key, variables_key, fitness_key, rank_key, \
     crowding_distance_key
 
-from .algorithms import AbstractGeneticAlgorithm, SingleObjectiveAlgorithm, \
-    GeneticAlgorithm, EvolutionaryStrategy, NSGAII, EpsMOEA, GDE3, SPEA2, \
+from .algorithms import Algorithm, AbstractGeneticAlgorithm, \
+    GeneticAlgorithm, SingleObjectiveAlgorithm, EvolutionaryStrategy, \
+    NSGAII, EpsMOEA, GDE3, SPEA2, \
     MOEAD, NSGAIII, ParticleSwarm, OMOPSO, SMPSO, CMAES, IBEA, PAES, \
-    RegionBasedSelector, PESA2, PeriodicAction, AdaptiveTimeContinuation, \
-    EpsilonProgressContinuation, EpsNSGAII
+    RegionBasedSelector, PESA2, EpsNSGAII
 
 from .evaluator import Job, Evaluator, MapEvaluator, SubmitEvaluator, \
     ApplyEvaluator, PoolEvaluator, MultiprocessingEvaluator, \
@@ -68,7 +68,12 @@ from .weights import chebyshev, pbi, random_weights, normal_boundary_weights
 from .io import save_objectives, load_objectives, save_json, load_json, \
     dump, load, save_state, load_state
 
-from .deprecated import default_variator, default_mutator, nondominated_cmp
+from .extensions import Extension, FixedFrequencyExtension, \
+    AdaptiveTimeContinuationExtension, EpsilonProgressContinuationExtension, \
+    SaveResultsExtension
+
+from .deprecated import default_variator, default_mutator, nondominated_cmp, \
+    PeriodicAction, AdaptiveTimeContinuation, EpsilonProgressContinuation
 
 __version__ = "1.4.0"
 

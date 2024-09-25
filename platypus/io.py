@@ -22,9 +22,10 @@ import json
 import pickle
 import random
 import warnings
+from .algorithms import Algorithm
 from .config import PlatypusConfig
-from .core import Algorithm, Archive, FixedLengthArray, Problem, Solution, \
-    Direction, Constraint
+from .core import Archive, FixedLengthArray, Problem, Solution, Direction, \
+    Constraint
 from .types import Type
 from .errors import PlatypusError, PlatypusWarning
 
