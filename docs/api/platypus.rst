@@ -11,6 +11,7 @@ Platypus API
    platypus.errors
    platypus.evaluator
    platypus.experimenter
+   platypus.extensions
    platypus.filters
    platypus.indicators
    platypus.io
