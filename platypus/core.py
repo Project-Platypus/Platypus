@@ -22,21 +22,16 @@ import sys
 import copy
 import math
 import time
-import logging
-import datetime
 import operator
 import warnings
 import functools
 import itertools
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from .config import PlatypusConfig
-from .evaluator import Job
 from .errors import PlatypusError, PlatypusWarning
 from .filters import unique, truncate, matches, fitness_key, rank_key, \
     crowding_distance_key, objective_value_at_index
 
-LOGGER = logging.getLogger("Platypus")
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")
 
@@ -434,133 +429,6 @@ class MaxTime(TerminationCondition):
 
     def shouldTerminate(self, algorithm):
         return time.time() - self.start_time >= self.max_time
-
-class _EvaluateJob(Job):
-
-    def __init__(self, solution):
-        super().__init__()
-        self.solution = solution
-
-    def run(self):
-        self.solution.evaluate()
-
-class Algorithm(metaclass=ABCMeta):
-    """Base class for all optimization algorithms.
-
-    For most use cases, use the :meth:`run` method to execute an algorithm
-    until the termination conditions are satisfied.  Internally, this invokes
-    the :meth:`step` method to perform each iteration of the algorithm.  An
-    termination conditions and callbacks are evaluated after each step.
-
-    Parameters
-    ----------
-    problem : Problem
-        The problem being optimized.
-    evaluator : Evaluator
-        The evalutor used to evaluate solutions.  If `None`, the default
-        evaluator defined in :attr:`PlatypusConfig` is selected.
-    log_frequency : int
-        The frequency to log evaluation progress.  If `None`, the default
-        log frequency defined in :attr:`PlatypusConfig` is selected.
-
-    Attributes
-    ----------
-    nfe : int
-        The current number of function evaluations (NFE)
-    result: list or Archive
-        The current result, which is updated after each iteration.
-    """
-
-    def __init__(self,
-                 problem,
-                 evaluator=None,
-                 log_frequency=None,
-                 **kwargs):
-        super().__init__()
-        self.problem = problem
-        self.evaluator = evaluator
-        self.log_frequency = log_frequency
-        self.nfe = 0
-
-        if self.evaluator is None:
-            self.evaluator = PlatypusConfig.default_evaluator
-
-        if self.log_frequency is None:
-            self.log_frequency = PlatypusConfig.default_log_frequency
-
-    @abstractmethod
-    def step(self):
-        """Performs one logical step of the algorithm."""
-        pass
-
-    def evaluate_all(self, solutions):
-        """Evaluates all of the given solutions.
-
-        Subclasses should prefer using this method to evaluate solutions,
-        ideally providing an entire population to leverage parallelization,
-        as it tracks NFE.
-
-        Parameters
-        ----------
-        solutions : list of Solution
-            The solutions to evaluate.
-        """
-        unevaluated = [s for s in solutions if not s.evaluated]
-
-        jobs = [_EvaluateJob(s) for s in unevaluated]
-        results = self.evaluator.evaluate_all(jobs)
-
-        # if needed, update the original solution with the results
-        for i, result in enumerate(results):
-            if unevaluated[i] != result.solution:
-                unevaluated[i].variables[:] = result.solution.variables[:]
-                unevaluated[i].objectives[:] = result.solution.objectives[:]
-                unevaluated[i].constraints[:] = result.solution.constraints[:]
-                unevaluated[i].constraint_violation = result.solution.constraint_violation
-                unevaluated[i].feasible = result.solution.feasible
-                unevaluated[i].evaluated = result.solution.evaluated
-
-        self.nfe += len(solutions)
-
-    def run(self, condition, callback=None):
-        """Runs this algorithm until the termination condition is reached.
-
-        Parameters
-        ----------
-        condition : int or TerminationCondition
-            The termination condition.  Providing an integer value is converted
-            into the :class:`MaxEvaluations` condition.
-        callback : Callable, optional
-            Callback function that is invoked after every iteration.  The
-            callback is passed this algorithm instance.
-        """
-        if isinstance(condition, int):
-            condition = MaxEvaluations(condition)
-
-        if isinstance(condition, TerminationCondition):
-            condition.initialize(self)
-
-        last_log = self.nfe
-        start_time = time.time()
-
-        LOGGER.info("%s starting", type(self).__name__)
-
-        while not condition(self):
-            self.step()
-
-            if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
-                LOGGER.info("%s running; NFE Complete: %d, Elapsed Time: %s",
-                            type(self).__name__,
-                            self.nfe,
-                            datetime.timedelta(seconds=time.time()-start_time))
-
-            if callback is not None:
-                callback(self)
-
-        LOGGER.info("%s finished; Total NFE: %d, Elapsed Time: %s",
-                    type(self).__name__,
-                    self.nfe,
-                    datetime.timedelta(seconds=time.time()-start_time))
 
 def _constraint_eq(x, y):
     return abs(x - y)
