@@ -20,12 +20,13 @@
 import copy
 import math
 import random
-from .core import Solution, ParetoDominance, Generator, Selector, Variator, \
-    Mutation, EPSILON
+
+from ._math import (add, clip, is_zero, magnitude, multiply, normalize,
+                    orthogonalize, random_vector, roulette, subtract, zeros)
+from .core import (EPSILON, Generator, Mutation, ParetoDominance, Selector,
+                   Solution, Variator)
 from .errors import PlatypusError
-from .types import Real, Binary, Permutation, Subset
-from ._math import add, subtract, multiply, is_zero, magnitude, \
-    orthogonalize, normalize, random_vector, zeros, roulette, clip
+from .types import Binary, Permutation, Real, Subset
 
 
 class RandomGenerator(Generator):

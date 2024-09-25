@@ -17,16 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pickle
-import pytest
+
 import jsonpickle
-from ._utils import similar
-from ..core import Problem, Direction
+import pytest
+
+from ..algorithms import (CMAES, GDE3, IBEA, MOEAD, NSGAII, NSGAIII, OMOPSO,
+                          SMPSO, SPEA2, AbstractGeneticAlgorithm, EpsMOEA,
+                          EpsNSGAII, ParticleSwarm)
+from ..core import Direction, Problem
 from ..errors import PlatypusError
-from ..problems import DTLZ2, CF1
-from ..algorithms import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
-    SMPSO, SPEA2, EpsMOEA, EpsNSGAII, AbstractGeneticAlgorithm, \
-    ParticleSwarm
+from ..problems import CF1, DTLZ2
 from ..weights import normal_boundary_weights, pbi
+from ._utils import similar
 
 problems = [DTLZ2, CF1]
 

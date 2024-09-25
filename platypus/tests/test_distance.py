@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
+
+from ..distance import DistanceMatrix, euclidean_dist, manhattan_dist
 from ._utils import createSolution
-from ..distance import euclidean_dist, manhattan_dist, DistanceMatrix
+
 
 def test_euclidean():
     assert 0.0 == euclidean_dist([1, 1], [1, 1])

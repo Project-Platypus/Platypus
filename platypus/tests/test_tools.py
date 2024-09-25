@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
-from .._tools import coalesce, remove_keys, only_keys, only_keys_for, \
-    parse_cli_keyvalue, type_cast
+
+from .._tools import (coalesce, only_keys, only_keys_for, parse_cli_keyvalue,
+                      remove_keys, type_cast)
+
 
 def mock_func_pos(a):
     pass

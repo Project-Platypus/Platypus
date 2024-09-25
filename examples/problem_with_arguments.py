@@ -1,5 +1,7 @@
 import functools
+
 from platypus import NSGAII, Problem, Real
+
 
 def problem_with_args(x, arg1, arg2=5):
     print(f"Called function with x: {x}, arg1: {arg1}, arg2: {arg2}")

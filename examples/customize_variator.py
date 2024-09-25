@@ -1,4 +1,4 @@
-from platypus import NSGAII, DTLZ2, PCX
+from platypus import DTLZ2, NSGAII, PCX
 
 problem = DTLZ2()
 

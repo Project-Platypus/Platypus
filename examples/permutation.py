@@ -1,4 +1,6 @@
-from platypus import GeneticAlgorithm, Problem, Permutation, nondominated, unique
+from platypus import (GeneticAlgorithm, Permutation, Problem, nondominated,
+                      unique)
+
 
 def ordering(x):
     # x[0] is the permutation, this calculates the difference between the permutation and an ordered list

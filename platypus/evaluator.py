@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-import logging
 import datetime
+import logging
+import time
 from abc import ABCMeta, abstractmethod
 
 LOGGER = logging.getLogger("Platypus")

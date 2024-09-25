@@ -24,6 +24,7 @@
 __all__ = ["MPIPool", "MPIPoolException"]
 
 import traceback
+
 from mpi4py import MPI
 
 

@@ -17,11 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import math
+
 import pytest
+
+from ..core import POSITIVE_INFINITY, Direction, Problem, Solution
+from ..indicators import (EpsilonIndicator, GenerationalDistance, Hypervolume,
+                          InvertedGenerationalDistance, Spacing)
 from ._utils import createSolution
-from ..indicators import GenerationalDistance, InvertedGenerationalDistance, \
-    EpsilonIndicator, Spacing, Hypervolume
-from ..core import Solution, Problem, Direction, POSITIVE_INFINITY
+
 
 @pytest.fixture
 def reference_set():

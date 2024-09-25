@@ -17,17 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import json
+import os
 import pickle
 import random
 import warnings
+
 from .algorithms import Algorithm
 from .config import PlatypusConfig
-from .core import Archive, FixedLengthArray, Problem, Solution, Direction, \
-    Constraint
-from .types import Type
+from .core import (Archive, Constraint, Direction, FixedLengthArray, Problem,
+                   Solution)
 from .errors import PlatypusError, PlatypusWarning
+from .types import Type
+
 
 def load_objectives(file, problem=None):
     """Loads objective values from a file.

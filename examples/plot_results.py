@@ -1,5 +1,6 @@
-from platypus import NSGAII, DTLZ2
 import matplotlib.pyplot as plt
+
+from platypus import DTLZ2, NSGAII
 
 # Select the problem.
 problem = DTLZ2()

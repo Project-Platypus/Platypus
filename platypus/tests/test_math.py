@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
-from .._math import dot, add, subtract, multiply, magnitude, choose, lsolve, \
-    point_line_dist, SingularError
+
+from .._math import (SingularError, add, choose, dot, lsolve, magnitude,
+                     multiply, point_line_dist, subtract)
+
 
 def test_dot():
     assert 0 == dot([0, 0, 0], [1, 1, 1])

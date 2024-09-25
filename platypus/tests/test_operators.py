@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 from unittest.mock import patch
+
 from ..core import Problem, Solution
-from ..types import Permutation
 from ..operators import Swap
+from ..types import Permutation
+
 
 def test_swap_range10():
     problem = Problem(1, 0)

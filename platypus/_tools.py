@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import types
 import inspect
 import logging
+import types
+
 from .errors import PlatypusError
 
 LOGGER = logging.getLogger("Platypus")

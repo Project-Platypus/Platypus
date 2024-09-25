@@ -17,20 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import sys
 import copy
-import math
-import time
-import operator
-import warnings
 import functools
 import itertools
+import math
+import operator
+import re
+import sys
+import time
+import warnings
 from abc import ABCMeta, abstractmethod
 from enum import Enum
+
 from .errors import PlatypusError, PlatypusWarning
-from .filters import unique, truncate, matches, fitness_key, rank_key, \
-    crowding_distance_key, objective_value_at_index
+from .filters import (crowding_distance_key, fitness_key, matches,
+                      objective_value_at_index, rank_key, truncate, unique)
 
 EPSILON = sys.float_info.epsilon
 POSITIVE_INFINITY = float("inf")

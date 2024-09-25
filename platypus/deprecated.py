@@ -16,14 +16,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import sys
 import random
+import sys
 import warnings
 from abc import ABCMeta, abstractmethod
+
 from .algorithms import Algorithm
-from .core import nondominated_sort_cmp
 from .config import PlatypusConfig
+from .core import nondominated_sort_cmp
 from .operators import UM
+
 
 def default_variator(problem):
     warnings.warn("default_variator(...) is being deprecated, please use PlatypusConfig.default_variator(...) instead",

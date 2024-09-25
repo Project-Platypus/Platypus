@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
+
+from ..filters import (group, matches, objective_value_at_index,
+                       objectives_key, truncate, unique)
 from ._utils import createSolution
-from ..filters import unique, group, truncate, matches, objectives_key, \
-    objective_value_at_index
 
 s1 = createSolution(0.0, 1.0)
 s2 = createSolution(1.0, 0.0)

@@ -1,5 +1,7 @@
 import math
-from platypus import GeneticAlgorithm, Problem, Direction, Permutation, nondominated, unique
+
+from platypus import (Direction, GeneticAlgorithm, Permutation, Problem,
+                      nondominated, unique)
 
 # The (x, y) coordinates of cities in the PR76 instance.  This instance has
 # an optimal tour length of 108159.

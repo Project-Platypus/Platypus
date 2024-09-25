@@ -18,9 +18,10 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-from .core import Direction, Indicator, normalize, POSITIVE_INFINITY
+
+from .core import POSITIVE_INFINITY, Direction, Indicator, normalize
+from .distance import distance_to_nearest, manhattan_dist
 from .errors import PlatypusError
-from .distance import manhattan_dist, distance_to_nearest
 
 
 class GenerationalDistance(Indicator):

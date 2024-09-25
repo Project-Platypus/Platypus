@@ -16,18 +16,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import os
-import re
-import sys
+import importlib
 import json
 import locale
-import random
 import logging
-import platypus
-import importlib
+import os
+import random
+import re
+import sys
 from argparse import ArgumentParser
-from ._tools import only_keys_for, parse_cli_keyvalue, type_cast, log_args, \
-    coalesce
+
+import platypus
+
+from ._tools import (coalesce, log_args, only_keys_for, parse_cli_keyvalue,
+                     type_cast)
+
 
 def main(input):
     """The main entry point for the Platypus CLI."""

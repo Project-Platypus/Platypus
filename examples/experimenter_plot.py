@@ -1,7 +1,8 @@
-from platypus import NSGAII, NSGAIII, CMAES, GDE3, IBEA, MOEAD, OMOPSO, \
-    SMPSO, SPEA2, EpsMOEA, DTLZ2, ProcessPoolEvaluator, experiment, \
-    normal_boundary_weights
 import matplotlib.pyplot as plt
+
+from platypus import (CMAES, DTLZ2, GDE3, IBEA, MOEAD, NSGAII, NSGAIII, OMOPSO,
+                      SMPSO, SPEA2, EpsMOEA, ProcessPoolEvaluator, experiment,
+                      normal_boundary_weights)
 
 if __name__ == '__main__':
     # setup the experiment

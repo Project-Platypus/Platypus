@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
+
 from ..config import PlatypusConfig
 from ..evaluator import MapEvaluator, SubmitEvaluator
-from ..operators import GAOperator, PM, SBX
+from ..operators import PM, SBX, GAOperator
 from ..problems import DTLZ2
 from ..types import Real
+
 
 @pytest.fixture
 def problem():

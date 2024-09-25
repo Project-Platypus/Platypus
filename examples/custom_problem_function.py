@@ -1,5 +1,6 @@
 from platypus import NSGAII, Problem, Real
 
+
 def schaffer(x):
     return [x[0]**2, (x[0]-2)**2]
 

@@ -17,12 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import math
-import random
-import operator
 import functools
+import math
+import operator
+import random
+import sys
 from functools import reduce
+
 from .core import EPSILON
 from .errors import SingularError
 

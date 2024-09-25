@@ -1,5 +1,6 @@
 from platypus import NSGAII, Problem, Real
 
+
 def belegundu(vars):
     x = vars[0]
     y = vars[1]

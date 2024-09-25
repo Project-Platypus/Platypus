@@ -22,6 +22,7 @@ import math
 import random
 from abc import ABCMeta, abstractmethod
 
+
 class Type(metaclass=ABCMeta):
     """The type of a decision variable.
 

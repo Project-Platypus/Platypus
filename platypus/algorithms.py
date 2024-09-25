@@ -17,33 +17,38 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import copy
-import math
-import random
-import inspect
-import operator
-import itertools
 import functools
+import inspect
+import itertools
+import math
+import operator
+import random
+import sys
 from abc import ABCMeta, abstractmethod
-from ._math import choose, lsolve, tred2, tql2, check_eigensystem, \
-    point_line_dist
-from ._tools import remove_keys, only_keys_for, coalesce
+
+from ._math import (check_eigensystem, choose, lsolve, point_line_dist, tql2,
+                    tred2)
+from ._tools import coalesce, only_keys_for, remove_keys
 from .config import PlatypusConfig
-from .core import ParetoDominance, AttributeDominance, EpsilonDominance, \
-    nondominated_sort, nondominated_prune, nondominated_truncate, \
-    nondominated_split, crowding_distance, EPSILON, POSITIVE_INFINITY, \
-    Archive, FitnessArchive, Solution, Direction, AdaptiveGridArchive, \
-    HypervolumeFitnessEvaluator, nondominated_sort_cmp, fitness_key, \
-    crowding_distance_key, Selector, EpsilonBoxArchive, \
-    TerminationCondition, MaxEvaluations
+from .core import (EPSILON, POSITIVE_INFINITY, AdaptiveGridArchive, Archive,
+                   AttributeDominance, Direction, EpsilonBoxArchive,
+                   EpsilonDominance, FitnessArchive,
+                   HypervolumeFitnessEvaluator, MaxEvaluations,
+                   ParetoDominance, Selector, Solution, TerminationCondition,
+                   crowding_distance, crowding_distance_key, fitness_key,
+                   nondominated_prune, nondominated_sort,
+                   nondominated_sort_cmp, nondominated_split,
+                   nondominated_truncate)
 from .distance import DistanceMatrix
 from .errors import PlatypusError
 from .evaluator import Job
-from .extensions import LoggingExtension, AdaptiveTimeContinuationExtension
-from .operators import TournamentSelector, RandomGenerator, \
-    DifferentialEvolution, clip, UniformMutation, NonUniformMutation
-from .weights import random_weights, chebyshev, normal_boundary_weights
+from .extensions import AdaptiveTimeContinuationExtension, LoggingExtension
+from .operators import (DifferentialEvolution, NonUniformMutation,
+                        RandomGenerator, TournamentSelector, UniformMutation,
+                        clip)
+from .weights import chebyshev, normal_boundary_weights, random_weights
+
 
 class EvaluateSolution(Job):
 

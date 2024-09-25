@@ -18,7 +18,8 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-from .core import Solution, POSITIVE_INFINITY
+
+from .core import POSITIVE_INFINITY, Solution
 
 
 def euclidean_dist(x, y):

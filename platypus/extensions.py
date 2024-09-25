@@ -16,11 +16,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import time
-import random
-import logging
 import datetime
+import logging
+import random
+import time
 from abc import ABCMeta, abstractmethod
+
 from .operators import UM
 
 LOGGER = logging.getLogger("Platypus")

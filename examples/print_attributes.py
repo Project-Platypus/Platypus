@@ -1,4 +1,4 @@
-from platypus import NSGAII, DTLZ2, normalize
+from platypus import DTLZ2, NSGAII, normalize
 
 problem = DTLZ2()
 

@@ -16,13 +16,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import pytest
 import tempfile
-from ._utils import createSolution, similar
+
+import pytest
+
 from ..algorithms import NSGAII
+from ..io import (load_json, load_objectives, load_state, save_json,
+                  save_objectives, save_state)
 from ..problems import CF1
-from ..io import save_objectives, load_objectives, save_json, load_json, \
-    save_state, load_state
+from ._utils import createSolution, similar
+
 
 def test_objectives():
     s1 = createSolution(0.0, 1.0)

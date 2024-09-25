@@ -17,14 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import time
 import datetime
 import functools
+import sys
+import time
 from collections import OrderedDict
+
 from .config import PlatypusConfig
 from .errors import PlatypusError
 from .evaluator import Job
+
 
 class ExperimentJob(Job):
 

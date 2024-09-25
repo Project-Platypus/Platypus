@@ -17,13 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import math
-import random
-import operator
 import functools
-from .core import Problem, Solution, EPSILON
-from .types import Real, Binary
+import math
+import operator
+import random
 from abc import ABCMeta
+
+from .core import EPSILON, Problem, Solution
+from .types import Binary, Real
 
 ################################################################################
 # DTLZ Problems

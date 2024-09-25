@@ -16,12 +16,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
+import contextlib
 import io
 import os
-import re
 import random
-import contextlib
+import re
+
 from ..__main__ import main
+
 
 def test_cli():
     suffix = str(random.randint(0, 1000000))

@@ -16,12 +16,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
-import pytest
-import inspect
 import importlib
+import inspect
+
+import pytest
+
 from ..core import Problem
-from ..problems import WFG, ZDT
 from ..operators import RandomGenerator
+from ..problems import WFG, ZDT
+
 
 def problem_filter(x):
     return inspect.isclass(x) and issubclass(x, Problem) and x not in (Problem, WFG, ZDT)

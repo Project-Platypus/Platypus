@@ -1,5 +1,6 @@
 from platypus import NSGAII, Problem, Real
 
+
 class Belegundu(Problem):
 
     def __init__(self):

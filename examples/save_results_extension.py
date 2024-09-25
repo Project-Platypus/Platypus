@@ -1,4 +1,4 @@
-from platypus import NSGAII, DTLZ2, SaveResultsExtension
+from platypus import DTLZ2, NSGAII, SaveResultsExtension
 
 problem = DTLZ2()
 

@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
+
+from ..types import (Binary, Integer, Permutation, Real, Subset, bin2gray,
+                     bin2int, gray2bin, int2bin)
 from ._utils import assertBinEqual
-from ..types import Real, Binary, Integer, Permutation, Subset, \
-    bin2gray, bin2int, int2bin, gray2bin
+
 
 @pytest.fixture
 def nsamples():

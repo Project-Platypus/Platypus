@@ -1,4 +1,4 @@
-from platypus import OMOPSO, DTLZ2
+from platypus import DTLZ2, OMOPSO
 
 # define the problem
 problem = DTLZ2()

@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import math
 import copy
+import math
 import random
+import sys
+
 from .core import POSITIVE_INFINITY
 
 # Scalarizing functions used to compute the fitness of a solution with multiple

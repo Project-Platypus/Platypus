@@ -18,13 +18,15 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import random
+
 import pytest
-from ._utils import createSolution
-from ..core import Constraint, ParetoDominance, Archive, EpsilonBoxArchive, \
-    nondominated_sort, nondominated_truncate, nondominated_prune, \
-    POSITIVE_INFINITY, nondominated_split, truncate_fitness, normalize, \
-    Direction, Problem
+
+from ..core import (POSITIVE_INFINITY, Archive, Constraint, Direction,
+                    EpsilonBoxArchive, ParetoDominance, Problem,
+                    nondominated_prune, nondominated_sort, nondominated_split,
+                    nondominated_truncate, normalize, truncate_fitness)
 from ..errors import PlatypusError, PlatypusWarning
+from ._utils import createSolution
 
 s0 = createSolution(0.0, 0.0)
 s1 = createSolution(0.0, 1.0)

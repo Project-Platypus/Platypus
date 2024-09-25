@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-from platypus import NSGAII, DTLZ2, Hypervolume, load_objectives
+
+from platypus import DTLZ2, NSGAII, Hypervolume, load_objectives
 
 problem = DTLZ2()
 algorithm = NSGAII(problem)

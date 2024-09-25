@@ -1,4 +1,4 @@
-from platypus import NSGAII, DTLZ2, save_state, load_state
+from platypus import DTLZ2, NSGAII, load_state, save_state
 
 # Example of saving and resuming a run using a state file.  By default, the
 # state is stored in a binary format using pickling.  Setting json=True

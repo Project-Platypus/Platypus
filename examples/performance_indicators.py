@@ -1,5 +1,6 @@
-from platypus import NSGAII, DTLZ2, Hypervolume, GenerationalDistance, \
-    InvertedGenerationalDistance, EpsilonIndicator, Spacing, load_objectives
+from platypus import (DTLZ2, NSGAII, EpsilonIndicator, GenerationalDistance,
+                      Hypervolume, InvertedGenerationalDistance, Spacing,
+                      load_objectives)
 
 # Select the problem.
 problem = DTLZ2()

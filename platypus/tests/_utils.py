@@ -1,6 +1,8 @@
 import pytest
+
 from ..algorithms import Algorithm
-from ..core import Problem, Solution, Archive, FixedLengthArray
+from ..core import Archive, FixedLengthArray, Problem, Solution
+
 
 def createSolution(*args):
     problem = Problem(0, len(args))

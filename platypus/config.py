@@ -18,8 +18,10 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
-from .types import Type
+
 from .errors import PlatypusError
+from .types import Type
+
 
 class _PlatypusConfig:
     """Global configuration options for Platypus."""
