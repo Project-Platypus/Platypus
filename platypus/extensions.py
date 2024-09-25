@@ -291,12 +291,20 @@ class EpsilonProgressContinuationExtension(AdaptiveTimeContinuationExtension):
         self.last_improvements = algorithm.archive.improvements
 
 class SaveResultsExtension(FixedFrequencyExtension):
-    """Extension that performs an action at a fixed frequency.
+    """Saves intermediate results to a JSON file.
+
+    The filename pattern can reference the following variables:
+    * :code:`{algorithm}` - The algorithm name
+    * :code:`{problem}` - The problem name
+    * :code:`{nfe}` - The number of function evaluations
+    * :code:`{nvars}` - The number of variables in the problem
+    * :code:`{nobjs}` - The number of objectives in the problem
+    * :code:`{nconstrs}` - The number of constraints in the problem
 
     Parameters
     ----------
     filename_pattern: str
-        The filename pattern.  Include :code:`{nfe}` to include the NFE.
+        The filename pattern.
     frequency : int
         The frequency the action occurs.
     by_nfe : bool
@@ -311,5 +319,10 @@ class SaveResultsExtension(FixedFrequencyExtension):
 
     def do_action(self, algorithm):
         from .io import save_json
-        filename = self.filename_pattern.format(nfe=algorithm.nfe)
+        filename = self.filename_pattern.format(algorithm=type(algorithm).__name__,
+                                                problem=type(algorithm.problem).__name__,
+                                                nfe=algorithm.nfe,
+                                                nvars=algorithm.problem.nvars,
+                                                nobjs=algorithm.problem.nobjs,
+                                                nconstrs=algorithm.problem.nconstrs)
         save_json(filename, algorithm.result)
