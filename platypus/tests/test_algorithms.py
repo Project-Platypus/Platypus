@@ -26,6 +26,7 @@ from ..algorithms import (CMAES, GDE3, IBEA, MOEAD, NSGAII, NSGAIII, OMOPSO,
                           EpsNSGAII, ParticleSwarm)
 from ..core import Direction, Problem
 from ..errors import PlatypusError
+from ..extensions import LoggingExtension
 from ..problems import CF1, DTLZ2
 from ..weights import normal_boundary_weights, pbi
 from ._utils import similar
@@ -100,3 +101,22 @@ def maximized_problem():
 def test_fail_maximization(maximized_problem, algorithm):
     with pytest.raises(PlatypusError):
         algorithm(maximized_problem, **algorithms[algorithm][0])
+
+def test_extensions():
+    algorithm = NSGAII(DTLZ2())
+
+    # always start with the LoggingExtension
+    assert len(algorithm._extensions) == 1
+
+    algorithm.remove_extension(LoggingExtension)
+    assert len(algorithm._extensions) == 0
+
+    l1 = LoggingExtension()
+    l2 = LoggingExtension()
+
+    algorithm.add_extension(l1)
+    algorithm.add_extension(l2)
+    assert [l2, l1] == algorithm._extensions
+
+    algorithm.remove_extension(l2)
+    assert [l1] == algorithm._extensions
