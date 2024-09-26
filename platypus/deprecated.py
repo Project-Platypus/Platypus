@@ -21,9 +21,8 @@ import sys
 import warnings
 from abc import ABCMeta, abstractmethod
 
-from .algorithms import Algorithm
 from .config import PlatypusConfig
-from .core import nondominated_sort_cmp
+from .core import Algorithm, nondominated_sort_cmp
 from .operators import UM
 
 

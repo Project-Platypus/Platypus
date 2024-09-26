@@ -22,6 +22,7 @@ import random
 import time
 from abc import ABCMeta, abstractmethod
 
+from .io import save_json
 from .operators import UM
 
 LOGGER = logging.getLogger("Platypus")
@@ -319,7 +320,6 @@ class SaveResultsExtension(FixedFrequencyExtension):
         self.filename_pattern = filename_pattern
 
     def do_action(self, algorithm):
-        from .io import save_json
         filename = self.filename_pattern.format(algorithm=type(algorithm).__name__,
                                                 problem=type(algorithm.problem).__name__,
                                                 nfe=algorithm.nfe,

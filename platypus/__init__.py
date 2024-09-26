@@ -19,11 +19,11 @@
 
 from .algorithms import (CMAES, GDE3, IBEA, MOEAD, NSGAII, NSGAIII, OMOPSO,
                          PAES, PESA2, SMPSO, SPEA2, AbstractGeneticAlgorithm,
-                         Algorithm, EpsMOEA, EpsNSGAII, EvolutionaryStrategy,
+                         EpsMOEA, EpsNSGAII, EvolutionaryStrategy,
                          GeneticAlgorithm, ParticleSwarm, RegionBasedSelector,
                          SingleObjectiveAlgorithm)
 from .config import PlatypusConfig
-from .core import (AdaptiveGridArchive, Archive, AttributeDominance,
+from .core import (AdaptiveGridArchive, Algorithm, Archive, AttributeDominance,
                    Constraint, Direction, Dominance, EpsilonBoxArchive,
                    EpsilonDominance, FitnessArchive, FitnessEvaluator,
                    FixedLengthArray, Generator, HypervolumeFitnessEvaluator,
@@ -44,7 +44,8 @@ from .experimenter import (ExperimentJob, IndicatorJob, calculate, display,
                            experiment)
 from .extensions import (AdaptiveTimeContinuationExtension,
                          EpsilonProgressContinuationExtension, Extension,
-                         FixedFrequencyExtension, SaveResultsExtension)
+                         FixedFrequencyExtension, LoggingExtension,
+                         SaveResultsExtension)
 from .filters import (crowding_distance_key, feasible, fitness_key, infeasible,
                       matches, objectives_key, rank_key, truncate, unique,
                       variables_key)
@@ -78,5 +79,6 @@ PlatypusConfig.register_default_mutator(Binary, BitFlip())
 PlatypusConfig.register_default_mutator(Permutation, CompoundMutation(Insertion(), Swap()))
 PlatypusConfig.register_default_mutator(Subset, Replace())
 
+PlatypusConfig._default_logger = LoggingExtension
 PlatypusConfig.default_evaluator = MapEvaluator()
 PlatypusConfig._version = __version__

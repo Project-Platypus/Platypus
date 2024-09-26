@@ -22,7 +22,7 @@ import math
 import random
 import sys
 
-from .core import POSITIVE_INFINITY
+from ._math import POSITIVE_INFINITY
 
 # Scalarizing functions used to compute the fitness of a solution with multiple
 # objectives.

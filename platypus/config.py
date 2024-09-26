@@ -19,6 +19,7 @@
 
 import inspect
 
+from ._tools import coalesce
 from .errors import PlatypusError
 from .types import Type
 
@@ -31,6 +32,7 @@ class _PlatypusConfig:
         self._version = None
         self._default_variator = {}
         self._default_mutator = {}
+        self._default_logger = None
         self.default_evaluator = None
         self.default_log_frequency = None
 
@@ -123,6 +125,17 @@ class _PlatypusConfig:
                 return self._default_mutator[default_type]
 
         raise PlatypusError(f"no default mutator for {base_type}")
+
+    def get_logging_extension(self, log_frequency=None):
+        """Returns the default logging extension.
+
+        Parameters
+        ----------
+        log_frequency : int
+            The frequency that run progress log messages are written.  If
+            :code:`None`, uses :code:`default_log_frequency`.
+        """
+        return self._default_logger(coalesce(log_frequency, self.default_log_frequency, 0))
 
 
 # Defaults are configured in __init__.py.

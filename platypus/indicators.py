@@ -19,7 +19,8 @@
 
 import math
 
-from .core import POSITIVE_INFINITY, Direction, Indicator, normalize
+from ._math import POSITIVE_INFINITY
+from .core import Direction, Indicator, normalize
 from .distance import distance_to_nearest, manhattan_dist
 from .errors import PlatypusError
 

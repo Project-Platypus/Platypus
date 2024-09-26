@@ -19,7 +19,8 @@
 
 import math
 
-from .core import POSITIVE_INFINITY, Solution
+from ._math import POSITIVE_INFINITY
+from .core import Solution
 
 
 def euclidean_dist(x, y):

@@ -23,10 +23,9 @@ import pickle
 import random
 import warnings
 
-from .algorithms import Algorithm
 from .config import PlatypusConfig
-from .core import (Archive, Constraint, Direction, FixedLengthArray, Problem,
-                   Solution)
+from .core import (Algorithm, Archive, Constraint, Direction, FixedLengthArray,
+                   Problem, Solution)
 from .errors import PlatypusError, PlatypusWarning
 from .types import Type
 

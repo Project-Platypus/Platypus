@@ -19,7 +19,6 @@
 
 import copy
 import functools
-import inspect
 import itertools
 import math
 import operator
@@ -27,166 +26,24 @@ import random
 import sys
 from abc import ABCMeta, abstractmethod
 
-from ._math import (EPSILON, check_eigensystem, choose, lsolve,
-                    point_line_dist, tql2, tred2)
-from ._tools import coalesce, only_keys_for, remove_keys
+from ._math import (EPSILON, POSITIVE_INFINITY, check_eigensystem, choose,
+                    clip, lsolve, point_line_dist, tql2, tred2)
+from ._tools import only_keys_for, remove_keys
 from .config import PlatypusConfig
-from .core import (POSITIVE_INFINITY, AdaptiveGridArchive, Archive,
-                   AttributeDominance, Direction, EpsilonBoxArchive,
-                   EpsilonDominance, FitnessArchive,
-                   HypervolumeFitnessEvaluator, MaxEvaluations,
-                   ParetoDominance, Selector, Solution, TerminationCondition,
-                   crowding_distance, crowding_distance_key, fitness_key,
-                   nondominated_prune, nondominated_sort,
-                   nondominated_sort_cmp, nondominated_split,
-                   nondominated_truncate)
+from .core import (AdaptiveGridArchive, Algorithm, Archive, AttributeDominance,
+                   Direction, EpsilonBoxArchive, EpsilonDominance,
+                   FitnessArchive, HypervolumeFitnessEvaluator,
+                   ParetoDominance, Selector, Solution, crowding_distance,
+                   crowding_distance_key, fitness_key, nondominated_prune,
+                   nondominated_sort, nondominated_sort_cmp,
+                   nondominated_split, nondominated_truncate)
 from .distance import DistanceMatrix
 from .errors import PlatypusError
-from .evaluator import Job
-from .extensions import AdaptiveTimeContinuationExtension, LoggingExtension
+from .extensions import AdaptiveTimeContinuationExtension
 from .operators import (DifferentialEvolution, NonUniformMutation,
-                        RandomGenerator, TournamentSelector, UniformMutation,
-                        clip)
+                        RandomGenerator, TournamentSelector, UniformMutation)
 from .weights import chebyshev, normal_boundary_weights, random_weights
 
-
-class EvaluateSolution(Job):
-
-    def __init__(self, solution):
-        super().__init__()
-        self.solution = solution
-
-    def run(self):
-        self.solution.evaluate()
-
-class Algorithm(metaclass=ABCMeta):
-    """Base class for all optimization algorithms.
-
-    For most use cases, use the :meth:`run` method to execute an algorithm
-    until the termination conditions are satisfied.  Internally, this invokes
-    the :meth:`step` method to perform each iteration of the algorithm.  An
-    termination conditions and callbacks are evaluated after each step.
-
-    Parameters
-    ----------
-    problem : Problem
-        The problem being optimized.
-    evaluator : Evaluator
-        The evalutor used to evaluate solutions.  If `None`, the default
-        evaluator defined in :attr:`PlatypusConfig` is selected.
-    log_frequency : int
-        The frequency to log evaluation progress.  If `None`, the default
-        log frequency defined in :attr:`PlatypusConfig` is selected.
-
-    Attributes
-    ----------
-    nfe : int
-        The current number of function evaluations (NFE)
-    result: list or Archive
-        The current result, which is updated after each iteration.
-    """
-
-    def __init__(self,
-                 problem,
-                 evaluator=None,
-                 log_frequency=None,
-                 **kwargs):
-        super().__init__()
-        self.problem = problem
-        self.evaluator = evaluator
-        self.nfe = 0
-        self._extensions = []
-
-        if self.evaluator is None:
-            self.evaluator = PlatypusConfig.default_evaluator
-
-        self.add_extension(LoggingExtension(coalesce(log_frequency, PlatypusConfig.default_log_frequency, 0)))
-
-    def add_extension(self, extension):
-        """Adds an extension to this algorithm.
-
-        Extensions add functionality to an algorithm at specific points during
-        a run.  If multiple extensions are added, they are run in reverse
-        order.  That is, the last extension added is the first to run.
-
-        Parameters
-        ----------
-        extension : Extension
-            The extension.
-        """
-        if inspect.isclass(extension):
-            extension = extension()
-        self._extensions.insert(0, extension)
-
-    @abstractmethod
-    def step(self):
-        """Performs one logical step of the algorithm."""
-        pass
-
-    def evaluate_all(self, solutions):
-        """Evaluates all of the given solutions.
-
-        Subclasses should prefer using this method to evaluate solutions,
-        ideally providing an entire population to leverage parallelization,
-        as it tracks NFE.
-
-        Parameters
-        ----------
-        solutions : list of Solution
-            The solutions to evaluate.
-        """
-        unevaluated = [s for s in solutions if not s.evaluated]
-
-        jobs = [EvaluateSolution(s) for s in unevaluated]
-        results = self.evaluator.evaluate_all(jobs)
-
-        # if needed, update the original solution with the results
-        for i, result in enumerate(results):
-            if unevaluated[i] != result.solution:
-                unevaluated[i].variables[:] = result.solution.variables[:]
-                unevaluated[i].objectives[:] = result.solution.objectives[:]
-                unevaluated[i].constraints[:] = result.solution.constraints[:]
-                unevaluated[i].constraint_violation = result.solution.constraint_violation
-                unevaluated[i].feasible = result.solution.feasible
-                unevaluated[i].evaluated = result.solution.evaluated
-
-        self.nfe += len(solutions)
-
-    def run(self, condition, callback=None):
-        """Runs this algorithm until the termination condition is reached.
-
-        Parameters
-        ----------
-        condition : int or TerminationCondition
-            The termination condition.  Providing an integer value is converted
-            into the :class:`MaxEvaluations` condition.
-        callback : Callable, optional
-            Callback function that is invoked after every iteration.  The
-            callback is passed this algorithm instance.
-        """
-        if isinstance(condition, int):
-            condition = MaxEvaluations(condition)
-
-        if isinstance(condition, TerminationCondition):
-            condition.initialize(self)
-
-        for extension in self._extensions:
-            extension.start_run(self)
-
-        while not condition(self):
-            for extension in self._extensions:
-                extension.pre_step(self)
-
-            self.step()
-
-            for extension in self._extensions:
-                extension.post_step(self)
-
-            if callback is not None:
-                callback(self)
-
-        for extension in self._extensions:
-            extension.end_run(self)
 
 class AbstractGeneticAlgorithm(Algorithm, metaclass=ABCMeta):
     """Abstract class for genetic algorithms.

@@ -21,9 +21,10 @@ import random
 
 import pytest
 
-from ..core import (POSITIVE_INFINITY, Archive, Constraint, Direction,
-                    EpsilonBoxArchive, ParetoDominance, Problem,
-                    nondominated_prune, nondominated_sort, nondominated_split,
+from .._math import POSITIVE_INFINITY
+from ..core import (Archive, Constraint, Direction, EpsilonBoxArchive,
+                    ParetoDominance, Problem, nondominated_prune,
+                    nondominated_sort, nondominated_split,
                     nondominated_truncate, normalize, truncate_fitness)
 from ..errors import PlatypusError, PlatypusWarning
 from ._utils import createSolution

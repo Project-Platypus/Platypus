@@ -20,7 +20,8 @@ import math
 
 import pytest
 
-from ..core import POSITIVE_INFINITY, Direction, Problem, Solution
+from .._math import POSITIVE_INFINITY
+from ..core import Direction, Problem, Solution
 from ..indicators import (EpsilonIndicator, GenerationalDistance, Hypervolume,
                           InvertedGenerationalDistance, Spacing)
 from ._utils import createSolution
