@@ -23,7 +23,8 @@ import operator
 import random
 from abc import ABCMeta
 
-from .core import EPSILON, Problem, Solution
+from ._math import EPSILON
+from .core import Problem, Solution
 from .types import Binary, Real
 
 ################################################################################

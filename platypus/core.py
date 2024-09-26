@@ -23,18 +23,16 @@ import itertools
 import math
 import operator
 import re
-import sys
 import time
 import warnings
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 
+from ._math import EPSILON, POSITIVE_INFINITY
 from .errors import PlatypusError, PlatypusWarning
 from .filters import (crowding_distance_key, fitness_key, matches,
                       objective_value_at_index, rank_key, truncate, unique)
 
-EPSILON = sys.float_info.epsilon
-POSITIVE_INFINITY = float("inf")
 
 class FixedLengthArray:
 

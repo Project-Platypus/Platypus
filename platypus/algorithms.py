@@ -27,11 +27,11 @@ import random
 import sys
 from abc import ABCMeta, abstractmethod
 
-from ._math import (check_eigensystem, choose, lsolve, point_line_dist, tql2,
-                    tred2)
+from ._math import (EPSILON, check_eigensystem, choose, lsolve,
+                    point_line_dist, tql2, tred2)
 from ._tools import coalesce, only_keys_for, remove_keys
 from .config import PlatypusConfig
-from .core import (EPSILON, POSITIVE_INFINITY, AdaptiveGridArchive, Archive,
+from .core import (POSITIVE_INFINITY, AdaptiveGridArchive, Archive,
                    AttributeDominance, Direction, EpsilonBoxArchive,
                    EpsilonDominance, FitnessArchive,
                    HypervolumeFitnessEvaluator, MaxEvaluations,

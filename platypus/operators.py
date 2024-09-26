@@ -21,10 +21,11 @@ import copy
 import math
 import random
 
-from ._math import (add, clip, is_zero, magnitude, multiply, normalize,
-                    orthogonalize, random_vector, roulette, subtract, zeros)
-from .core import (EPSILON, Generator, Mutation, ParetoDominance, Selector,
-                   Solution, Variator)
+from ._math import (EPSILON, add, clip, is_zero, magnitude, multiply,
+                    normalize, orthogonalize, random_vector, roulette,
+                    subtract, zeros)
+from .core import (Generator, Mutation, ParetoDominance, Selector, Solution,
+                   Variator)
 from .errors import PlatypusError
 from .types import Binary, Permutation, Real, Subset
 

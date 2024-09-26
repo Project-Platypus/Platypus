@@ -24,9 +24,10 @@ import random
 import sys
 from functools import reduce
 
-from .core import EPSILON
 from .errors import SingularError
 
+EPSILON = sys.float_info.epsilon
+POSITIVE_INFINITY = float("inf")
 
 def clip(value, min_value, max_value):
     return max(min_value, min(value, max_value))
