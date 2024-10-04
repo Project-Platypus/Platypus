@@ -7,7 +7,7 @@ see all available options, run:
 
 .. code:: bash
 
-   python -m platypus --help
+   platypus --help
 
 Solve
 -----
@@ -16,14 +16,14 @@ Solve executes the given algorithm on a problem, saving the final approximation 
 
 .. code:: bash
 
-   python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 --output NSGAII_DTLZ2.set
+   platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 --output NSGAII_DTLZ2.set
 
 Additional arguments can be provided, such as setting the ``population_size`` as demonstrated below.
 Note that only arguments with primitive types are supported.
 
 .. code:: bash
 
-   python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 population_size=250
+   platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 population_size=250
 
 ::
 
@@ -39,7 +39,7 @@ the hypervolume using a reference set for normalization:
 
 .. code:: bash
 
-   python -m platypus hypervolume --reference_set ./examples/DTLZ2.2D.pf NSGAII_DTLZ2.set
+   platypus hypervolume --reference_set ./examples/DTLZ2.2D.pf NSGAII_DTLZ2.set
 
 which outputs:
 
@@ -54,8 +54,8 @@ The results can be filtered to remove any dominated, infeasible, or duplicate so
 
 .. code:: bash
 
-   python -m platypus filter --output NSGAII_DTLZ2_unique.set --feasible --unique NSGAII_DTLZ2.set
-   python -m platypus filter --output NSGAII_DTLZ2_epsilons.set --epsilons 0.01,0.01 NSGAII_DTLZ2.set
+   platypus filter --output NSGAII_DTLZ2_unique.set --feasible --unique NSGAII_DTLZ2.set
+   platypus filter --output NSGAII_DTLZ2_epsilons.set --epsilons 0.01,0.01 NSGAII_DTLZ2.set
 
 Normalization
 -------------
@@ -67,8 +67,8 @@ the normalized solutions:
 
 .. code:: bash
 
-   python -m platypus normalize --output NSGAII_DTLZ2_normalized.set --reference_set ./examples/DTLZ2.2D.pf NSGAII_DTLZ2.set
-   python -m platypus normalize --output NSGAII_DTLZ2_normalized.set --minimum 0.0,0.0 --maximum 1.0,1.0 NSGAII_DTLZ2.set
+   platypus normalize --output NSGAII_DTLZ2_normalized.set --reference_set ./examples/DTLZ2.2D.pf NSGAII_DTLZ2.set
+   platypus normalize --output NSGAII_DTLZ2_normalized.set --minimum 0.0,0.0 --maximum 1.0,1.0 NSGAII_DTLZ2.set
 
 Plotting
 --------
@@ -77,8 +77,8 @@ For 2 and 3 objectives, we can also generate a plot, either interactive or savin
 
 .. code:: bash
 
-   python -m platypus plot NSGAII_DTLZ2.set
-   python -m platypus plot --output NSGAII_DTLZ2.png NSGAII_DTLZ2.set
+   platypus plot NSGAII_DTLZ2.set
+   platypus plot --output NSGAII_DTLZ2.png NSGAII_DTLZ2.set
 
 Combining or Chaining Commands
 ------------------------------
@@ -89,6 +89,6 @@ as demonstrated below:
 
 .. code:: bash
 
-   python -m platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 | \
-       python -m platypus filter --epsilons 0.01,0.01 | \
-       python -m platypus plot
+   platypus solve --algorithm NSGAII --problem DTLZ2 --nfe 10000 | \
+       platypus filter --epsilons 0.01,0.01 | \
+       platypus plot

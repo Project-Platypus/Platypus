@@ -32,9 +32,12 @@ from ._tools import (coalesce, log_args, only_keys_for, parse_cli_keyvalue,
                      type_cast)
 
 
-def main(input):
+def main(input=None):
     """The main entry point for the Platypus CLI."""
     LOGGER = logging.getLogger("Platypus")
+
+    if input is None:
+        input = sys.argv[1:]
 
     def load_set(file):
         """Loads input file from stdin or file."""
@@ -264,4 +267,4 @@ def main(input):
             plt.show()
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()

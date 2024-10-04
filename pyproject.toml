@@ -24,6 +24,9 @@ test = ["pytest", "mock", "flake8", "flake8-pyproject", "numpy", "matplotlib", "
 docs = ["sphinx", "sphinx-rtd-theme"]
 full = ["mpi4py", "Platypus-Opt[test]", "Platypus-Opt[docs]"]
 
+[project.scripts]
+platypus = "platypus.__main__:main"
+
 [tool.setuptools.dynamic]
 version = {attr = "platypus.__version__"}
 
