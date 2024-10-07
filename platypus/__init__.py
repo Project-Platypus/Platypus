@@ -67,7 +67,7 @@ from .problems import (CF1, CF2, CF3, CF4, CF5, CF6, CF7, CF8, CF9, CF10,
 from .types import Binary, Integer, Permutation, Real, Subset, Type
 from .weights import chebyshev, normal_boundary_weights, pbi, random_weights
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 PlatypusConfig.register_default_variator(Real, GAOperator(SBX(), PM()))
 PlatypusConfig.register_default_variator(Binary, GAOperator(HUX(), BitFlip()))
