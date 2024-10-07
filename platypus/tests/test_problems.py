@@ -18,7 +18,6 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import importlib
 import inspect
-
 import pytest
 
 from ..core import Problem

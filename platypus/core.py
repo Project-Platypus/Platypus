@@ -110,6 +110,8 @@ class Direction(Enum):
                 return Direction[obj.upper()]
             except KeyError:
                 raise PlatypusError(f"{obj} is not a valid direction, valid values: {', '.join([d.name for d in Direction])}")
+        elif isinstance(obj, (list, tuple)):
+            return [Direction.to_direction(d) for d in obj]
         else:
             return Direction(obj)
 

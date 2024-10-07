@@ -18,7 +18,6 @@
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import random
-
 import pytest
 
 from .._math import POSITIVE_INFINITY
@@ -27,6 +26,7 @@ from ..core import (Archive, Constraint, Direction, EpsilonBoxArchive,
                     nondominated_sort, nondominated_split,
                     nondominated_truncate, normalize, truncate_fitness)
 from ..errors import PlatypusError, PlatypusWarning
+from ..types import Real
 from ._utils import createSolution
 
 s0 = createSolution(0.0, 0.0)
@@ -127,6 +127,18 @@ def test_constraint_missing_value():
 def test_constraint_empty_string():
     with pytest.raises(PlatypusError):
         Constraint("")
+
+def test_problem_single_assignment():
+    problem = Problem(2, 2, 2)
+    problem.types[:] = Real(0, 1)
+    problem.directions[:] = Direction.MINIMIZE
+    problem.constraints[:] = Constraint.LESS_THAN_ZERO
+
+def test_problem_array_assignment():
+    problem = Problem(1, 2, 2)
+    problem.types[:] = [Real(0, 1), Real(0, 1)]
+    problem.directions[:] = [Direction.MINIMIZE, Direction.MAXIMIZE]
+    problem.constraints[:] = [Constraint.LESS_THAN_ZERO, Constraint.GREATER_THAN_ZERO]
 
 def test_pareto_dominance():
     dominance = ParetoDominance()

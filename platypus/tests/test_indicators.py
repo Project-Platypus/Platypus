@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Platypus.  If not, see <http://www.gnu.org/licenses/>.
 import math
-
 import pytest
 
 from .._math import POSITIVE_INFINITY
