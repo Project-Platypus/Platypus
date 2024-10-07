@@ -134,11 +134,25 @@ def test_problem_single_assignment():
     problem.directions[:] = Direction.MINIMIZE
     problem.constraints[:] = Constraint.LESS_THAN_ZERO
 
+    assert len(problem.types) == 2
+    assert len(problem.directions) == 2
+    assert len(problem.constraints) == 2
+    assert all([t is not None for t in problem.types])
+    assert all([d is not None for d in problem.directions])
+    assert all([c is not None for c in problem.constraints])
+
 def test_problem_array_assignment():
-    problem = Problem(1, 2, 2)
+    problem = Problem(2, 2, 2)
     problem.types[:] = [Real(0, 1), Real(0, 1)]
     problem.directions[:] = [Direction.MINIMIZE, Direction.MAXIMIZE]
     problem.constraints[:] = [Constraint.LESS_THAN_ZERO, Constraint.GREATER_THAN_ZERO]
+
+    assert len(problem.types) == 2
+    assert len(problem.directions) == 2
+    assert len(problem.constraints) == 2
+    assert all([t is not None for t in problem.types])
+    assert all([d is not None for d in problem.directions])
+    assert all([c is not None for c in problem.constraints])
 
 def test_pareto_dominance():
     dominance = ParetoDominance()
