@@ -1,5 +1,5 @@
 ======================
-Decsion Variable Types
+Decision Variable Types
 ======================
 
 Real
