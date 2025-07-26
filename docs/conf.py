@@ -33,6 +33,10 @@ add_module_names = False
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
+html_theme_options = {
+    'prev_next_buttons_location': 'both'
+}
+
 # The initial api/ contents were created with:
 #   sphinx-apidoc --separate --remove-old --no-toc -o docs/api platypus "*test*"
 #
