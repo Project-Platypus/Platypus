@@ -8,5 +8,6 @@ Platypus_Opt.egg-info/
 build/
 dist/
 docs/_build/
+docs/make.bat
 .ipynb_checkpoints/
 .idea
