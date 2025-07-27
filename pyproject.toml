@@ -9,15 +9,34 @@ authors = [
   { name="David Hadka", email="dhadka@users.noreply.github.com" },
 ]
 readme = "README.md"
-license = { file="COPYING" }
 requires-python = ">= 3.8"
 dependencies = []
 dynamic = ["version"]
+license = "GPL-3.0-only"
+license-files = ["COPYING"]
+keywords = [
+    "optimization",
+    "evolutionary algorithm"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.8",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering"
+]
 
 [project.urls]
-"Homepage" = "https://github.com/Project-Platypus/Platypus"
-"Documentation" = "https://platypus.readthedocs.io/"
-"Bug Tracker" = "https://github.com/Project-Platypus/Platypus/issues"
+Homepage = "https://github.com/Project-Platypus/Platypus"
+Documentation = "https://platypus.readthedocs.io/"
+Tracker = "https://github.com/Project-Platypus/Platypus/issues"
 
 [project.optional-dependencies]
 test = ["pytest", "mock", "flake8", "flake8-pyproject", "numpy", "matplotlib", "jsonpickle"]
