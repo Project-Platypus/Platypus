@@ -1,9 +1,19 @@
 # Platypus
 
-[![Test and Publish](https://github.com/Project-Platypus/Platypus/actions/workflows/test-and-publish.yml/badge.svg)](https://github.com/Project-Platypus/Platypus/actions/workflows/test-and-publish.yml)
-[![Documentation Status](https://readthedocs.org/projects/platypus/badge/?version=latest)](http://platypus.readthedocs.org/en/latest/?badge=latest)
 [![PyPI Latest Release](https://img.shields.io/pypi/v/Platypus-Opt.svg)](https://pypi.org/project/Platypus-Opt/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Platypus-opt)
+![PyPI - Status](https://img.shields.io/pypi/status/Platypus-opt)
+
+
+[![Test and Publish](https://github.com/Project-Platypus/Platypus/actions/workflows/test-and-publish.yml/badge.svg)](https://github.com/Project-Platypus/Platypus/actions/workflows/test-and-publish.yml) [![Documentation Status](https://readthedocs.org/projects/platypus/badge/?version=latest)](http://platypus.readthedocs.org/en/latest/?badge=latest)
+![GitHub last commit](https://img.shields.io/github/last-commit/Project-Platypus/Platypus)
+
+
 [![PyPI](https://img.shields.io/pypi/dm/Platypus-Opt.svg)](https://pypi.org/project/Platypus-Opt/)
+![GitHub Repo stars](https://img.shields.io/github/stars/Project-Platypus/Platypus)
+![GitHub forks](https://img.shields.io/github/forks/Project-Platypus/Platypus)
+![GitHub License](https://img.shields.io/github/license/Project-Platypus/Platypus)
+
 
 ### What is Platypus?
 
