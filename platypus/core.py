@@ -1041,9 +1041,9 @@ class Archive:
         """Try adding a solution to this archive.
 
         Three outcomes can occur when adding a solution:
-        1. The solution is non-dominated.  The new solution is added to the
-           archive.
-        2. The solution dominiates one or more members of the archive.  The
+
+        1. The solution is non-dominated.  The new solution is added to the archive.
+        2. The solution dominiates one or more members of the archive. The
            dominated solutions are removed and the new solution added.
         3. The solution is dominated by one or more members of the archive.
            The new solution is rejected and the archive is unchanged.
@@ -1132,7 +1132,7 @@ class AdaptiveGridArchive(Archive):
     """A bounded archive using density to truncate solutions.
 
     The objective space is partitioned into a grid containing
-    :code:`math.pow(divisions, nobjs)` cells.  Please note that this can
+    :code:`math.pow(divisions, nobjs)` cells. Please note that this can
     quickly result in a large internal array or an integer overflow as either
     :code:`divisions` or :code:`nobjs` grows.
 
