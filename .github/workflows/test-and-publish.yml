@@ -31,6 +31,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt update
+          sudo apt install libjpeg-dev zlib1g-dev
           pip install .[test]
 
       - name: Run flake8
