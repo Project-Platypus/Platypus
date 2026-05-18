@@ -39,3 +39,5 @@ def test_problem(problem):
     assert all([x is not None for x in s.variables])
     assert all([x is not None for x in s.objectives])
     assert all([x is not None for x in s.constraints])
+    assert all([isinstance(x, (int, float)) for x in s.objectives])
+    assert all([isinstance(x, (int, float)) for x in s.constraints])
