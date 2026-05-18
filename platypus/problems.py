@@ -1374,7 +1374,7 @@ class CF8(Problem):
         f2 = math.cos(0.5*math.pi*x[0]) * math.sin(0.5*math.pi*x[1]) + 2.0*sum2/count2
         f3 = math.sin(0.5*math.pi*x[0]) + 2.0*sum3/count3
         c1 = (f1**2 + f2**2) / (1.0 - f3**2) - a*abs(math.sin(N*math.pi*((f1**2 - f2**2) / (1.0 - f3**2) + 1.0))) - 1.0
-        solution.objectives[:] = [f1, f2]
+        solution.objectives[:] = [f1, f2, f3]
         solution.constraints[:] = [c1]
 
 class CF9(Problem):
@@ -1413,7 +1413,7 @@ class CF9(Problem):
         f2 = math.cos(0.5*math.pi*x[0]) * math.sin(0.5*math.pi*x[1]) + 2.0*sum2/count2
         f3 = math.sin(0.5*math.pi*x[0]) + 2.0*sum3/count3
         c1 = (f1**2 + f2**2) / (1.0 - f3**2) - a*math.sin(N*math.pi*((f1**2 - f2**2) / (1.0 - f3**2) + 1.0)) - 1.0
-        solution.objectives[:] = [f1, f2]
+        solution.objectives[:] = [f1, f2, f3]
         solution.constraints[:] = [c1]
 
 class CF10(Problem):
@@ -1453,7 +1453,7 @@ class CF10(Problem):
         f2 = math.cos(0.5*math.pi*x[0]) * math.sin(0.5*math.pi*x[1]) + 2.0*sum2/count2
         f3 = math.sin(0.5*math.pi*x[0]) + 2.0*sum3/count3
         c1 = (f1**2 + f2**2) / (1.0 - f3**2) - a*math.sin(N*math.pi*((f1**2 - f2**2) / (1.0 - f3**2) + 1.0)) - 1.0
-        solution.objectives[:] = [f1, f2]
+        solution.objectives[:] = [f1, f2, f3]
         solution.constraints[:] = [c1]
 
 ################################################################################
