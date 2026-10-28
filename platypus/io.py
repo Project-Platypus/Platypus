@@ -244,7 +244,7 @@ def save_state(file, algorithm, json=False, indent=None):
     if json:
         import jsonpickle
         with open(os.fspath(file), "w") as f:
-            f.write(jsonpickle.dumps(state, indent=indent))
+            f.write(jsonpickle.dumps(state, indent=indent, keys=True))
     else:
         with open(os.fspath(file), "wb") as f:
             f.write(pickle.dumps(state))
@@ -269,7 +269,7 @@ def load_state(file, update_rng=True):
                 content = f.read()
 
             import jsonpickle
-            state = jsonpickle.loads(content)
+            state = jsonpickle.loads(content, keys=True)
         except UnicodeDecodeError:
             # Fall back to using the binary format (this error likely indicates
             # the file is missing the UTF-8 byte order mark)

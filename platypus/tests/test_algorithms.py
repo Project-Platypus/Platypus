@@ -75,8 +75,8 @@ def test_pickle(algorithm):
 
 @pytest.mark.parametrize("algorithm", create_instances())
 def test_jsonpickle(algorithm):
-    s = jsonpickle.dumps(algorithm)
-    copy = jsonpickle.loads(s)
+    s = jsonpickle.dumps(algorithm, keys=True)
+    copy = jsonpickle.loads(s, keys=True)
     similar(algorithm, copy)
 
 @pytest.mark.parametrize("algorithm", create_instances())
