@@ -52,6 +52,8 @@ algorithms = {
 constraints_not_supported = {IBEA}
 
 def create_instances():
+    instances = []
+
     for problem in problems:
         for algorithm in algorithms.keys():
             for i, kwargs in enumerate(algorithms[algorithm]):
@@ -61,7 +63,9 @@ def create_instances():
                 if algorithm in constraints_not_supported and p.nconstrs > 0:
                     continue
 
-                yield pytest.param(algorithm(p, **kwargs), id=id)
+                instances.append(pytest.param(algorithm(p, **kwargs), id=id))
+
+    return instances
 
 @pytest.mark.parametrize("algorithm", create_instances())
 def test_pickle(algorithm):
@@ -71,8 +75,8 @@ def test_pickle(algorithm):
 
 @pytest.mark.parametrize("algorithm", create_instances())
 def test_jsonpickle(algorithm):
-    s = jsonpickle.dumps(algorithm)
-    copy = jsonpickle.loads(s)
+    s = jsonpickle.dumps(algorithm, keys=True)
+    copy = jsonpickle.loads(s, keys=True)
     similar(algorithm, copy)
 
 @pytest.mark.parametrize("algorithm", create_instances())
